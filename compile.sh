@@ -69,7 +69,7 @@ function compile_latex_book() {
   echo COMPILING Book
   echo =========================================================
 
-       produce_pdf . EnterprisePharo
+       produce_pdf . PharoChaptersInProgress
 }
 
 function latex_enabled() {

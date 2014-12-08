@@ -69,10 +69,7 @@
 \setcounter{page}{1}
 \pagestyle{headings}
 %=================================================================
-\author{
-        Damien Cassou\quad \\
-        St\'ephane Ducasse\quad \\
-        ... and Many More :)}
+\author{[ Many Square Bracket Knights ]}
 \title{\Huge\bf Pharo Chapters In Progress}
 \isodate
 \date{\emph{Version of \today}}
