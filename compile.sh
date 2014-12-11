@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is meant for the EnterprisePharo book. You can use it for other projects
 
@@ -69,7 +69,7 @@ function compile_latex_book() {
   echo COMPILING Book
   echo =========================================================
 
-       produce_pdf . PharoChaptersInProgress
+       produce_pdf . EnterprisePharo
 }
 
 function latex_enabled() {
