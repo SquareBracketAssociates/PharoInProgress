@@ -7,54 +7,14 @@
         vmargin={.75in,1in},
         ignoreheadfoot
 ]{geometry}
-\input{../_support/latex/common.tex}
+\input{../support/latex/common.tex}
 \setboolean{lulu}{true}
 %=================================================================
 % Add the path for the figures of each chapter here:
 \graphicspath{
-        {../figures/}
-        {../Bloc/}
-        {../Reef/}
-        {../Mapless/}
-        {../Artefact/}
-        {../Athens/}
-        {../Logger/}
-        {../Nautilus/}
-        {../BabyMock/}
-        {../BioPharo/}
-        {../CalculatorTutorial/}
-        {../ComparingSolutions/}
-        {../ConcurrencyBasics/}
-        {../DSL/}
-        {../WebSockets/}
-        {../Deltawerken/}
-        {../Fuel/}
-        {../Installation/}
-        {../KeyMapping/}
-        {../Lint/}
-        {../Localization/}
-        {../MetacelloIntro/}
-        {../NativeBoost/}
-        {../NeoCSV/}
-        {../NeoJSON/}
-        {../Sound/}
-        {../ParseTreeRewriter/}
-        {../Reddit/}
-        {../NeoCSV/}
-        {../ODE/}
-        {../STON/}
-        {../ST99/}
-        {../Spec/}
-        {../RenoirST/}
-        {../Voyage/}
-        {../Zinc/}
-        {../Telescope/}
-        {../WebApp/}
-        {../Smacc/}
-        {../GitAndPharo/}
-        {../RewriteTool/}
-        {../Seamless/}
-        {../BlockTranslators/}
+	{../figures/}
+  	{../Athens/}
+	{../Spec/}	
 }
 %=================================================================
 \let\wholebook=\relax
@@ -72,8 +32,8 @@
 \author{
         Damien Cassou\quad \\
         St\'ephane Ducasse\quad \\
-        ... and Many More :)}
-\title{\Huge\bf Pharo for the Enterprise}
+     	Sven Van Caekenberghe}
+\title{\Huge\bf Pharo in Progress}
 \isodate
 \date{\emph{Version of \today}}
 \maketitle
