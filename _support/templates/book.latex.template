@@ -7,54 +7,54 @@
         vmargin={.75in,1in},
         ignoreheadfoot
 ]{geometry}
-\input{_support/latex/common.tex}
+\input{../_support/latex/common.tex}
 \setboolean{lulu}{true}
 %=================================================================
 % Add the path for the figures of each chapter here:
 \graphicspath{
-        {figures/}
-		{Bloc/}
-		{Reef/}
-        {Mapless/}
-		{Artefact/}
-        {Athens/}
-        {Logger/}
-		{Nautilus/}
-        {BabyMock/}
-        {BioPharo/}
-        {CalculatorTutorial/}
-        {ComparingSolutions/}
-        {ConcurrencyBasics/}
-        {DSL/}
-        {WebSockets/}
-        {Deltawerken/}
-        {Fuel/}
-        {Installation/}
-        {KeyMapping/}
-        {Lint/}
-		{Localization/}
-        {MetacelloIntro/}
-        {NativeBoost/}
-        {NeoCSV/}
-		{NeoJSON/}
-		{Sound/}
-        {ParseTreeRewriter/}
-        {Reddit/}
-        {NeoCSV/}
-        {ODE/}
-        {STON/}
-        {ST99/}
-        {Spec/}
-        {RenoirST/}
-        {Voyage/}
-        {Zinc/}
-		{Telescope/}
-        {WebApp/}
-        {Smacc/}
-        {GitAndPharo/}
-		{RewriteTool/}
-		{Seamless/}
-        {BlockTranslators/}
+        {../figures/}
+        {../Bloc/}
+        {../Reef/}
+        {../Mapless/}
+        {../Artefact/}
+        {../Athens/}
+        {../Logger/}
+        {../Nautilus/}
+        {../BabyMock/}
+        {../BioPharo/}
+        {../CalculatorTutorial/}
+        {../ComparingSolutions/}
+        {../ConcurrencyBasics/}
+        {../DSL/}
+        {../WebSockets/}
+        {../Deltawerken/}
+        {../Fuel/}
+        {../Installation/}
+        {../KeyMapping/}
+        {../Lint/}
+        {../Localization/}
+        {../MetacelloIntro/}
+        {../NativeBoost/}
+        {../NeoCSV/}
+        {../NeoJSON/}
+        {../Sound/}
+        {../ParseTreeRewriter/}
+        {../Reddit/}
+        {../NeoCSV/}
+        {../ODE/}
+        {../STON/}
+        {../ST99/}
+        {../Spec/}
+        {../RenoirST/}
+        {../Voyage/}
+        {../Zinc/}
+        {../Telescope/}
+        {../WebApp/}
+        {../Smacc/}
+        {../GitAndPharo/}
+        {../RewriteTool/}
+        {../Seamless/}
+        {../BlockTranslators/}
 }
 %=================================================================
 \let\wholebook=\relax
