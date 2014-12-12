@@ -471,29 +471,32 @@ The ==\+== and ==-== symbols appear on the first line and have the lowest preced
 
 !!!Start Symbols
 
-By default, the left-hand side of the first grammar rule is the start symbol. If you want to multiple start symbols, then you can specify them by using the "\%start" directive followed by the nonterminals that are additional start symbols. This is useful for creating two parsers with two grammars that are similar but slightly different. For example, consider a Smalltalk parser. You can parse methods, and you can parse expressions. These are two different operations, but have very similar grammars. Instead of creating two different parsers for parsing methods and expressions, we can specify one grammar that parses methods and also specify another starting position for parsing expressions. The StParser in the SmaCC Example Parsers package has an example of this. The StParser class>>parseMethod: uses the #startingStateForMethod position to parse methods and the StParser class>>parseExpression: uses the #startingStateForSequenceNode position to parse expressions.
+By default, the left-hand side of the first grammar rule is the start symbol. If you want to multiple start symbols, then you can specify them by using the ==\%start== directive followed by the nonterminals that are additional start symbols. This is useful for creating two parsers with two grammars that are similar but slightly different. For example, consider a Pharo parser. You can parse methods, and you can parse expressions. These are two different operations, but have very similar grammars. Instead of creating two different parsers for parsing methods and expressions, we can specify one grammar that parses methods and also specify another starting position for parsing expressions. The ==StParser== in the SmaCC Example Parsers package has an example of this. The ==StParser class>>parseMethod:== uses the ==startingStateForMethod== position to parse methods and the ==StParser class>>parseExpression:== uses the ==startingStateForSequenceNode== position to parse expressions.
 
 
 !!!Id Methods
 
-Internally, the various token types are represented as integers. However, there are times that you need to reference the various token types. For example, in the CScanner and CParser classes, the TYPE_NAME token is identical to the IDENTIFIER token. The IDENTIFIER matching method does a lookup in the type table and if it finds a type definition with the same name as the current IDENTIFIER, it returns the TYPE_NAME token type. To determine what integer this is, the parser was created with an \%id directive for <IDENTIFIER> and <TYPE_NAME>. This generates the IDENTIFIERId and TYPE_NAMEId methods on the scanner. These methods simply return the number representing that token type. See the C sample scanner and parser for an example of how this is used.
+Internally, the various token types are represented as integers. However, there are times that you need to reference the various token types. For example, in the CScanner and CParser classes, the ==TYPE_NAME== token is identical to the IDENTIFIER token. The IDENTIFIER matching method does a lookup in the type table and if it finds a type definition with the same name as the current IDENTIFIER, it returns the TYPE_NAME token type. To determine what integer this is, the parser was created with an ==\%id== directive for <IDENTIFIER> and <TYPE_NAME>. This generates the IDENTIFIERId and TYPE_NAMEId methods on the scanner. These methods simply return the number representing that token type. See the C sample scanner and parser for an example of how this is used.
 
 
 !!!Case Insensitive Scanning
 
-You can specify that the scanner should ignore case differences by using the "\%ignorecase;" directive. If you have a language that is case insensitive and has several keywords, this can be a handy feature to have. For example, if you have "THEN" as a keyword in a case insensitive language, you would need to specify a token for then as "<then> : [tT] [hH] [eE] [nN] ;". This is a pain to enter correctly. When the ignorecase directive is used, SmaCC will automatically convert "THEN" into "[tT][hH][eE][nN]".
+You can specify that the scanner should ignore case differences by using the ==\%ignorecase;== directive. If you have a language that is case insensitive and has several keywords, this can be a handy feature to have. For example, if you have ==THEN== as a keyword in a case insensitive language, you would need to specify a token for then as ==<then> : [tT] [hH] [eE] [nN] ;==. This is a pain to enter correctly. When the ignorecase directive is used, SmaCC will automatically convert ==THEN== into ==[tT][hH][eE][nN]==.
 
 
 !!!GLR Parsing
 
-SmaCC allows you to parse ambiguous grammars using a GLR parser. The "%glr;" directive changes the type of parser that SmaCC generates. Instead of your generated parser being a subclass of SmaCCParser, when you specify the "%glr;" directive, your parser will be a subclass of SmaCCGLRParser.
+SmaCC allows you to parse ambiguous grammars using a GLR parser. The ==%glr;== directive changes the type of parser that SmaCC generates. Instead of your generated parser being a subclass of ==SmaCCParser==, when you specify the ==%glr;== directive, your parser will be a subclass of SmaCCGLRParser.
 
-If you parse a string that has multiple representations, SmaCC will throw a SmaCCAmbiguousResultNotification exception that can be handled by user code. This exception has the potential parses. The value that it is resumed with will be selected as the definitive parse value. If the exception is not handled, then it will pick one as the definitive parse value.
+If you parse a string that has multiple representations, SmaCC will throw a ==SmaCCAmbiguousResultNotification== exception that can be handled by user code. This exception has the potential parses. The value that it is resumed with will be selected as the definitive parse value. If the exception is not handled, then it will pick one as the definitive parse value.
 
 
 !!!AST Directives
 
-There are several directives that are used when creating AST's. The "%root" directive is used to specify the root class in the AST hierarchy. The %root directive has a single argument that is the name that will be used to create the root class in the AST. This class will be created as a subclass of SmaCCParseNode. The "%prefix" and "%suffix" directives tell SmaCC the prefix and suffix to add to every AST node's class name. These are automatically added to every AST node including the %root node. For example, the following will create a RBProgramNode class that is a subclass of SmaCCParseNode and is the root of all AST nodes defined by this parser.
+There are several directives that are used when creating AST's. 
+
+- The ==%root== directive is used to specify the root class in the AST hierarchy. The ==%root== directive has a single argument that is the name that will be used to create the root class in the AST. This class will be created as a subclass of ==SmaCCParseNode==. 
+- The ==%prefix== and ==%suffix== directives tell SmaCC the prefix and suffix to add to every AST node's class name. These are automatically added to every AST node including the %root node. For example, the following will create a ==RBProgramNode== class that is a subclass of ==SmaCCParseNode== and is the root of all AST nodes defined by this parser.
 
 [[[
 %root Program;
@@ -501,13 +504,16 @@ There are several directives that are used when creating AST's. The "%root" dire
 %suffix Node;
 ]]]
 
-By default all nodes created by SmaCC will be direct subclass of your %root class. However, you can specify the hierarchy by using the "%hierarchy" directive. The syntax of the %hierarchy is "%hierarchy SuperclassName ( SubclassName );". If you have multiple subclasses, you can list all of them inside the parenthesis separated by whitespace:
+By default all nodes created by SmaCC will be direct subclass of your ==%root class==. However, you can specify the hierarchy by using the ==%hierarchy== directive. The syntax of the ==%hierarchy== is ==%hierarchy SuperclassName ( SubclassName );==. If you have multiple subclasses, you can list all of them inside the parenthesis separated by whitespace:
 
 [[[
 %hierarchy Program (Expression Statement);
 ]]]
 
-Two final AST directives deal with the generated classes' instance variables. One directive allows you to add some unused instance variables to your classes so you can later extend the generated classes to use those variables. To add an instance variable to your class, you can use the %attributes directive. The first argument to the directive is the class name, and the second argument is a list of variable names. For example, we could add a variable named "cachedValue" to our Expression class with the following "%attributes Expression (cachedValue);". The other instance variable directive is "%ignore_variables". When SmaCC creates the AST nodes it automatically creates appropriate #= and #hash methods. By default, these methods use all variables when comparing equality. The %ignore_variables directive allows you to specify certain variables to ignore when comparing. For example, you may wish to ignore parentheses when you compare expressions. If you named your "(" token 'leftParen' and you ")" token 'rightParen', then you can use "%ignore_variables leftParen rightParen;".
+Two final AST directives deal with the generated classes' instance variables. 
+
+- One directive allows you to add some unused instance variables to your classes so you can later extend the generated classes to use those variables. To add an instance variable to your class, you can use the ==%attributes== directive. The first argument to the directive is the class name, and the second argument is a list of variable names. For example, we could add a variable named ==cachedValue== to our ==Expression== class with the following ==%attributes Expression (cachedValue);==. 
+- The other instance variable directive is ==%ignore_variables==. When SmaCC creates the AST nodes it automatically creates appropriate ==\=== and ==hash== methods. By default, these methods use all variables when comparing equality. The ==%ignore_variables== directive allows you to specify certain variables to ignore when comparing. For example, you may wish to ignore parentheses when you compare expressions. If you named your ==(== token 'leftParen' and your ==)== token 'rightParen', then you can use ==%ignore_variables leftParen rightParen;==.
 
 !!SmaCC Scanner
 
@@ -519,41 +525,41 @@ The scanner is specified by a collection of token specifications. Each token is 
 TokenName    :    RegularExpression ;
 ]]]
 
-TokenName is a valid Smalltalk variable name that is surrounded by <>. For example, "<token>" is a valid TokenName, but "<token name>" is not since "token name" isn't a valid Smalltalk variable name. The RegularExpression is a regular expression that matches a token. It should match one or more characters in the input stream. The colon character, ":", is used to separate the TokenName and the RegularExpression, and the semicolon character, ";", is used to terminate the token specification.
+TokenName is a valid Smalltalk variable name that is surrounded by ==<>==. For example, ==<token>== is a valid ==TokenName==, but ==<token name>== is not since ==token name== isn't a valid Smalltalk variable name. The ==RegularExpression== is a regular expression that matches a token. It should match one or more characters in the input stream. The colon character, ==:==, is used to separate the TokenName and the ==RegularExpression==, and the semicolon character, ==;==, is used to terminate the token specification.
 
 
 !!!Regular Expression Syntax
 
-While the rules are specified as regular expressions, there are many different syntaxes for regular expressions. We choose a relatively simple syntax that is specified below. If you wish to have a more rich syntax, you can modify the scanner's parser: SmaCCDefinitionScanner & SmaCCDefinitionParser. These classes were created using SmaCC.
+While the rules are specified as regular expressions, there are many different syntaxes for regular expressions. We choose a relatively simple syntax that is specified below. If you wish to have a more rich syntax, you can modify the scanner's parser: ==SmaCCDefinitionScanner== and ==SmaCCDefinitionParser==. These classes were created using SmaCC.
 
 ;\\character
 :Matches a special character. The character immediately following the backslash is matched exactly, unless it is a letter. Backslash-letter combinations have other meanings and are specified below.
 ;\\cLetter
-:Matches a control character. Control characters are the first 26 characters (e.g., \\cA equals "Character value: 0"). The letter that follows the "\\c" must be an uppercase letter.
+:Matches a control character. Control characters are the first 26 characters (e.g., \\cA equals ==Character value: 0==). The letter that follows the "\\c" must be an uppercase letter.
 ;\\d
 :Matches a digit, 0-9.
 ;\\D
 :Matches anything that is not a digit.
 ;\\f
-:Matches a form-feed character, "Character value: 12".
+:Matches a form-feed character, ==Character value: 12==.
 ;\\n
-:Matches a newline character, "Character value: 10".
+:Matches a newline character, ==Character value: 10==.
 ;\\r
-:Matches a carriage return character, "Character value: 13".
+:Matches a carriage return character, ==Character value: 13==.
 ;\\s
 :Matches any whitespace character, [ \\f\\n\\r\\t\\v].
 ;\\S
 :Matches any non-whitespace character.
 ;\\t
-:Matches a tab, "Character value: 9".
+:Matches a tab, ==Character value: 9==.
 ;\\v
 :Matches a vertical tab, "Character value: 11"
 ;\\w
-:Matches any letter, number or underscore, [A-Za-z0-9_].
+:Matches any letter, number or underscore, ==[A-Za-z0-9_]==.
 ;\\W
 :Matches anything that is not a letter, number or underscore.
 ;\\xHexNumber
-:Matches a character specified by the hex number following the "\\x". The hex number must be at least one character long and no more than four characters for Unicode characters and two characters for non-Unicode characters. For example, "\\x20" matches the space character (Character value: 16r20), and "\\x1FFF" matches "Character value: 16r1FFF".
+:Matches a character specified by the hex number following the ==\\x==. The hex number must be at least one character long and no more than four characters for Unicode characters and two characters for non-Unicode characters. For example, "\\x20" matches the space character (Character value: 16r20), and "\\x1FFF" matches "Character value: 16r1FFF".
 ;<token>
 :Copies the definition of <token> into the current regular expression. For 	example, if we have "<hexdigit> : \\d \| [A-F] ;", we can use <hexdigit> in a later rule: "<hexnumber> : <hexdigit> \+ ;".
 ;<isMethod>
@@ -567,9 +573,9 @@ While the rules are specified as regular expressions, there are many different s
 ;exp1 \| exp2
 :Matches either exp1 or exp2.
 ;exp1 exp2
-:Matches exp1 followed by exp2. "\\d \\d" matches two digits.
+:Matches exp1 followed by exp2. ==\\d \\d== matches two digits.
 ;exp\*
-:Matches exp zero or more times. "0\*" matches \"\" and "000".
+:Matches exp zero or more times. ==0\*== matches \"\" and "000".
 ;exp?
 :Matches exp zero or one time. "0?" matches only \"\" or "0".
 ;exp\+
@@ -737,6 +743,6 @@ Let's extend our RPN rewriter to support other expressions besides addition. Now
 	>>>`a` `b` `op`<<<
 ]]]
 
-If we transform "(3 \+ 4) \* (5 - 2) ^ 3", we'll get "3 4 \+ 5 2 - 3 ^ \*".
+If we transform ==(3 \+ 4) \* (5 - 2) ^ 3==, we'll get ==3 4 \+ 5 2 - 3 ^ \*==.
 
 
