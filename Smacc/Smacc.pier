@@ -1,6 +1,7 @@
 !SmaCC: The Smalltalk Compiler-Compiler 
 
 This chapter and tutorial was originally written by John Brant and Don Roberts (*SmaCC>http://www.refactory.com/Software/SmaCC*) and adapted to Pharo. This Chapter starts with a walk-through tutorial to demonstrate many of the features of SmaCC, the Smalltalk Compiler Compiler, followed by a detailed description of the features.
+It was ported by Thierry Goubier who is maintaining actively the Smacc Pharo port.
 
 !!SmaCC Tutorial
 
@@ -53,7 +54,7 @@ We don't want to have to worry about whitespace in our language, so we need to d
 
 ==\\s== matches any whitespace character (space, tab, linefeed, etc.). So how do we tell the scanner to ignore it? If you look in the ==SmaCCScanner== class, you will find a method named ==whitespace==. If a scanner understands a method that has the same name as a token name, that method will get called whenever the scanner matches that kind of token. As you can see, the ==SmaCCScanner>>whitespace== method eats whitespace. There is also a ==comment== method that behaves similarly. However, the ==SmaCCScanner>>comment== method also stores the interval in the source where the comment occurred in the comments instance variable.
 
-The only other token that will appear in our system would be the '\+' token for addition. However, since this is token is always the same, we can enter it directly in our production rules.
+The only other token that will appear in our system would be the ==\+== token for addition. However, since this is token is always the same, we can enter it directly in our production rules.
 
 Speaking of our grammar, let's go ahead and define it. Enter the following specification below your two previous rules:
 
@@ -71,7 +72,7 @@ This basically says that an expressions is either a number or an expression adde
 
 +First grammar>file://figures/SmaCCTutorial.png|width=80|label=SmaCCTutorial+
 
-We should be able to compile a parser now. First, we need to specify the scanner and parser classes to create. These are entered from the ==...== buttons for scanner class and parser class. Enter ==CalculatorScanner== and ==CalculatorParser= respectively. Once the class names are entered, we are ready to compile the parser. Press Compile LR(1) or Compile LALR(1). This will create new Pharo classes for the ==CalculatorScanner== and ==CalculatorParser== and compile several methods in those classes. All methods that SmaCC compiles will go into a "generated" method protocol. You should not change those methods or add new methods to the "generated" method protocols since they are replaced or deleted each time you compile.
+We should be able to compile a parser now. First, we need to specify the scanner and parser classes to create. These are entered from the ==...== buttons for scanner class and parser class. Enter ==CalculatorScanner== and ==CalculatorParser== respectively. Once the class names are entered, we are ready to compile the parser. Press Compile LR(1) or Compile LALR(1). This will create new Pharo classes for the ==CalculatorScanner== and ==CalculatorParser== and compile several methods in those classes. All methods that SmaCC compiles will go into a "generated" method protocol. You should not change those methods or add new methods to the "generated" method protocols since they are replaced or deleted each time you compile.
 
 Whenever SmaCC creates new classes, they are compiled in the package (or package tag) named on the Package entry box. You may wish to select a different package by pressing '...'.
 
@@ -579,25 +580,25 @@ While the rules are specified as regular expressions, there are many different s
 ;exp?
 :Matches exp zero or one time. "0?" matches only \"\" or "0".
 ;exp\+
-:Matches exp one or more times. "0\+" matches "0" and "000", but not \"\".
+:Matches exp one or more times. "0\+" matches "0" and ==000==, but not \"\".
 ;exp{min,max}
 :Matches exp at least min times but no more than max times. "0{1,2}" matches only "0" or "00". It does not match \"\" or "000".
 ;(exp)
 :Groups exp for precedence. For example, "(a b)\*" matches "ababab". 	Without the parentheses, "a b \*" would match "abbbb" but not "ababab".
 
-Since there are multiple ways to combine expressions, we need precedence rules for their combination. The or operator, "|", has the lowest precedence and the "\*", "?", "\+", and "{,}" operators have the highest precedence. For example, "a | b c \*" matches "a" or "bcccc", but not "accc" or "bcbcbc". If you wish to match "a" or "b" followed by any number of c's, you need to use "(a | b) c \*".
+Since there are multiple ways to combine expressions, we need precedence rules for their combination. The or operator, ==|==, has the lowest precedence and the "\*", "?", "\+", and "{,}" operators have the highest precedence. For example, ==a | b c \*== matches ==a== or ==bcccc==, but not ==accc== or ==bcbcbc==. If you wish to match ==a== or ==b== followed by any number of c's, you need to use ==(a | b) c \*==.
 
 
 !!!Overlapping Tokens
 
-Unlike T-Gen, SmaCC can handle overlapping tokens with any problems. For example, the following is a legal SmaCC scanner definition:
+Unlike T-Gen, SmaCC can handle overlapping tokens without any problems. For example, the following is a legal SmaCC scanner definition:
 
 [[[
 <variable>	: [a-zA-Z] \w* ;
 <any_character>	: . ;
 ]]]
 
-This definition will match a variable or a single character. A variable can also be a single character [a-zA-Z], so the two tokens overlap. SmaCC handles overlapping tokens by preferring the longest matching token. If multiple tokens match the longest possible token, then the parser uses the first token specified by the grammar unless you override the SmaCCParser>>tryAllTokens method. For example, an "a" could be a <variable> or an <any_character> token, but since <variable> is specified first, SmaCC will use it.
+This definition will match a variable or a single character. A variable can also be a single character ==[a-zA-Z]==, so the two tokens overlap. SmaCC handles overlapping tokens by preferring the longest matching token. If multiple tokens match the longest possible token, then the parser uses the first token specified by the grammar unless you override the ==SmaCCParser>>tryAllTokens== method. For example, an ==a== could be a ==<variable>== or an ==<any_character>== token, but since ==<variable>== is specified first, SmaCC will use it.
 
 
 !!!Matching Methods
@@ -653,19 +654,21 @@ Statements : Expression | Statements "." Expression | error "." Expression ;
 
 While the error recovery allows you to proceed parsing after a syntax error, it will not allow you to return a parse tree from the input. Once the input has been parsed with errors, it will raise a non-resumable SmaCCParserError.
 
-!!SmaCC Transformations
+
+
+!! SmaCC Transformations
 
 Once you have generated your AST using SmaCC, you can use SmaCC's built in transformation support. Let's add support for transforming our simple expressions generated from our AST example.
 
-The first thing we need to do is to extend our grammar by adding two lines. The first line we need to add is the definition of a pattern for our language. When your grammar defines the <patternToken>, SmaCC uses this as the definition of a pattern for your language. For most languages, patterns are simply anything delimited by ` characters (e.g., `pattern`). The other line we need to add is the line to tell SmaCC to generate a GLR parser (%glr;). This allows SmaCC to parse all possible representations of a pattern expression. Here is our grammar with those two additional lines:
+The first thing we need to do is to extend our grammar by adding two lines. The first line we need to add is the definition of a pattern for our language. When your grammar defines the ==<patternToken>==, SmaCC uses this as the definition of a pattern for your language. For most languages, patterns are simply anything delimited by ==`== characters (e.g., ==`pattern`==). The other line we need to add is the line to tell SmaCC to generate a GLR parser (==%glr;==). This allows SmaCC to parse all possible representations of a pattern expression. Here is our grammar with those two additional lines:
 
 [[[
 	<number> : [0-9]+ (\. [0-9]*) ? ;
 	<name> : [a-zA-Z]\w*;
 	<whitespace> : \s+;
 
-	<patternToken> : \` [^\`]* \` ;
-	%glr;
++	<patternToken> : \` [^\`]* \` ;
++	%glr;
 
 	%left "+" "-";
 	%left "*" "/";
@@ -696,9 +699,9 @@ The first thing we need to do is to extend our grammar by adding two lines. The 
 		| Arguments "," Expression 'argument';
 ]]]
 
-These changes modify our grammar to support parsing pattern matching expressions. Pattern matching expressions look like normal expressions, but may include pattern's that are surrounded by the back quote, `, character. For example, "`a` \+ 1" is a simple pattern matching expression that matches any expression \+ 1. Once the pattern has been matched, we can supply a replacement expression that uses the pattern variables from our match. Replacement expressions are strings that can contain back quoted variables. These back quoted variables are replaced with their source from their corresponding matched node. For example, if we are searching for "`a` \+ 1", we can supply a replacement expression like "1 \+ `a`". This pattern will match "(3 \+ 4) \+ 1". When we perform the replacement we take the literal "1 \+ " part of the string and concatenate the value of the node that matched `a`. In this case, we would concatenate "(3 \+ 4)" to give us "1 \+ (3 \+ 4)".
+These changes modify our grammar to support parsing pattern matching expressions. Pattern matching expressions look like normal expressions, but may include pattern's that are surrounded by the back quote, ==`==, character. For example, ==`a` \+ 1== is a simple pattern matching expression that matches any expression ==\+ 1==. Once the pattern has been matched, we can supply a replacement expression that uses the pattern variables from our match. Replacement expressions are strings that can contain back quoted variables. These back quoted variables are replaced with their source from their corresponding matched node. For example, if we are searching for ==`a` \+ 1==, we can supply a replacement expression like ==1 \+ `a`==. This pattern will match ==(3 \+ 4) \+ 1==. When we perform the replacement we take the literal ==1 \+ == part of the string and concatenate the value of the node that matched ==`a`==. In this case, we would concatenate ==(3 \+ 4)== to give us ==1 \+ (3 \+ 4)==.
 
-As an example, let's rewrite addition expressions using reverse Polish notation. Our search pattern is "`a` \+ `b`" and our replacement expression is "`a` `b` \+".
+As an example, let's rewrite addition expressions using reverse Polish notation. Our search pattern is ==`a` \+ `b`== and our replacement expression is ==`a` `b` \+==.
 
 [[[
 	| rewriter compositeRewrite rewrite matcher transformation |
@@ -718,7 +721,7 @@ As an example, let's rewrite addition expressions using reverse Polish notation.
 	rewriter rewriteTree: (CalculatorParser parse: '(3 + 4) + (4 + 3)')
 ]]]
 
-This code rewrites "(3 \+ 4) \+ (4 \+ 3)" in RPN format and returns "3 4 \+ 4 3 \+ \+". The first match that this finds is `a` = (3 \+ 4) and `b` = (4 \+ 3). Inside our replacement expression, we refer to `a` and `b`, so we first process those expression for more transformations. Since both contain other addition expressions, we rewrite both expressions to get `a` = 3 4 \+ and `b` = 4 3 \+.
+This code rewrites ==(3 \+ 4) \+ (4 \+ 3)== in RPN format and returns ==3 4 \+ 4 3 \+ \+==. The first match that this finds is ==`a`== = ==(3 \+ 4)== and ==`b`== = ==(4 \+ 3)==. Inside our replacement expression, we refer to ==`a`== and ==`b`==, so we first process those expression for more transformations. Since both contain other addition expressions, we rewrite both expressions to get ==`a`== = ==3 4 \+== and ==`b`== = ==4 3 \+==.
 
 Here's the same example, using SmaCC special rewrite syntax.
 
@@ -726,23 +729,25 @@ Here's the same example, using SmaCC special rewrite syntax.
 	| rewriter rewriteExpression |
 	rewriteExpression := 
 		'Parser: CalculatorParser
-		>>>`a` + `b`<<<
+		\>\>\>`a` + `b`\<\<\<
 		->
-		>>>`a` `b` +<<<'.
+		\>\>\>`a` `b` +\<\<\<'.
 	rewriter := SmaCCRewriteEngine new.
 	rewriter rewriteRule: (SmaCCRewriteRuleFileParser parse: rewriteExpression).
 	rewriter rewriteTree: (CalculatorParser parse: '(3 + 4) + (4 + 3)')
 ]]]
 
-Let's extend our RPN rewriter to support other expressions besides addition. Now we could do that by providing rewrites for all possible operators (\+, -, \*, /, ^), but it would be better if we could do it with patterns. We may wish to do use "`a` `op` `b`", but the pattern `op` will only match AST nodes and not a token (\+). We can tell SmaCC to match tokens by using "`a` `op{beToken}` `b`". Here's the rewrite expression that works for all expressions:
+Let's extend our RPN rewriter to support other expressions besides addition. Now we could do that by providing rewrites for all possible operators (\+, -, \*, /, ^), but it would be better if we could do it with patterns. We may wish to do use ==`a` `op` `b`==, but the pattern ==`op`== will only match AST nodes and not a token ==(\+)==. We can tell SmaCC to match tokens by using ==`a` `op{beToken}` `b`==. Here's the rewrite expression that works for all expressions:
 
 [[[
 	Parser: CalculatorParser
-	>>>`a` `op{beToken}` `b`<<<
+	\>\>\>`a` `op{beToken}` `b`\<\<\<
 	->
-	>>>`a` `b` `op`<<<
+	\>\>\>`a` `b` `op`\<\<\<
 ]]]
 
 If we transform ==(3 \+ 4) \* (5 - 2) ^ 3==, we'll get ==3 4 \+ 5 2 - 3 ^ \*==.
 
-
+!! Conclusion
+Smacc is a really strong and stable library that is used in production since many years. It is an essential assets for dealing with languages. 
+While PetitParser is useful for composing and reusing fragments of parsers, Smacc offers speed and more traditional parsing technology.
