@@ -93,7 +93,7 @@ package my.package;
 import org.metagnostic.jniport.*;
 public class MyClass
 {
-	private static final Object	notifyTag = new String("MyClass.sendNotification()“); 
+	private static final Object	notifyTag = new String("MyClass.sendNotification()"); 
 	public static Object notifyTag () { return notifyTag; }
 	public void sendNotification()
 		throws RequestNotHandedException
@@ -107,7 +107,7 @@ public class MyClass
 You have to install the callback in Pharo:
 
 [[[
-NotificationHandler := … "the object which receives the notifications"
+NotificationHandler := ... "the object which receives the notifications"
 classStatic := jvm findClass: 'my.package.MyClass'.
 jvm callbackRegistry
 	setCallback: classStatic notifyTag "the tag can be an arbitrary String"
@@ -116,7 +116,7 @@ jvm callbackRegistry
 
 When you send ==sendNotification()== to an instance of ==MyClass==, ==NotificationHandler== should receive the message ==handleNotificationFor:==.
 
-In the example code, the tag is a static variable in MyClass. Of course, you can also give every instance of MyClass its own tag. In this case, you have to set up a callback in Smalltalk for every tag which is used. 
+In the example code, the tag is a static variable in MyClass. Of course, you can also give every instance of MyClass its own tag. In this case, you have to set up a callback in Smalltalk for every tag which is used.
 
 The example is a short version of the test code for handling notifications in JNIPortCallbackNotificationsTest and the corresponding Java class org.metagnostic.jniport.test.regression.Notifications. The source code of this Java class is in the archive JNIPort-Tests.zip which is contained in JNIPort_Extras.zip.
 
@@ -125,7 +125,7 @@ If you need an example for a notification which has parameters and where the Sma
 In the Java class, you need something like this (copied from Callbacks and simplified) which enables a callback taking an int parameter and returning an instance of the Java class Integer:
 
 [[[
-	 private static final Object callbackTag = new String(„callback with parameters"), 
+	 private static final Object callbackTag = new String("callback with parameters"), 
 
 	// callback with return value
 	public int callbackAndReturn(int i)
@@ -177,7 +177,7 @@ handleCallbackFor: aJavaObject with: anotherJavaObject
 	callbacksStatus addLast: (aJavaObject = instance).	"identity test on the Java object"
 	callbacksStatus addLast: ((anotherJavaObject static = jliClass) and: [anotherJavaObject intValue = 1]).
 
-	^ jliClass new_int: 15. "Do not return a Smalltalk Integer. It must be a Java Integer“
+	^ jliClass new_int: 15. "Do not return a Smalltalk Integer. It must be a Java Integer"
 ]]]
 
 Johan Brichau’s JavaConnect had a more direct way of creating callbacks, using Java’s dynamic proxies. However, it had an open issue, as it relied on different Java objects having different identity hashes, which is not true in all cases. JNIPort’s implementation is relatively complicated because it had to take into account that the callbacks can be triggered from a different thread than the Smalltalk thread. In VisualWorks, that’s not a problem, as the VM handles this, and Pharo simply does not support callbacks from foreign threads. So, it could be simplified in JNIPort as well.
