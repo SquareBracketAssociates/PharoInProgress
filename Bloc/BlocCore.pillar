@@ -1,0 +1,45 @@
+{{title: Bloc core}}
+{{author: Alain Plantec}}
+
+!Starting with Bloc
+
+!!Introduction
+
+*Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc* is a new implementation of Morphic.
+bla bla...
+
+!!!A first Example
+The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
+To open a morph (an instance of ==BlMorph==) one can simply evaluate the expression of the script *FirstMorph0*.
+
+[[[label=FirstMorph0|caption=Opening a minimal morph|language=Smalltalk
+BlMorph new openInWorld
+]]]
+
+As you can see, apparently nothing changed in the world but yes, it works. In fact, a morph is associated with a view. 
+This is the responsibility of the morph view to decide how to render the morph. By default, a morph is associated with a minimal view.
+This minimal view is an instance of ==BlMinimalView==. A minimal view has an extent but draw nothing. 
+But don't worry, to manipulate this morph, the ==halo== is your friend.
+By default, the position of a morph is at the top-left corner of its owner.
+Move the mouse near the top left of the Pharo screen and click with the middle button (or Alt-Click). You should see the halo as depicted in Figure *Halo0*.
+
++The halo opened around our first morph>file://figures/halo0.png|width=30|label=Halo0+
+
+Then you can move the morph by dragging the halo, resize it with the yellow handle, open inspectors with the blue one, delete the halo or delete de morph with the black and the red handlles.
+
+!!!Changing the view of a morph
+Bloc is mainly made to manage rectangular views. Creating a morph with a plain rectangular view can be programmed as shown in Script *FirstMorph1*.
+The ==#withRectangleViewDo:== sent create a rectangular view (an instance of ==BlRectangleView==) and assign it as the view of the receiver. A ==BlRectangleView== can be filled and can have a border. The block passed as argument to ==#withRectangleViewDo:== set the color of the view with the blue one.
+
+[[[label=FirstMorph1|caption=Opening a blue rectangular morph|language=Smalltalk
+BlMorph new 
+	withRectangleViewDo: [:v | v color: Color blue]; 
+	openInWorld
+]]]
+
+Another way to create the same kind of morph is to send the ==#asMorph== message to the view. This is shown by Script *FirstMorph2*.
+
+[[[label=FirstMorph2|caption=Using the #asMorph message|language=Smalltalk
+(BlRectangleView new color: Color blue) 
+	asMorph openInWorld
+]]]
