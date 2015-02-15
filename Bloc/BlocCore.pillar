@@ -29,7 +29,7 @@ Then you can move the morph by dragging the halo, resize it with the yellow hand
 
 !!!Changing the view of a morph
 Bloc is mainly made to manage rectangular views. Creating a morph with a plain rectangular view can be programmed as shown in Script *FirstMorph1*.
-The ==#withRectangleViewDo:== sent create a rectangular view (an instance of ==BlRectangleView==) and assign it as the view of the receiver. A ==BlRectangleView== can be filled and can have a border. The block passed as argument to ==#withRectangleViewDo:== set the color of the view with the blue one.
+The ==#withRectangleViewDo:== send create a rectangular view (an instance of ==BlRectangleView==) and assign it as the view of the receiver. A ==BlRectangleView== can be filled and can have a border. The block passed as argument to ==#withRectangleViewDo:== set the color of the view with the blue one.
 
 [[[label=FirstMorph1|caption=Opening a blue rectangular morph|language=Smalltalk
 BlMorph new 
@@ -43,3 +43,53 @@ Another way to create the same kind of morph is to send the ==#asMorph== message
 (BlRectangleView new color: Color blue) 
 	asMorph openInWorld
 ]]]
+
+!!!!Fill styles
+
+One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and composite fill styles. The example of Script *FirstMorph3* and *FirstMorph4* show the use of a gradient fill style. The resulting morph are shown in Figures *linearGradient* and *radialGradient*.
+
+[[[label=FirstMorph3|caption=Creating and using a linear gradient fill style|language=Smalltalk
+| view morph fill color |
+color := Color yellow.
+view := BlRectangleView new.
+fill := (BlLinearGradientFillStyle
+		ramp:
+			{(0.0 -> color).
+			(0.3 -> (color alpha: 0.7)).
+			(0.6 -> (color alpha: 0.4)).
+			(1.0 -> (color alpha: 0.2))})
+		start: (view width // 2) @ 0;
+		stop: (view width // 2) @ view height;
+		yourself.
+view fillStyle: fill.
+morph := view asMorph.
+morph openInWorld]]]
+
++A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=10|label=linearGradient+
+
+
+[[[label=FirstMorph4|caption=Creating and using a radial gradient fill style|language=Smalltalk
+| view morph fill color |
+color := Color yellow.
+view := BlRectangleView new.
+fill := (BlRadialGradientFillStyle
+		ramp:
+			{(0.0 -> (color alpha: 0.6)).
+			(0.3 -> (color alpha: 0.9)).
+			(0.5 -> color).
+			(0.8 -> (color muchDarker alpha: 0.9)).
+			(1.0 -> (color muchDarker alpha: 0.5))})
+		center: view center;
+		radius: view width // 2;
+		yourself.
+view fillStyle: fill.
+morph := view asMorph.
+morph openInWorld
+]]]
+
++A morph with a radial gradient>file://figures/morph-with-radial-gradient.png|width=10|label=radialGradient+
+
+
+
+!!!! Adding a border
+
