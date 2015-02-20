@@ -1,12 +1,124 @@
 {{title: Bloc core}}
 {{author: Alain Plantec}}
 
-!Starting with Bloc
+! Bloc: a new morph framework
 
-!!Introduction
+In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc*, a new 2D graphical framework that has been redesigned from scratch. 
+Note that we did not say that Bloc is a new Morphic Framework. Morphic is just the current 2D graphical framework of Pharo. 
+Bloc has been designed to be able to embed Morphic elements so that we can use Morphic widgets during the building of Bloc.
+Thus, in a first step, backward compatibility with Morphic is kept. This means that Morphic based user interfaces can be displayed within Bloc.
+But the inverse is not true, Bloc user interfaces can not be displayed within a Morphic World. 
+When we will have enough widgets in Bloc, we will be able to make a big jump and completely separate Bloc from Morphic. 
 
-*Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc* is a new implementation of Morphic.
-bla bla...
+We describe the overall architecture and the key players of Bloc. Then we present a quick tour of the Bloc core. 
+In this quick tour, a lot of examples are commented-out. These examples are chosen to cover the main aspects of the Bloc core from the programmer's point of view.
+
+!! What is Bloc
+Bloc is a complete rewrite of an infrastructure to display 2D graphical element such as elementary graphical objects 
+and widgets. Bloc is composed of three main categories of entities: entities managing the runtime 
+(event dispatch, alarm, main rendering loop), basic graphical elements such as images, label, and more advanced widgets 
+(to be developed):
+
+- An infrastructure. The new infrastructure is roughly composed of spaces (managed by a single universe) and a rendering loop manager and helper objects.
+- Basic morphs. They are composed of a simple hierarchy whose root is ==BlMorph==. Each morph is potentially composed of a view, an instances of ==BlMorphView== or of one of its subclasses (the view manages the rendering) and an event listener chain (that handles interactions and implements event reactions).
+- Widgets. Each widgets is composed of a widget model implemented following a Model View Presenter style
+
+!! Installing Bloc
+The package repository of Bloc is in Smalltalkhub.
+
+[[[label=Bloc-repository|caption=The Bloc repository at Smalltalkhub|language=Smalltalk
+	MCSmalltalkhubRepository
+		owner: 'AlainPlantec'
+		project: 'Bloc'
+		user: ''
+		password: ''
+]]]
+
+Just install the ConfigurationOfBloc package. Then evaluate the Script *BlocInstall*.
+
+[[[label=BlocInstall|caption=Installation of Bloc through ConfigurationOfBloc|language=Smalltalk
+ConfigurationOfBloc loadBleedingEdge
+]]]
+
+After having installed Bloc, you can see a new submenu in the world menu as shown in Figure *bloc-worldmenu*. Then, just create a new bloc space with the ''New Bloc space'' sub-item and switch to your first Bloc space. 
+
+Being in a Bloc space, the only difference consists in the world-menu invocation: in Bloc, the world-menu is invoqued with the right mouse button. Normally, you should be able to open any Morphic tools and use it as in a Morphic world.
+
++The new world-menu item added after Blov installation>file://figures/bloc-worldmenu-item.png|width=40|label=bloc-worldmenu+
+
+	
+!! The Bloc Infrastructure
+In this section we  present the main classes supporting the infrastructure (event dispatching, alarm, display management). 
+
+Figure *infrastructure-elements* shows the main elements of the Bloc infrastructure. A Bloc morph is an instance of ==BlMorph== or of one of its subclasses. A Bloc morph lives in a current ''space'' and can be displayed when it is added in the space morph (an instance of ==BlSpaceMorph==) of the current space.
+
+The space acts as a mediator between a low-level event fetcher (an instance of ==BlVMEventFetcher== ), a high-level event handler (an instance of ==BlEventHandler==), a main loop manager (an instance of ==BlMainLoopManager==), and the space morph (an instance of ==BlSpaceMorph==). This mediation works basically as follow:
+- the VM event fetcher gets raw events from the VM and passes them to the high-level event handler. This last one dispatches the events coming from the vm event fetcher and sends them either to the space morph or directly to the morph which has the focus (keyboard or mouse). When the space morph receives an event then it tries to look-down the morph that can react to it;
+- the main loop manager is related to a space and holds an alarm queue and a deferred action list. It implements an infinite loop. At each round, the current space morph is redrawn, the low-level event fetcher is activated, deferred actions and ready alarms are runned.
+
++The main elements of Bloc infrastructure>file://figures/bloc-core-main-elements.png|width=90|label=infrastructure-elements+
+
+
+!!! Universe 
+
+Universe and spaces are not graphical objects. They serve as model for the infrastructure. 
+There is one single universe which manages a list of spaces. The class ==BlUniverse== defines a singleton. Thus, the system has one unique universe. Its responsibilities are to create, to delete and to activate spaces. 
+
+In addition, a ==BlUniverse== also offers a global announcer. This global announcer is used for global ticking behavior of the ==BlMainLoopManager==. As an example, alarms are managed using this global ticking mechanism as shown in ==BlAlarmQueue>>start== and ==BlAlarmQueue>>subscribesToTicks==.
+
+!!! Spaces
+The class ==BlSpace== is the root of the space class hierarchy. Its subclasses are for Morphic and Bloc respectively. 
+
+A ==BlSpace== is a uniquely identified object (via a name). A space is owned by a Universe. A space is responsible to start and shutdown a root morph: ==WorldMorph== in Morphic and ==BlSpaceMorph== in Bloc. 
+
+At the current time, a space has also a manager which bridges to the current UIManager. A ==MorphicUIManager== instance is associated with the ==BlMorphicSpace== and a ==BLMorphicUIManager== is associated with each ==BlBlocSpace==. The UIManager is kept for backward compatibility with the Pharo infrastructure regarding the management of the UI process. In the future we expect that it will disappear as well as UIManager.
+
+!!!! Getting the running space
+As shown in Script *gettingRunningSpace*, it is possible to get the running space by sending the #runningSpace message to the current universe. Then, From the space, one can get its root morph, its hand, its event handler or its main loop manager.
+
+[[[label=gettingRunningSpace|caption=Getting the running space from the current BlUniverse instance|language=Smalltalk
+BlUniverse default runningSpace
+]]]
+
+!!!! Getting the space of a morph
+The space of a morph is always available even if the morph is not opened (not added directly or indirectly as a space morph child). In fact, in Bloc, every morph stores the reference of its space in its ''space'' instance variable. This instance variable is initialized by the ''basicNew'' method which is redefined in the BlMorph class (see Script *BlMorphBasicNew*).
+
+[[[label=BlMorphBasicNew|caption=The BlMorph class #basicNew redefinition|language=Smalltalk
+BlMorph class>>basicNew
+	^ super basicNew space: BlUniverse default runningSpace ]]]
+	
+!!!! Space startup and shutdown
+
+Space startup and shutdown are implemented by BlSpace>>startUp, BlSpace>>resume and BlSpace>>shutdown. When a Bloc space is started, the UI manager is first asked to start a new rendering loop process. This is done through an #installAsDefault message sent to the manager of the space. In Bloc, the rendering loop process is implemented by ==BlMainLoopManager==. After the rendering loop process has been started, the VM event fetcher is started, then the root morph is fully displayed, the alarm queue is started and morph stepping is restarded recurssively from the root morph. 
+
+When a Bloc space is shut down, morph stepping, the alarm queue, the VM event fetcher are stopped. Note that the rendering loop process is actually stopped just before a new one is started. 
+
+External packages may need to interact with the Bloc infractructure when a space is started or stopped. As an example, in Bloc, the halo management is implemented as an external package. When a Bloc space is started, then a specific halo foreground is added to the root morph (an instance of BlSpaceMorph) and the ==BlHaloMorph== class is added as an observer of all the mouse events that are sent through the space announcer. When a Bloc space is stopped, the ==BlHaloMorph== class removes itself from the space observers. 
+
+To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#startUpHook'' and ''#shutDownHook'' in ==BlBlocSpace==. This hook works as follow:
+- after a space has been started, all methods with the ''spaceStartUp'' pragma keyword are collected and invoked with the started space passed as argument.
+- before a space is stopped, all methods with the ''spaceShutDown'' pragma keyword are collected and invoked with the stopped space passed as argument.
+
+
+[[[label=SpaceStartUpShutDownHook|caption=How the halo package is plugged or unplugged when a Bloc space is started or stopped |language=Smalltalk
+BlHaloMorph class>>spaceStartUp: aSpace
+	<spaceStartUp>
+	aSpace weakSubscribe: BlMouseUpEvent send: #whenMiddleMouseUp: to: self
+
+BlHaloMorph class>>spaceShutDown: aSpace
+	<spaceShutDown>	
+	aSpace unsubscribe:  self
+]]]
+
+HandMorph
+
+
+
+WorldMorph
+
+
+
+!!A quick tour of the Bloc core
 
 !!!A first Example
 The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
@@ -28,36 +140,44 @@ Move the mouse near the top left of the Pharo screen and click with the middle b
 Then you can move the morph by dragging the halo, resize it with the yellow handle, open inspectors with the blue one, delete the halo or delete de morph with the black and the red handlles.
 
 !!!Changing the view of a morph
-Bloc is mainly made to manage rectangular views. Creating a morph with a plain rectangular view can be programmed as shown in Script *FirstMorph1*.
-The ==#withRectangleViewDo:== send create a rectangular view (an instance of ==BlRectangleView==) and assign it as the view of the receiver. A ==BlRectangleView== can be filled and can have a border. The block passed as argument to ==#withRectangleViewDo:== set the color of the view with the blue one.
+To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: message to a morph vith the view passed as argument. As an example, to create a rectangle view ==BlRectangleView== is instantiated. ==BlRectangleView== inherits from ==BlEnclosedView==. As a kind of ==BlEnclosedView==, a ==BlRectangleView== can have a fill and can have a border. Creating a morph with a plain rectangular 
+view can be programmed as shown in Script *FirstMorph1*. In the example of script *FirstMorph1*, an instance of BlRectangleView with a blue color is created. 
 
 [[[label=FirstMorph1|caption=Opening a blue rectangular morph|language=Smalltalk
+| morph view |
+view := BlRectangleView new color: Color blue.
+morph := BlMorph new view: view.
+morph openInWorld
+]]]
+
+A second method is to send the ==#asMorph== message to the view. This is shown by Script *FirstMorph3*.
+
+[[[label=FirstMorph3|caption=Using the #asMorph message|language=Smalltalk
+(BlRectangleView new color: Color blue) 
+	asMorph openInWorld
+]]]
+
+Another method is to use the #withRectangleViewDo: send to a morph. This is shown by Script *FirstMorph2*. 
+In Script *FirstMorph2*, the block passed as argument to ==#withRectangleViewDo:== set the fill of the view with the 
+blue color.
+
+[[[label=FirstMorph2|caption=Opening a blue rectangular morph|language=Smalltalk
 BlMorph new 
 	withRectangleViewDo: [:v | v color: Color blue]; 
 	openInWorld
 ]]]
 
-Another way to create the same kind of morph is to send the ==#asMorph== message to the view. This is shown by Script *FirstMorph2*.
+!!!!Changing the fill style
 
-[[[label=FirstMorph2|caption=Using the #asMorph message|language=Smalltalk
-(BlRectangleView new color: Color blue) 
-	asMorph openInWorld
-]]]
+One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and 
+composite fill styles. The example of Script *FirstMorph4* shows the use of a linear gradient fill style. 
+The resulting morphs is shown in Figures *linearGradient*.
 
-!!!!Fill styles
-
-One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and composite fill styles. The example of Script *FirstMorph3* and *FirstMorph4* show the use of a gradient fill style. The resulting morph are shown in Figures *linearGradient* and *radialGradient*.
-
-[[[label=FirstMorph3|caption=Creating and using a linear gradient fill style|language=Smalltalk
-| view morph fill color |
-color := Color yellow.
+[[[label=FirstMorph4|caption=Creating and using a linear gradient fill style|language=Smalltalk
+| view morph fill c |
+c := Color yellow.
 view := BlRectangleView new.
-fill := (BlLinearGradientFillStyle
-		ramp:
-			{(0.0 -> color).
-			(0.3 -> (color alpha: 0.7)).
-			(0.6 -> (color alpha: 0.4)).
-			(1.0 -> (color alpha: 0.2))})
+fill := (BlLinearGradientFillStyle colors: {c. c alpha: 0.1})
 		start: (view width // 2) @ 0;
 		stop: (view width // 2) @ view height;
 		yourself.
@@ -65,31 +185,27 @@ view fillStyle: fill.
 morph := view asMorph.
 morph openInWorld]]]
 
+The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
+In the example of Script *FirstMorph3*, the yellow gradient is a vertical one that starts at the top-middle 
+and stops at the bottom middle.
 +A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=10|label=linearGradient+
 
 
-[[[label=FirstMorph4|caption=Creating and using a radial gradient fill style|language=Smalltalk
-| view morph fill color |
-color := Color yellow.
-view := BlRectangleView new.
-fill := (BlRadialGradientFillStyle
-		ramp:
-			{(0.0 -> (color alpha: 0.6)).
-			(0.3 -> (color alpha: 0.9)).
-			(0.5 -> color).
-			(0.8 -> (color muchDarker alpha: 0.9)).
-			(1.0 -> (color muchDarker alpha: 0.5))})
-		center: view center;
-		radius: view width // 2;
-		yourself.
-view fillStyle: fill.
-morph := view asMorph.
-morph openInWorld
-]]]
-
-+A morph with a radial gradient>file://figures/morph-with-radial-gradient.png|width=10|label=radialGradient+
-
-
-
 !!!! Adding a border
+
+The border of a ==BlRectangleView== and more generally of a ==BlEnclosedView== can be set with an instance of any subclass of ==BlBorderStyle==. 
+As shown in Script *FirstMorph5*, to decorate a view with a colored border one can use an instance of 
+==BlSolidBorder==. The morph built with *FirstMorph4* is shown in Figure *redBorder*.
+
+[[[label=FirstMorph5|caption=Creating and using a linear gradient fill style|language=Smalltalk
+| view morph |
+view := BlRectangleView new color: Color white; 
+	borderStyle: (BlSolidBorder new color: Color red; width: 2).
+morph := view asMorph.
+morph openInWorld]]]
+
++A white rectangle morph with a plain red border>file://figures/white-rectangle-with-red-border.png|width=10|label=redBorder+
+
+
+
 
