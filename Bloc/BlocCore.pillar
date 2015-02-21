@@ -93,7 +93,7 @@ Space startup and shutdown are implemented by BlSpace>>startUp, BlSpace>>resume 
 
 When a Bloc space is shut down, morph stepping, the alarm queue, the VM event fetcher are stopped. Note that the rendering loop process is actually stopped just before a new one is started. 
 
-External packages may need to interact with the Bloc infractructure when a space is started or stopped. As an example, in Bloc, the halo management is implemented as an external package. When a Bloc space is started, then a specific halo foreground is added to the root morph (an instance of BlSpaceMorph) and the ==BlHaloMorph== class is added as an observer of all the mouse events that are sent through the space announcer. When a Bloc space is stopped, the ==BlHaloMorph== class removes itself from the space observers. 
+External packages may need to interact with the Bloc infractructure when a space is started or stopped. As an example, in Bloc, the halo management is implemented as an external package. When a Bloc space is started, then a halo foreground morph is added to the root morph (an instance of BlSpaceMorph) and the ==BlHaloMorph== class is added as an observer of all the mouse events that are sent through the space announcer. When a Bloc space is stopped, the halo foreground morph is removed and the ==BlHaloMorph== class removes itself from the space observers. 
 
 To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#startUpHook'' and ''#shutDownHook'' in ==BlBlocSpace==. This hook works as follow:
 - after a space has been started, all methods with the ''spaceStartUp'' pragma keyword are collected and invoked with the started space passed as argument.
@@ -103,28 +103,39 @@ To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#s
 [[[label=SpaceStartUpShutDownHook|caption=How the halo package is plugged or unplugged when a Bloc space is started or stopped |language=Smalltalk
 BlHaloMorph class>>spaceStartUp: aSpace
 	<spaceStartUp>
+	aSpace spaceMorph addHaloForegroundMorph.
 	aSpace weakSubscribe: BlMouseUpEvent send: #whenMiddleMouseUp: to: self
 
 BlHaloMorph class>>spaceShutDown: aSpace
 	<spaceShutDown>	
+	aSpace spaceMorph removeHaloForegroundMorph.
 	aSpace unsubscribe:  self
 ]]]
 
-HandMorph
+!!! The space morph
+There is one and only one space morph per bloc space. The space morph is the root morph of a bloc space, it is the only displayed morph that has no owner (its owner instance variable is nil). 
 
++The space morph structure>file://figures/space-morph-structure.png|width=50|label=space-morph-structure+
 
+As shown in Figure *space-morph-structure*, its layout is structured as a stack of morphs: each submorph constitutes a layer. Basically, there are six layers, distributed from the back to the front as follow:
+- the background : it is an instance of ==BlSpaceBackgroundMorph==; it is completely blind to events. It serves as a layer for a background color or image and to draw icons;
+- the morphic world: it is an instance of ==BlMorphicWorldMorph==; it contains morphic morphs; all morphic user interfaces are added inside this layer;
+- the bloc world: it is an instance of ==BlWorldMorph==; it contains bloc morphs;
+- the tool-tips foreground: it contains the tools-tips that are drawned when the hand stay over a bloc morph (not implemented so far);
+- the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
+- the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
 
-WorldMorph
+Except the morphic world, all layers are rendered with ''Athens'' and except the background, all layers background are transparent. 
 
-
+All these layers are submorphs of the space morph. The order of a layer (from bottom to top) is given by the value of its ''layerNumber'' instance variable.
 
 !!A quick tour of the Bloc core
 
 !!!A first Example
 The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
-To open a morph (an instance of ==BlMorph==) one can simply evaluate the expression of the script *FirstMorph0*.
+To open a morph (an instance of ==BlMorph==) one can simply evaluate the expression of the script *FirstMorphMinimal*.
 
-[[[label=FirstMorph0|caption=Opening a minimal morph|language=Smalltalk
+[[[label=FirstMorphMinimal|caption=Opening a minimal morph|language=Smalltalk
 BlMorph new openInWorld
 ]]]
 
@@ -141,27 +152,27 @@ Then you can move the morph by dragging the halo, resize it with the yellow hand
 
 !!!Changing the view of a morph
 To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: message to a morph vith the view passed as argument. As an example, to create a rectangle view ==BlRectangleView== is instantiated. ==BlRectangleView== inherits from ==BlEnclosedView==. As a kind of ==BlEnclosedView==, a ==BlRectangleView== can have a fill and can have a border. Creating a morph with a plain rectangular 
-view can be programmed as shown in Script *FirstMorph1*. In the example of script *FirstMorph1*, an instance of BlRectangleView with a blue color is created. 
+view can be programmed as shown in Script *blueMorph*. In the example of script *blueMorph*, an instance of BlRectangleView with a blue color is created. 
 
-[[[label=FirstMorph1|caption=Opening a blue rectangular morph|language=Smalltalk
+[[[label=blueMorph|caption=Opening a blue rectangular morph|language=Smalltalk
 | morph view |
 view := BlRectangleView new color: Color blue.
 morph := BlMorph new view: view.
 morph openInWorld
 ]]]
 
-A second method is to send the ==#asMorph== message to the view. This is shown by Script *FirstMorph3*.
+A second method is to send the ==#asMorph== message to the view. This is shown by Script *blueMorphV2*.
 
-[[[label=FirstMorph3|caption=Using the #asMorph message|language=Smalltalk
+[[[label=blueMorphV2|caption=Using the #asMorph message|language=Smalltalk
 (BlRectangleView new color: Color blue) 
 	asMorph openInWorld
 ]]]
 
-Another method is to use the #withRectangleViewDo: send to a morph. This is shown by Script *FirstMorph2*. 
-In Script *FirstMorph2*, the block passed as argument to ==#withRectangleViewDo:== set the fill of the view with the 
+Another method is to use the #withRectangleViewDo: send to a morph. This is shown by Script *blueMorphV2*. 
+In Script *blueMorphV3*, the block passed as argument to ==#withRectangleViewDo:== set the fill of the view with the 
 blue color.
 
-[[[label=FirstMorph2|caption=Opening a blue rectangular morph|language=Smalltalk
+[[[label=blueMorphV3|caption=Opening a blue rectangular morph|language=Smalltalk
 BlMorph new 
 	withRectangleViewDo: [:v | v color: Color blue]; 
 	openInWorld
@@ -170,34 +181,32 @@ BlMorph new
 !!!!Changing the fill style
 
 One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and 
-composite fill styles. The example of Script *FirstMorph4* shows the use of a linear gradient fill style. 
+composite fill styles. The example of Script *morphWithLinearGradient* shows the use of a linear gradient fill style. 
 The resulting morphs is shown in Figures *linearGradient*.
 
-[[[label=FirstMorph4|caption=Creating and using a linear gradient fill style|language=Smalltalk
+[[[label=morphWithLinearGradient|caption=Creating and using a linear gradient fill style|language=Smalltalk
 | view morph fill c |
 c := Color yellow.
 view := BlRectangleView new.
 fill := (BlLinearGradientFillStyle colors: {c. c alpha: 0.1})
-		start: (view width // 2) @ 0;
-		stop: (view width // 2) @ view height;
+		start: (view width / 2) @ 0;
+		stop: (view width / 2) @ view height;
 		yourself.
 view fillStyle: fill.
 morph := view asMorph.
 morph openInWorld]]]
 
 The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
-In the example of Script *FirstMorph3*, the yellow gradient is a vertical one that starts at the top-middle 
-and stops at the bottom middle.
+In the example of Script *morphWithLinearGradient*, the yellow gradient is a vertical one that starts at the top-middle and stops at the bottom middle.
 +A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=10|label=linearGradient+
 
 
 !!!! Adding a border
 
 The border of a ==BlRectangleView== and more generally of a ==BlEnclosedView== can be set with an instance of any subclass of ==BlBorderStyle==. 
-As shown in Script *FirstMorph5*, to decorate a view with a colored border one can use an instance of 
-==BlSolidBorder==. The morph built with *FirstMorph4* is shown in Figure *redBorder*.
+As shown in Script *morphWithRedBorder*, to decorate a view with a colored border one can use an instance of ==BlSolidBorder==. The morph built with *morphWithRedBorder* is shown in Figure *redBorder*.
 
-[[[label=FirstMorph5|caption=Creating and using a linear gradient fill style|language=Smalltalk
+[[[label=morphWithRedBorder|caption=Creating and using a linear gradient fill style|language=Smalltalk
 | view morph |
 view := BlRectangleView new color: Color white; 
 	borderStyle: (BlSolidBorder new color: Color red; width: 2).
