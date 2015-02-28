@@ -125,9 +125,9 @@ As shown in Figure *space-morph-structure*, its layout is structured as a stack 
 - the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
 - the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
 
-Except the morphic world, all layers are rendered with ''Athens'' and except the background, all layers background are transparent. 
+For backward compatibility, a BLSpace morph is rendered with a Form based canvas but, except the morphic world, all layers are rendered with Athens. In fact they use the trait TBlAthensWrapper which draws the morph with athens and finally put the resulting form is the Form based canvas. 
 
-All these layers are submorphs of the space morph. The order of a layer (from bottom to top) is given by the value of its ''layerNumber'' instance variable.
+Except the background, all layers background are transparent. All these layers are submorphs of the space morph. The order of a layer (from bottom to top) is given by the value of its layerNumber instance variable.
 
 !!A quick tour of the Bloc core
 
@@ -198,7 +198,7 @@ morph openInWorld]]]
 
 The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
 In the example of Script *morphWithLinearGradient*, the yellow gradient is a vertical one that starts at the top-middle and stops at the bottom middle.
-+A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=10|label=linearGradient+
++A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=8|label=linearGradient+
 
 
 !!!! Adding a border
@@ -213,8 +213,22 @@ view := BlRectangleView new color: Color white;
 morph := view asMorph.
 morph openInWorld]]]
 
-+A white rectangle morph with a plain red border>file://figures/white-rectangle-with-red-border.png|width=10|label=redBorder+
++A white rectangle morph with a plain red border>file://figures/white-rectangle-with-red-border.png|width=8|label=redBorder+
 
+!!!!! The join style
+With a join style, one can change the way the lines of a border a joined together. As shown in Figure *border-join-style*, the border join style can be of three kind: ''miter'' (the default one), ''round'' or ''bevel''.
+To change the join style, one can send the ''#withJoinMiter'', the ''#withJoinRound'' or the ''#withJoinBevel'' message to the border. 
+An example is shown is Script *changing-join-style*.
 
++The three kinds of border join style>file://figures/rect-with-miter-round-bevel-border.png|width=40|label=border-join-style+
 
+[[[label=changing-join-style|caption=changing the join style of a border|language=Smalltalk
+(BlRectangleView new
+	extent: 70 @ 50;
+	withSolidBorderDo: [ :b | 
+		b
+			width: 8;
+			color: Color black;
+			withJoinBevel ];
+	asMorph) openInWorld]]]
 
