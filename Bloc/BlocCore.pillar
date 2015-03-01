@@ -113,11 +113,13 @@ BlHaloMorph class>>spaceShutDown: aSpace
 ]]]
 
 !!! The space morph
-There is one and only one space morph per bloc space. The space morph is the root morph of a bloc space, it is the only displayed morph that has no owner (its owner instance variable is nil). 
+There is one and only one space morph per bloc space. The space morph is the root morph of a bloc space, 
+it is the only displayed morph that has no owner (its owner instance variable is nil). 
 
 +The space morph structure>file://figures/space-morph-structure.png|width=50|label=space-morph-structure+
 
-As shown in Figure *space-morph-structure*, its layout is structured as a stack of morphs: each submorph constitutes a layer. Basically, there are six layers, distributed from the back to the front as follow:
+As shown in Figure *space-morph-structure*, its layout is structured as a stack of morphs: each submorph constitutes a layer. 
+Basically, there are six layers, distributed from the back to the front as follow:
 - the background : it is an instance of ==BlSpaceBackgroundMorph==; it is completely blind to events. It serves as a layer for a background color or image and to draw icons;
 - the morphic world: it is an instance of ==BlMorphicWorldMorph==; it contains morphic morphs; all morphic user interfaces are added inside this layer;
 - the bloc world: it is an instance of ==BlWorldMorph==; it contains bloc morphs;
@@ -125,9 +127,15 @@ As shown in Figure *space-morph-structure*, its layout is structured as a stack 
 - the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
 - the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
 
-For backward compatibility, a BLSpace morph is rendered with a Form based canvas but, except the morphic world, all layers are rendered with Athens. In fact they use the trait TBlAthensWrapper which draws the morph with athens and finally put the resulting form is the Form based canvas. 
+For backward compatibility, a BLSpace morph is rendered with a Form based canvas but, except the morphic world, 
+all layers are rendered with Athens. In fact they use the trait TBlAthensWrapper which draws the morph with athens and finally 
+put the resulting form is the Form based canvas. 
 
-Except the background, all layers background are transparent. All these layers are submorphs of the space morph. The order of a layer (from bottom to top) is given by the value of its layerNumber instance variable.
+Note that the morphic world is temporarily added because Morphic is not Athens based. It will disappear when Morphic will be fully 
+Athens based.
+
+Except the background, all layers background are transparent. All these layers are submorphs of the space morph. 
+The order of a layer (from bottom to top) is given by the value of its layerNumber instance variable.
 
 !!A quick tour of the Bloc core
 
@@ -168,8 +176,10 @@ A second method is to send the ==#asMorph== message to the view. This is shown b
 	asMorph openInWorld
 ]]]
 
-Another method is to use the #withRectangleViewDo: send to a morph. This is shown by Script *blueMorphV2*. 
-In Script *blueMorphV3*, the block passed as argument to ==#withRectangleViewDo:== set the fill of the view with the 
+Because rectangle views are used very often, Bloc implements two specific helper methods: ''withRectangleView'' and ''withRectangleViewDo:''. 
+''withRectangleView'' set the view to a ==BlRectangleView== instance. ''withRectangleViewDo:'' set the view to a ==BlRectangleView== 
+instance and evaluate the block passed as argument. The new rectangle view is itself passsed as argument to the block. 
+Script *blueMorphV3* shows an example: the block passed as argument to ''withRectangleViewDo:'' fills the rectangle view with the 
 blue color.
 
 [[[label=blueMorphV3|caption=Opening a blue rectangular morph|language=Smalltalk
@@ -185,15 +195,14 @@ composite fill styles. The example of Script *morphWithLinearGradient* shows the
 The resulting morphs is shown in Figures *linearGradient*.
 
 [[[label=morphWithLinearGradient|caption=Creating and using a linear gradient fill style|language=Smalltalk
-| view morph fill c |
-c := Color yellow.
-view := BlRectangleView new.
-fill := (BlLinearGradientFillStyle colors: {c. c alpha: 0.1})
-		start: (view width / 2) @ 0;
-		stop: (view width / 2) @ view height;
+| morph |
+morph := BlMorph new withRectangleViewDo: [ :v | | fill c |
+	c := Color yellow.
+	fill := (BlLinearGradientFillStyle colors: {c. c alpha: 0.1})
+		start: (v width / 2) @ 0;
+		stop: (v width / 2) @ v height;
 		yourself.
-view fillStyle: fill.
-morph := view asMorph.
+	v fillStyle: fill].
 morph openInWorld]]]
 
 The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
@@ -206,7 +215,7 @@ In the example of Script *morphWithLinearGradient*, the yellow gradient is a ver
 The border of a ==BlRectangleView== and more generally of a ==BlEnclosedView== can be set with an instance of any subclass of ==BlBorderStyle==. 
 As shown in Script *morphWithRedBorder*, to decorate a view with a colored border one can use an instance of ==BlSolidBorder==. The morph built with *morphWithRedBorder* is shown in Figure *redBorder*.
 
-[[[label=morphWithRedBorder|caption=Creating and using a linear gradient fill style|language=Smalltalk
+[[[label=morphWithRedBorder|caption=Creating and using a solid border|language=Smalltalk
 | view morph |
 view := BlRectangleView new color: Color white; 
 	borderStyle: (BlSolidBorder new color: Color red; width: 2).
@@ -214,6 +223,17 @@ morph := view asMorph.
 morph openInWorld]]]
 
 +A white rectangle morph with a plain red border>file://figures/white-rectangle-with-red-border.png|width=8|label=redBorder+
+
+==BlSolidBorder== is the most used border style. Thus, the methods ''withSolidBorder'' and ''withSolidBorderDo:'' are available to facilitate
+the initialization of an enclosed view. Script *morphWithRedBorder2* shows the use of ''withSolidBorderDo:'' in a second version of Script
+*morphWithRedBorder*.
+
+[[[label=morphWithRedBorder2|caption=Initializing a solid border with the ''withSolidBorderDo:'' method|language=Smalltalk
+| view morph |
+view := BlRectangleView new color: Color white; 
+	withSolidBorderDo: [:b | b color: Color red; width: 2].
+morph := view asMorph.
+morph openInWorld]]]
 
 !!!!! The join style
 With a join style, one can change the way the lines of a border a joined together. As shown in Figure *border-join-style*, the border join style can be of three kind: ''miter'' (the default one), ''round'' or ''bevel''.
