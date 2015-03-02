@@ -252,3 +252,23 @@ An example is shown is Script *changing-join-style*.
 			withJoinBevel ];
 	asMorph) openInWorld]]]
 
+!!!!! Round corners
+The visual effect of the join style may be limited, especially with a thin border. Moreover, the join style has no impact on the inner 
+space which remains rendered as a straight rectangle. 
+To get round corners and a round inner space, one can set a corner radius with the ''#cornerRadius:'' message. This message is sent to the border style 
+as in Script *creating-a-rectangle-with-round-corners*. Figure *rectangle-with-round-corners* shows the resulting rectangle.
+
++A gray rectangle with round corner>file://figures/rectangle-with-round-corner.png|width=25|label=rectangle-with-round-corners+
+
+[[[label=creating-a-rectangle-with-round-corners|caption=creating a round rectangle|language=Smalltalk
+BlMorph new
+	withRectangleViewDo: [ :v | 
+		v
+			color: Color lightGray lighter;
+			withSolidBorderDo: [ :b | 
+				b
+					cornerRadius: 15;
+					width: 1;
+					color: Color black ] ];
+	extent: 150 @ 25;
+	openInWorld]]]
