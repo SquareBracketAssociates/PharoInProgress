@@ -255,10 +255,14 @@ An example is shown is Script *changing-join-style*.
 !!!!! Round corners
 The visual effect of the join style may be limited, especially with a thin border. Moreover, the join style has no impact on the inner 
 space which remains rendered as a straight rectangle. 
-To get round corners and a round inner space, one can set a corner radius with the ''#cornerRadius:'' message. This message is sent to the border style 
+
++The corner radius>file://figures/corner-radius.png|width=25|label=corner-radius+
+
+To get round corners and a round inner space, one can change the corner radius of a solid border style. Figure *corner-radius* depicts 
+what is a rectangle corner radius. One can change its value with the ''#cornerRadius:'' message. This message is sent to the border style 
 as in Script *creating-a-rectangle-with-round-corners*. Figure *rectangle-with-round-corners* shows the resulting rectangle.
 
-+A gray rectangle with round corner>file://figures/rectangle-with-round-corner.png|width=25|label=rectangle-with-round-corners+
++A gray rectangle with round corners>file://figures/rectangle-with-round-corner.png|width=25|label=rectangle-with-round-corners+
 
 [[[label=creating-a-rectangle-with-round-corners|caption=creating a round rectangle|language=Smalltalk
 BlMorph new
@@ -272,3 +276,29 @@ BlMorph new
 					color: Color black ] ];
 	extent: 150 @ 25;
 	openInWorld]]]
+	
+!!!!! Dashes
+
+A solid border can be configurated to draw a dashed border. To set a dashed border, the ''#dashes:'' message is sent to a border with an array 
+of integer values. The array must contain one or more couples of integers. The first value of the couple is for the number of pixels
+of a dash and the second value is for the white space length. In script *dash-borders* the array
+is ''#(2 5)''. It configurates a border with a dash of length 2 followed by a space of length 5. The result of Script
+*dash-borders* is shown by the left morph of Figure *fig-dash-borders*. Several couples can be used. As an example, 
+the border of the right morph of Figure *fig-dash-borders* is configurated with the following array: ''#(2 5 5 2 10 2)''.
+
+
+[[[label=dash-borders|caption=Setting a simple dashed border|language=Smalltalk
+BlMorph new
+	extent: 150 @ 25;
+	withRectangleViewDo: [ :v | 
+		v color: Color lightGray muchLighter;
+			withSolidBorderDo: [ :b | 
+			b
+				width: 2;
+				cornerRadius: 15;
+				color: Color black;
+				dashes: #(2 5) ];			
+		yourself ];
+	openInWorld]]]
+
++Dash border examples>file://figures/dash-borders.png|width=55|label=fig-dash-borders+

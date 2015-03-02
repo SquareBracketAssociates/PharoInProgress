@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="corner-radius.svg">
+  <defs
+     id="defs4">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4440"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4436"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4432"
+       is_visible="true" />
+    <inkscape:path-effect
+       is_visible="true"
+       id="path-effect4343"
+       effect="spiro" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4339"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4335"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4331"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4321"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4317"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4148"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4144"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect4140"
+       is_visible="true" />
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4223">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4225"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4260" />
+      <feColorMatrix
+         id="feColorMatrix4262"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         in="fbSourceGraphic" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4244">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4246" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4248">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4250" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4252">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4254" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4256">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4258" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4271">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4273"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4275" />
+      <feConvolveMatrix
+         id="feConvolveMatrix4277"
+         in="fbSourceGraphic"
+         kernelMatrix="0 1 0 1 -4 1 0 1 0"
+         order="3 3"
+         bias="0"
+         divisor="1"
+         targetX="1"
+         targetY="1"
+         preserveAlpha="true"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4279" />
+      <feConvolveMatrix
+         id="feConvolveMatrix4281"
+         in="fbSourceGraphic"
+         kernelMatrix="0 1 0 1 -4 1 0 1 0"
+         order="3 3"
+         bias="0"
+         divisor="1"
+         targetX="1"
+         targetY="1"
+         preserveAlpha="true"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4283" />
+      <feConvolveMatrix
+         id="feConvolveMatrix4285"
+         in="fbSourceGraphic"
+         kernelMatrix="0 1 0 1 -4 1 0 1 0"
+         order="3 3"
+         bias="0"
+         divisor="1"
+         targetX="1"
+         targetY="1"
+         preserveAlpha="true"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4287" />
+      <feConvolveMatrix
+         id="feConvolveMatrix4289"
+         in="fbSourceGraphic"
+         kernelMatrix="0 1 0 1 -4 1 0 1 0"
+         order="3 3"
+         bias="0"
+         divisor="1"
+         targetX="1"
+         targetY="1"
+         preserveAlpha="true"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4291" />
+      <feConvolveMatrix
+         id="feConvolveMatrix4293"
+         order="3 3"
+         kernelMatrix="0 -0.15 0 -0.15 1.6 -0.15 0 -0.15 0"
+         divisor="1"
+         in="fbSourceGraphic"
+         targetX="1"
+         targetY="1"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix4380" />
+      <feColorMatrix
+         id="feColorMatrix4382"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         in="fbSourceGraphic" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4364">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4366" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4368">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4370" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4372">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4374" />
+    </filter>
+    <filter
+       inkscape:label="Pixellize"
+       inkscape:menu="Pixel tools"
+       inkscape:menu-tooltip="Reduce or remove antialiasing around shapes"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4376">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1000 -500 "
+         id="feColorMatrix4378" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.7660339"
+     inkscape:cx="318.55752"
+     inkscape:cy="543.96523"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="false"
+     inkscape:window-width="1630"
+     inkscape:window-height="1005"
+     inkscape:window-x="50"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4136" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="301.00027"
+       y="646.36188"
+       id="text4295"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4297"
+         x="301.00027"
+         y="646.36188" /></text>
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.98899996;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;filter:url(#filter4376)"
+       d="m 209.38002,346.66807 a 43.256045,45.010881 0 0 0 -43.25601,45.01084 43.256045,45.010881 0 0 0 0.0482,1.00024 l 43.20773,0 0,-46.01108 z"
+       id="path4150"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4372)"
+       x="232.811"
+       y="375.69891"
+       id="text4299"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan4301"
+         x="232.811"
+         y="375.69891">Corner radius</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4368)"
+       d="m 215.26843,383.12934 6.25001,10.00001 6.25,-10.00001 0,0"
+       id="path4337"
+       inkscape:path-effect="#path-effect4339"
+       inkscape:original-d="m 215.26843,383.12934 6.25001,10.00001 6.25,-10.00001 0,0"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:connector-curvature="0"
+       inkscape:original-d="m 227.76844,357.77367 -6.25001,-10.00001 -6.25,10.00001 0,0"
+       inkscape:path-effect="#path-effect4343"
+       id="path4341"
+       d="m 227.76844,357.77367 -6.25001,-10.00001 -6.25,10.00001 0,0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4364)"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g4420">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4416"
+         d="m 279.49127,778.37949 0,-18.76595 -18.54438,-0.14931 -18.54438,-0.14929 -0.15462,-10.05077 -0.15463,-10.05077 18.699,0 18.69901,0 0,-19.51162 0,-19.51162 10.7592,-0.16524 10.7592,-0.16524 -6.3e-4,48.55513 -6.3e-4,48.55513 -7.29179,0 c -5.79081,0 -7.4369,-0.17484 -7.99671,-0.84936 -0.93866,-1.13103 -3.90172,-1.08096 -5.19313,0.0878 -1.00121,0.90607 -1.03551,0.31545 -1.03551,-17.82885 z"
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.954;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:3.908, 1.954;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4418"
+         d="m 381.41457,748.55637 0,-48.41357 10.75857,0 10.75857,0 0,18.40282 0,18.40282 20.01378,0 c 19.29466,0 20.0506,0.0407 21.03866,1.13248 0.95534,1.05564 0.9613,1.20274 0.0878,2.16799 -0.99215,1.09632 -1.23786,2.67547 -0.48835,3.13869 0.24682,0.15255 0.26602,2.39716 0.0427,4.98803 -0.32034,3.7158 -0.23573,4.89946 0.4006,5.60461 0.44368,0.49167 0.80669,1.4472 0.80669,2.1234 l -3e-5,1.22946 -20.9509,0 -20.9509,0 0,18.96906 0,18.96906 -1.34627,0 c -0.74045,0 -1.66347,0.38221 -2.05117,0.84936 -0.57066,0.6876 -2.36318,0.84936 -9.41231,0.84936 l -8.70739,0 0,-48.41357 z"
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.954;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:3.908, 1.954;stroke-dashoffset:0;stroke-opacity:1" />
+    </g>
+    <g
+       id="g4424">
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.954;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:3.908, 1.954;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 279.49127,778.37949 0,-18.76595 -18.54438,-0.14931 -18.54438,-0.14929 -0.15462,-10.05077 -0.15463,-10.05077 18.699,0 18.69901,0 0,-19.51162 0,-19.51162 10.7592,-0.16524 10.7592,-0.16524 -6.3e-4,48.55513 -6.3e-4,48.55513 -7.29179,0 c -5.79081,0 -7.4369,-0.17484 -7.99671,-0.84936 -0.93866,-1.13103 -3.90172,-1.08096 -5.19313,0.0878 -1.00121,0.90607 -1.03551,0.31545 -1.03551,-17.82885 z"
+         id="path4426"
+         inkscape:connector-curvature="0" />
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.954;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:3.908, 1.954;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 381.41457,748.55637 0,-48.41357 10.75857,0 10.75857,0 0,18.40282 0,18.40282 20.01378,0 c 19.29466,0 20.0506,0.0407 21.03866,1.13248 0.95534,1.05564 0.9613,1.20274 0.0878,2.16799 -0.99215,1.09632 -1.23786,2.67547 -0.48835,3.13869 0.24682,0.15255 0.26602,2.39716 0.0427,4.98803 -0.32034,3.7158 -0.23573,4.89946 0.4006,5.60461 0.44368,0.49167 0.80669,1.4472 0.80669,2.1234 l -3e-5,1.22946 -20.9509,0 -20.9509,0 0,18.96906 0,18.96906 -1.34627,0 c -0.74045,0 -1.66347,0.38221 -2.05117,0.84936 -0.57066,0.6876 -2.36318,0.84936 -9.41231,0.84936 l -8.70739,0 0,-48.41357 z"
+         id="path4428"
+         inkscape:connector-curvature="0" />
+    </g>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.70000005;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 166.04277,391.60272 0,30.00003 0,0"
+       id="path4430"
+       inkscape:path-effect="#path-effect4432"
+       inkscape:original-d="m 166.04277,391.60272 c 0,30.00003 0,30.00003 0,30.00003 l 0,0"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.79999995;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 209.49546,346.60366 106.2501,0"
+       id="path4434"
+       inkscape:path-effect="#path-effect4436"
+       inkscape:original-d="m 209.49546,346.60366 c 106.2501,0 106.2501,0 106.2501,0"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.98204356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 221.44346,348.82054 0,43.39847"
+       id="path4438"
+       inkscape:path-effect="#path-effect4440"
+       inkscape:original-d="m 221.44346,348.82054 c 0,43.39847 0,43.39847 0,43.39847"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/Users/plantec/BTSync/GitHub/PharoInProgress/Bloc/figures/corner-radius.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+  </g>
+</svg>
