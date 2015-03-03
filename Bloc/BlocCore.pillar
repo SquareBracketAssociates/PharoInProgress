@@ -137,7 +137,17 @@ Athens based.
 Except the background, all layers background are transparent. All these layers are submorphs of the space morph. 
 The order of a layer (from bottom to top) is given by the value of its layerNumber instance variable.
 
-!!A quick tour of the Bloc core
+!!Simple morphs
+==BlMorph== implements the common behavior of all morphs. Its inherits from ==BlView== which brings:
+- the management of the geometric properties (extent, bounds managed through a bounds cache), 
+- the management of the local coordinates  (bounds and affine transformations with translating, rotating and scaling),
+- the visual change reporting and the drawing protocol, and
+- the layout management.
+==BlMorph== brings additional behaviors for event managing through an event listener chain. 
+The visual properties of a ==BlMorph== are managed through an associated view (the view of the ==BlMorph==).
+
+In this Section, we learn how to create and open a simple morph, how to configurate it with a color or a 
+fill and how to setup its borders. 
 
 !!!A first Example
 The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
@@ -302,3 +312,20 @@ BlMorph new
 	openInWorld]]]
 
 +Dash border examples>file://figures/dash-borders.png|width=55|label=fig-dash-borders+
+
+!!!Composing views
+
+!!!Composing morphs
+
+!!Layout management
+
+
+!! Event management
+In this Section we learn how events are managed to make morphs live. First we present what is an event, 
+how it is created by the infrastructure and how the infrastructure can be customed and adapted at a global level. Then we learn how finally
+evens are distributed to morphs and again and how to manage the hooks provided locally by morphs.
+
+!! Alarms and stepping
+
+!! Interacting with announcements
+
