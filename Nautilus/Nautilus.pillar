@@ -67,6 +67,7 @@ notify Nautilus not to display anything.
 
 [[[
 MyPlugin>>display
+    | morph |
     morph := LabelMorph new contents: 'MyPlugin';
         enabled: false; 
 		vResizing: #shrinkWrap; 
