@@ -88,12 +88,12 @@ You can also redefine the following method on the class side:
 And finally you can redefine the ==pluginName== method to change the name displayed in the Nautilus Plugin Manager.
 
 [[[
-MyPlugin class>>description
+MyPlugin class>>pluginName
 	^ 'MyPlugin'
 ]]]
 
 [[[
-MyPlugin class>>description
+MyPlugin class>>pluginName
 	^ 'A super cool plugin'
 ]]]
 
