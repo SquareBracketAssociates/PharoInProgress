@@ -1,7 +1,19 @@
 ! Teapot
 
- Teapot is ''micro''' web framework on top of the Zinc HTTP web server. Teapot focuses on simplicity and ease of use. It's around 600 lines of code, not counting the tests. It provides 
- 
+Teapot is ''micro''' web framework on top of the Zinc HTTP web server. Teapot focuses on simplicity and ease of use. It's around 600 lines of code, not counting the tests.
+
+
+
+!! Differences between Teapot and other web frameworks
+
+Teapot is not a singleton and doesn't hold any global state. You can run multiple Teapot servers inside the same image with isolated state.
+
+- There are no thread locals or dynamic scoped variables in Teapot. Everything is explicit.
+- It doesn't rely on annotations or pragmas, you can define the routes programmatically.
+- It doesn't instantiate objects (e.g. "web controllers") for you. You can hook http events to existing objects, and manage their dependencies the way you want.
+
+
+
 !! Getting Started
 
 [[[
@@ -254,21 +266,39 @@ The same rules apply for the return values of the exception handler as were used
 
 !! A REST example, showing some CRUD operations
 
+Here is a simple REST example managing books. With the following code, we can list the books, add a book and delete a book.
+
 [[[
+| books teapot |
 books := Dictionary new.
 teapot := Teapot configure: {#defaultOutput -> #json. #port -> 8080. #debugMode -> true }.
 teapot
 	GET: '/books' -> books;
-	PUT: '/books/<id>' -> [:req | | book |
+	PUT: '/books/<id>' -> [ :req | | book |
 								book := {'author' -> (req at: #author).
 										'title' -> (req at: #title)} asDictionary.
 										books at: (req at: #id) put: book];
-	DELETE: '/books/<id>' -> [:req | books removeKey: (req at: #id)]; 
+	DELETE: '/books/<id>' -> [ :req | books removeKey: (req at: #id)]; 
 	exception: KeyNotFound -> (TeaResponse notFound body: 'No such book');
 	start.
 ]]]
 
+Now you can create a book with the client using the following: 
 
+[[[
+ZnClient new
+	url: 'http://localhost:8080/books/1';
+	formAt: 'author' put: 'SquareBracketAssociates'; 
+	formAt: 'title' put: 'Pharo For The Enterprise'; 
+	put
+]]]
 
+For a more complete example, study the 'Teapot-Library-Example' package.
+
+!! Conclusion
+Teapot is a powerful and simple web framework. It is based on the notion of routes and request transformations. It supports the definition of REST application. 
+
+Now an important point: Where does the name come from? 418 I'm a teapot (RFC 2324) is an HTTP status code.
+This code was defined in 1998 as one of the traditional IETF April Fools' jokes, in RFC 2324, Hyper Text Coffee Pot Control Protocol, and is not expected to be implemented by actual HTTP servers.
 
 
