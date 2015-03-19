@@ -50,9 +50,9 @@ public API of all the basic widgets offered by ''Spec''. This API is further doc
 
 The example is structured in four parts that will result in the browser shown in *fig_protocol_browser*. 
 
-- First, a list UI named  ""ModelList"" that is dedicated to render the subclasses of the ''AbstractWidgetModel'' class is created.
+- First, a list UI named  ""WidgetClassList"" that is dedicated to render the subclasses of the ''AbstractWidgetModel'' class is created.
 - Second, a UI composed of a list and a label is defined and named ""ProtocolList"".
-- Third, a protocol viewer is defined by combining a ""ModelList"" with two ""ProtocolList"" to browse the ''protocol'' and ''protocol-events'' methods.
+- Third, a protocol viewer is defined by combining a ""WidgetClassList"" with two ""ProtocolList"" to browse the ''protocol'' and ''protocol-events'' methods.
 -  Finally a protocol browser is made by reusing a protocol viewer and adding a text zone. 
 
 
@@ -65,31 +65,31 @@ First we define the elements that compose the resulting browser. In the subseque
 
 SD: we should show the intermediate results we will get.
 
-SD: we should get a better name than ModelList: may be WidgetLists
-%SD: This ModelList is confusing. It would be good to name it differently.
+SD: we should get a better name than WidgetClassList: may be WidgetLists
+%SD: This WidgetClassList is confusing. It would be good to name it differently.
 
-!!! The ModelList
+!!! The WidgetClassList
 
 Creating a specific UI always starts with the subclassing of ""ComposableModel"".
 Each sub widget is stored into an instance variable of the newly created class.
-The snippet *ex_model_list* shows the definition of this for the ==ModelList== class.
+The snippet *ex_model_list* shows the definition of this for the ==WidgetClassList== class.
 
 
 
 
-[[[label=ex_model_list|caption=ModelList definition|language=Smalltalk 
-ComposableModel subclass: #ModelList
+[[[label=ex_model_list|caption=WidgetClassList definition|language=Smalltalk 
+ComposableModel subclass: #WidgetClassList
 	instanceVariableNames: 'list'
 	classVariableNames: ''
 	category: 'Spec-Examples'
 ]]]
 
 The first required step then is to instantiate and define the sub widgets.
-This step is done in the method ==initializeWidgets== as shown in the code *ex_modelList_initializeWidgets*. It creates the list and populates it with the required classes, in alphabetical order.
+This step is done in the method ==initializeWidgets== as shown in the code *ex_WidgetClassList_initializeWidgets*. It creates the list and populates it with the required classes, in alphabetical order.
 More details on the use of the ==initializeWidgets== method are given in *subsec_initializeWidgets*.
 
-[[[label=ex_modelList_initializeWidgets|caption=Implementation of ModelList>>#initializeWidgets|language=Smalltalk 
-ModelList>>initializeWidgets
+[[[label=ex_WidgetClassList_initializeWidgets|caption=Implementation of WidgetClassList>>#initializeWidgets|language=Smalltalk 
+WidgetClassList>>initializeWidgets
 
 	list := self newList.
 	list items: (AbstractWidgetModel allSubclasses 
@@ -108,12 +108,12 @@ ComposableModel>>newList
 
 
 The second required step is to define a layout, which is done on the class side.
-Since there is here only one sub widget, the layout is quite simple, as shown in the code in *ex_modelList_layout*.
+Since there is here only one sub widget, the layout is quite simple, as shown in the code in *ex_WidgetClassList_layout*.
 It simply returns a layout that contains only the list.
 More details on the use of this method are given in *subsec_layout*.
 
-[[[label=ex_modelList_layout|caption=ModelList layout|language=Smalltalk 
-ModelList class>>#defaultSpec
+[[[label=ex_WidgetClassList_layout|caption=WidgetClassList layout|language=Smalltalk 
+WidgetClassList class>>#defaultSpec
 	<spec: #default>
 	
 	^ SpecLayout composed
@@ -124,17 +124,17 @@ ModelList class>>#defaultSpec
 Pay attention the argument, ==#list==, of the ==add:== message, refers to a method that we did not define yet and that should return the associated UI element (here a list). 
 
 
-The three last methods to define on ModelList are a getter, a method to display the UI title and a method to register to list selection changes.
-The code *ex_modelList_others* shows the implementation of these three methods and their protocols.
+The three last methods to define on WidgetClassList are a getter, a method to display the UI title and a method to register to list selection changes.
+The code *ex_WidgetClassList_others* shows the implementation of these three methods and their protocols.
 
-[[[label=ex_modelList_others|caption=ModelList other methods|language=Smalltalk 
-ModelList>>list
+[[[label=ex_WidgetClassList_others|caption=WidgetClassList other methods|language=Smalltalk 
+WidgetClassList>>list
 	^ list
 
-ModelList>>title
+WidgetClassList>>title
 	^ 'Widgets'
 
-ModelList>>whenSelectedItemChanged: aBlock
+WidgetClassList>>whenSelectedItemChanged: aBlock
 	list whenSelectedItemChanged: aBlock
 ]]]
 
@@ -142,7 +142,7 @@ Note that this ==whenSelectedItemChanged: aBlock== will probably be deprecated i
 can simply send the message to the list directly.
 
 The first UI is now done.
-The result can be seen by executing the following snippet of code: ==ModelList new openWithSpec== as shown in Figure **
+The result can be seen by executing the following snippet of code: ==WidgetClassList new openWithSpec== as shown in Figure **
 
 
 +The Widget Classes List Element.>file://figures/List.png|width=50|label=fig_protocol_browser+
@@ -162,7 +162,7 @@ ComposableModel subclass: #ProtocolList
 	category: 'Spec-Examples'
 ]]]
 
-The ==initializeWidgets== method for this UI is quite similar to the method in ModelList, as the code in *ex_protocolList_init* shows.
+The ==initializeWidgets== method for this UI is quite similar to the method in WidgetClassList, as the code in *ex_protocolList_init* shows.
 
 [[[label=ex_protocolList_init|caption=ProtocolList implementation of initializeWidgets|language=Smalltalk 
 ProtocolList>>initializeWidgets
@@ -229,10 +229,10 @@ the widgets is empty. This is normal since we did not initialize it.
 !!! The ProtocolViewer
 
 The third user interface is a composition of the two previous user interfaces.
-It is composed of a ""ModelList"" and two ""ProtocolList"".
+It is composed of a ""WidgetClassList"" and two ""ProtocolList"".
 When a model class is selected, the methods in the protocol ''protocol'' and in the protocol ''protocol-events'' are listed.
 
-The class has now three instance variables: ==models== to store the ""ModelList"", ==protocols== to store the ""ProtocolList"" for the protocol ''protocol'', and ==events== to store the ""ProtocolList"" for protocol ''protocol-events''.
+The class has now three instance variables: ==models== to store the ""WidgetClassList"", ==protocols== to store the ""ProtocolList"" for the protocol ''protocol'', and ==events== to store the ""ProtocolList"" for protocol ''protocol-events''.
 The code in *ex_viewer_definition* shows the definition of the class ""ProtocolViewer"".
 
 [[[label=ex_viewer_definition|caption=ProtocolViewer definition|language=Smalltalk 
@@ -249,7 +249,7 @@ The remainder of the method is quite similar to the previous implementation, as 
 [[[label=ex_viewer_initializeWidgets|caption=Implementation of ProtocolViewer>>#initializeWidgets|language=Smalltalk 
 ProtocolViewer>>initializeWidgets
 
-	models := self instantiate: ModelList.
+	models := self instantiate: WidgetClassList.
 	protocols := self instantiate: ProtocolList.
 	events := self instantiate: ProtocolList.
 	
