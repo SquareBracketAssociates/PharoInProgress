@@ -46,7 +46,21 @@ Being in a Bloc space, the only difference consists in the world-menu invocation
 
 +The new world-menu item added after Blov installation>file://figures/bloc-worldmenu-item.png|width=40|label=bloc-worldmenu+
 
-	
+!!What is a morph 
+All objects that you can see on the screen are morphs. The Pharo screen itself is a morph. A morph may be simple or composed of other morphs. As examples, a button may be a simple morph whereas a window is a composed morph. 
+
+A simple morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has two kinds of responsibilities: is has to display itself and it has to answer to events. In order to display itself, it stores its own extent and applies affine transformations. In order to answer to events, it defines the behavior that is runned when an event is received and this is the case for all possible kinds of events.
+
+A composed morph is an instance of ==BlCompositeMorph==, a direct subclass of ==BlMorph==. ==BlCompositeMorph== specificity is simply to maintains a collection of submorphs. Moreover, it can use a particular layout strategy to automatically maintain the position and the extent of its submorphs.
+
++The anatomy of a BlCompositeMorph>file://figures/BlMorph-inst-vars.png|width=50|label=BLCompositeMorph-anatomy+
+
+Figure *BLCompositeMorph-anatomy* presents a table with all instance variables of a composite morph opened in a world. To browse this table by yourself, just evaluate the Script *BlCompositeMorph-opening*. When you evaluate it, don't bother if you do not see the composite morph in the screen, it is explained later.
+[[[label=BlCompositeMorph-opening|caption=Opening an empty composite morph|language=Smalltalk
+BlCompositeMorph new openInWorld inspect.
+]]]
+For now, let's focus on the table of instance variables shown in Figure *BLCompositeMorph-anatomy*:
+- announcer: a morph has an announcer
 !! The Bloc Infrastructure
 In this section we  present the main classes supporting the infrastructure (event dispatching, alarm, display management). 
 
@@ -56,7 +70,7 @@ The space acts as a mediator between a low-level event fetcher (an instance of =
 - the VM event fetcher gets raw events from the VM and passes them to the high-level event handler. This last one dispatches the events coming from the vm event fetcher and sends them either to the space morph or directly to the morph which has the focus (keyboard or mouse). When the space morph receives an event then it tries to look-down the morph that can react to it;
 - the main loop manager is related to a space and holds an alarm queue and a deferred action list. It implements an infinite loop. At each round, the current space morph is redrawn, the low-level event fetcher is activated, deferred actions and ready alarms are runned.
 
-+The main elements of Bloc infrastructure>file://figures/bloc-core-main-elements.png|width=90|label=infrastructure-elements+
++The main elements of Bloc infrastructure>file://figures/bloc-core-main-elements.png|width=70|label=infrastructure-elements+
 
 
 !!! Universe 
@@ -112,32 +126,32 @@ BlHaloMorph class>>spaceShutDown: aSpace
 	aSpace unsubscribe:  self
 ]]]
 
-!!! The space morph
-There is one and only one space morph per bloc space. The space morph is the root morph of a bloc space, 
-it is the only displayed morph that has no owner (its owner instance variable is nil). 
+!!! The root morph
+There is one and only one root morph per bloc space.
+It is the only displayed morph that has no owner (its owner instance variable is nil). 
 
-+The space morph structure>file://figures/space-morph-structure.png|width=50|label=space-morph-structure+
++The root morph structure>file://figures/space-morph-structure.png|width=70|label=root-morph-structure+
 
-As shown in Figure *space-morph-structure*, its layout is structured as a stack of morphs: each submorph constitutes a layer. 
-Basically, there are six layers, distributed from the back to the front as follow:
-- the background : it is an instance of ==BlSpaceBackgroundMorph==; it is completely blind to events. It serves as a layer for a background color or image and to draw icons;
-- the morphic world: it is an instance of ==BlMorphicWorldMorph==; it contains morphic morphs; all morphic user interfaces are added inside this layer;
-- the bloc world: it is an instance of ==BlWorldMorph==; it contains bloc morphs;
-- the tool-tips foreground: it contains the tools-tips that are drawned when the hand stay over a bloc morph (not implemented so far);
+As shown in Figure *root-morph-structure*, by default, its layout is structured as a stack of morphs: each submorph of the space morph constitutes a layer. 
+It is composed of 4 layers, distributed from the back to the front as follow:
+- the morphic world: it is an instance of ==BlWorldMorph==; it contains all morphs that can be manipulated by the user;
+- the tool-tips foreground: it contains the tools-tips that are drawned when the hand stays over a bloc morph (not implemented so far);
 - the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
 - the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
 
-For backward compatibility, a BLSpace morph is rendered with a Form based canvas but, except the morphic world, 
-all layers are rendered with Athens. In fact they use the trait TBlAthensWrapper which draws the morph with athens and finally 
-put the resulting form is the Form based canvas. 
+The deep of a layer (from bottom to top) is given by the value of its layerNumber instance variable which is set with the result of the ''#defaultLayoutNumber'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
 
-Note that the morphic world is temporarily added because Morphic is not Athens based. It will disappear when Morphic will be fully 
-Athens based.
+!!Simple morphs
+==BlMorph== implements the common behavior of all morphs. Its inherits from ==BlView== which brings:
+- the management of the geometric properties (extent, bounds managed through a bounds cache), 
+- the management of the local coordinates  (bounds and affine transformations with translating, rotating and scaling),
+- the visual change reporting and the drawing protocol, and
+- the layout management.
+==BlMorph== brings additional behaviors for event managing through an event listener chain. 
+The visual properties of a ==BlMorph== are managed through an associated view (the view of the ==BlMorph==).
 
-Except the background, all layers background are transparent. All these layers are submorphs of the space morph. 
-The order of a layer (from bottom to top) is given by the value of its layerNumber instance variable.
-
-!!A quick tour of the Bloc core
+In this Section, we learn how to create and open a simple morph, how to configurate it with a color or a 
+fill and how to setup its borders. 
 
 !!!A first Example
 The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
@@ -159,8 +173,21 @@ Move the mouse near the top left of the Pharo screen and click with the middle b
 Then you can move the morph by dragging the halo, resize it with the yellow handle, open inspectors with the blue one, delete the halo or delete de morph with the black and the red handlles.
 
 !!!Changing the view of a morph
-To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: message to a morph vith the view passed as argument. As an example, to create a rectangle view ==BlRectangleView== is instantiated. ==BlRectangleView== inherits from ==BlEnclosedView==. As a kind of ==BlEnclosedView==, a ==BlRectangleView== can have a fill and can have a border. Creating a morph with a plain rectangular 
-view can be programmed as shown in Script *blueMorph*. In the example of script *blueMorph*, an instance of BlRectangleView with a blue color is created. 
+To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: 
+message to a morph vith the view passed as argument. The entire view hierarchy is presented in Figure *view-hierarchy*.
+- ==BlMinimalMorphView==: this is the default transparent view;
+- ==BlEnclosedView==: a composite view that can be filled and that can have a border; Its subclasse ==BlRectangleView== is the most used but have also ==BlEllipseView== and ==BlCircleView==;
+- ==BlImageView==: a view to draw an image; ==BlFormImageView== is used to draw an image from a ==Form== and BlSvgImageView, to draw a SVG model;
+- ==BlPolygonView==: a view used to draw polygons from a list of points; the polygon border can be straight or curvy;
+- ==BlStringView==: a view to draw a strings with a font and a text color; the extent of a ==BlStringView== is computed from the rendered string and the used font;
+- ==BlTextView==: a view used to display a ==TxTextModel==; this kind of view is used to build the Bloc text editor;
+- ==BlTextLabel==: a view used to display a string but with a ==TxTextModel==; the extent of a ==BlTextLabel== is the one of the rendered ==TxTextModel==;
+
++The view hierarchy>file://figures/view-hierarchy.png|width=60|label=view-hierarchy+
+
+As an example, to create a rectangle view, ==BlRectangleView== is instantiated. ==BlRectangleView== inherits from ==BlEnclosedView==. 
+As a kind of ==BlEnclosedView==, a ==BlRectangleView== can have a fill and can have a border. Creating a morph with a plain rectangular 
+view an open it can be programmed as shown in Script *blueMorph*. In the example of script *blueMorph*, an instance of BlRectangleView with a blue color is created. 
 
 [[[label=blueMorph|caption=Opening a blue rectangular morph|language=Smalltalk
 | morph view |
@@ -169,16 +196,16 @@ morph := BlMorph new view: view.
 morph openInWorld
 ]]]
 
-A second method is to send the ==#asMorph== message to the view. This is shown by Script *blueMorphV2*.
+To associate a morph with a view, one can send the ==#asMorph== message to the view. This is shown by Script *blueMorphV2*.
 
 [[[label=blueMorphV2|caption=Using the #asMorph message|language=Smalltalk
 (BlRectangleView new color: Color blue) 
 	asMorph openInWorld
 ]]]
 
-Because rectangle views are used very often, Bloc implements two specific helper methods: ''withRectangleView'' and ''withRectangleViewDo:''. 
-''withRectangleView'' set the view to a ==BlRectangleView== instance. ''withRectangleViewDo:'' set the view to a ==BlRectangleView== 
-instance and evaluate the block passed as argument. The new rectangle view is itself passsed as argument to the block. 
+Bloc implements two specific helper methods: ''withRectangleView'' and ''withRectangleViewDo:'' to facilitate the setting of a rectangle view. 
+''withRectangleView'' set the view to a ==BlRectangleView== instance. ''withRectangleViewDo:'' set the view to a ==BlRectangleView== instance and evaluate the block passed as argument. 
+The new rectangle view is itself passsed as argument to the block. 
 Script *blueMorphV3* shows an example: the block passed as argument to ''withRectangleViewDo:'' fills the rectangle view with the 
 blue color.
 
@@ -188,13 +215,13 @@ BlMorph new
 	openInWorld
 ]]]
 
-!!!!Changing the fill style
+!!!!Changing the fill style of an enclosed view
 
 One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and 
-composite fill styles. The example of Script *morphWithLinearGradient* shows the use of a linear gradient fill style. 
+composite fill styles. The example of Script *rectangleWithLinearGradient* shows the use of a linear gradient fill style. 
 The resulting morphs is shown in Figures *linearGradient*.
 
-[[[label=morphWithLinearGradient|caption=Creating and using a linear gradient fill style|language=Smalltalk
+[[[label=rectangleWithLinearGradient|caption=Creating and using a linear gradient to fill a rectangle view|language=Smalltalk
 | morph |
 morph := BlMorph new withRectangleViewDo: [ :v | | fill c |
 	c := Color yellow.
@@ -206,19 +233,20 @@ morph := BlMorph new withRectangleViewDo: [ :v | | fill c |
 morph openInWorld]]]
 
 The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
-In the example of Script *morphWithLinearGradient*, the yellow gradient is a vertical one that starts at the top-middle and stops at the bottom middle.
+In the example of Script *rectangleWithLinearGradient*, the yellow gradient is a vertical one that starts at the top-middle and stops at the bottom middle.
 +A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=8|label=linearGradient+
 
+A linear gradient can also be used to fill a circle view. As an example, in Script *rectangleWithLinearGradient* change the ''#withRectangleViewDo:'' message send with ''#withCircleViewDo:'' to create such a circle view.
 
 !!!! Adding a border
 
-The border of a ==BlRectangleView== and more generally of a ==BlEnclosedView== can be set with an instance of any subclass of ==BlBorderStyle==. 
-As shown in Script *morphWithRedBorder*, to decorate a view with a colored border one can use an instance of ==BlSolidBorder==. The morph built with *morphWithRedBorder* is shown in Figure *redBorder*.
+The border of a ==BlRectangleView== and can be set with an instance of a subclass of ==BlRectangleBorder==. 
+As shown in Script *morphWithRedBorder*, to decorate a view with a colored border one can use an instance of ==BlSolidRectangleBorder==. The morph built with *morphWithRedBorder* is shown in Figure *redBorder*.
 
 [[[label=morphWithRedBorder|caption=Creating and using a solid border|language=Smalltalk
 | view morph |
 view := BlRectangleView new color: Color white; 
-	borderStyle: (BlSolidBorder new color: Color red; width: 2).
+	borderStyle: (BlSolidRectangleBorder new color: Color red; width: 2).
 morph := view asMorph.
 morph openInWorld]]]
 
@@ -302,3 +330,31 @@ BlMorph new
 	openInWorld]]]
 
 +Dash border examples>file://figures/dash-borders.png|width=55|label=fig-dash-borders+
+
+!!!!Affine transformation
+Each morph owns a transform which is used by the Athens underlying rendering framework and which represents an interface for coordinate system transformations. The transform is an instance of ==AthensAffineTransform==. Basically, the transform of a morph should not be directly manipulated. Instead, its public protocol and the public interface of ==BlProtoview== should be used for translating, rotating, scaling, shearing, global to local and local to global transformations. The public interface of Athens surface can also be used to implement specific rendering (for an animation for example).
+
+Bloc uses a local coordinate system. It means that the position of a morph is given according to the coordinate system defined by its owner. Thus, translating a morph means changing its position according to the position of its owner. The position of a morph can be got and changed with the ''#position'', the ''#position:'' and the '#translateBy:' messages. These messages read or update the transform translation.
+
+Rotating, scaling and shearing follow the same logic. These transformations are managed by mean of the ''#rotateByDegrees:'', the ''#rotateByRadians:'', the ''#scaleBy:'' and the ''#scaleX:Y:'' messages. Corresponding methods are part of the public interface of ==BlProtoView==.
+
+It is important to notice that the transform is used for Athens rendering. In fact is has nothing to do with the bounds of a morph. As an example, the bounds origin of a morph is always the constant point 0@0 whatever its transform. As a fundamental rule, the bounds of a morph stays unchanged in case of translating, rotating or of scaling. 
+
+!!!Composing views
+A composite view can be used to elaborate view composed by several subviews. A ==BlCompositeView== is a kind of rectangle view that can contains other view.
+
+
+!!!Composing morphs
+
+!!Layout management
+
+
+!! Event management
+In this Section we learn how events are managed to make morphs live. First we present what is an event, 
+how it is created by the infrastructure and how the infrastructure can be customed and adapted at a global level. Then we learn how finally
+evens are distributed to morphs and again and how to manage the hooks provided locally by morphs.
+
+!! Alarms and stepping
+
+!! Interacting with announcements
+
