@@ -14,8 +14,7 @@ That's where the PharoLauncher comes in the picture.
 
 Pharo Launcher, a cross-platform application that 
 - lets you manage your Pharo images (launch, rename, copy and delete); 
-- lets you download image templates (i.e., zip archives) from many  different sources (Jenkins, files.pharo.org, and your local cache); 
-- lets you create new images from any template.
+-lets you download image templates (i.e., zip archives) from many  different sources (Jenkins, files.pharo.org, and your local cache) and create new images from any template.
 
 The idea behind the Pharo Launcher is that you should be able to access it very rapidly from your OS application launcher. As a result launching any image is never more than 3 clicks away. 
 
@@ -24,6 +23,8 @@ The idea behind the Pharo Launcher is that you should be able to access it very 
 
 
 !! Downloading/Installing PharoLauncher
+
+As discussed earlier about the rapid evolvement of Pharo , kindly check out *http://www.pharo.org/download* to get the latest download/install instructions for Pharo Launcher.
 
 !!!Linux Ubuntu:
 (*http://pharo.org/download#ubuntu*)
@@ -55,11 +56,11 @@ $ pharo-launcher
 ]]]
 
 !!!Windows:
-Download and install the executable from the link provided here (*https://ci.inria.fr/pharo/view/Launcher/job/Launcher-Win/*)
+Download and install the executable from the link provided here (*http://files.pharo.org/platform/launcher/*)
 
 
 !!!MacOS:
-Use the link (*https://ci.inria.fr/pharo/view/Launcher/job/Launcher-Mac/*)to install PharoLauncher on Mac system.
+Use the link (*http://files.pharo.org/platform/launcher/*)to install PharoLauncher on Mac system.
 
 
 !!Using PharoLauncher
