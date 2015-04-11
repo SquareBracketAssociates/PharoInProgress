@@ -6,16 +6,7 @@ This unit aims to provide a basic overview of what PharoLauncher is and give a s
 
 
 !!Overview
-
-Pharo is an open source implementation of the programming language and environment Smalltalk. Pharo is not Smalltalk. Pharo is Smalltalk-inspired. 
-
-Pharo offers strong live programming features such as immediate object manipulation, live update, and hot recompilation. Live programming environment is in the heart of the system. Pharo also supports advanced web development with frameworks such as Seaside and more recently Tide. 
-
-The official Pharo website defines it as: ''Pharo is a pure object-oriented programming language and a powerful environment, focused on simplicity and immediate feedback (think IDE and OS rolled into one). ''
-
-Pharo relies on a virtual machine that is written almost entirely in Smalltalk itself. 
-
-Pharo environment is its own little world, designed around a conception of a computer with a minimal operating system and populated with living objects. A Smalltalk implementation is composed of an image (binary code), a major source file and a ‘changes’ file. The image is called Virtual Image (VI) because is independent form the platform you use for running Smalltalk. Smalltalk systems store the entire program state (including both Class and non-Class objects) in an image file. The image can then be loaded by the Smalltalk virtual machine to restore a Smalltalk-like system to a prior state. 
+ 
 
 As Pharo is open source, it growing rapidly owing to the contributions of people all around the world. Each day we have a new update of the image of Pharo which makes it cumbersome to keep track of updates. It becomes quite a task when one has to download a new image seperately each he/she plans to work on something having the latest issues fixed, new features added etc.
 
