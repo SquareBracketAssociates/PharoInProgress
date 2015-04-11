@@ -42,6 +42,8 @@ If you don't have the add-apt-repository command, install the software-propertie
 
 If you are on a server (no GUI), you can get a Pharo Virtual Machine by installing pharo-vm-core.
 
+On Ubuntu, the Launcher is installed as ''/usr/bin/pharo'', so you can type pharo on the command line to start it.
+
 !!!ArchLinux :
 (*http://lists.pharo.org/pipermail/pharo-users_lists.pharo.org/2014-March/010932.html*)
 [[[
@@ -61,6 +63,8 @@ Download and install the executable from the link provided here (*http://files.p
 
 !!!MacOS:
 Use the link (*http://files.pharo.org/platform/launcher/*)to install PharoLauncher on Mac system.
+
+After installation , you'll observe that the Launcher is installed in /Applications. 
 
 
 !!Using PharoLauncher
