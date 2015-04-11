@@ -36,6 +36,7 @@ The idea behind the Pharo Launcher is that you should be able to access it very 
 
 !!!Linux Ubuntu:
 (*http://pharo.org/download#ubuntu*)
+
 Ubuntu users can use the dedicated ppa to install Pharo
 
 [[[
@@ -46,6 +47,7 @@ sudo apt-get install pharo-launcher
 ]]]
 
 If you don't have the add-apt-repository command, install the software-properties-common package and try again.
+
 If you are on a server (no GUI), you can get a Pharo Virtual Machine by installing pharo-vm-core.
 
 !!!ArchLinux :
