@@ -14,7 +14,7 @@ That's where the PharoLauncher comes in the picture.
 
 Pharo Launcher, a cross-platform application that 
 - lets you manage your Pharo images (launch, rename, copy and delete); 
--lets you download image templates (i.e., zip archives) from many  different sources (Jenkins, files.pharo.org, and your local cache) and create new images from any template.
+- lets you download image templates (i.e., zip archives) from many  different sources (Jenkins, files.pharo.org, and your local cache) and create new images from any template.
 
 The idea behind the Pharo Launcher is that you should be able to access it very rapidly from your OS application launcher. As a result launching any image is never more than 3 clicks away. 
 
@@ -27,6 +27,7 @@ The idea behind the Pharo Launcher is that you should be able to access it very 
 As discussed earlier about the rapid evolvement of Pharo , kindly check out *http://www.pharo.org/download* to get the latest download/install instructions for Pharo Launcher.
 
 !!!Linux Ubuntu:
+
 (*http://pharo.org/download#ubuntu*)
 
 Ubuntu users can use the dedicated ppa to install Pharo
@@ -42,10 +43,15 @@ If you don't have the add-apt-repository command, install the software-propertie
 
 If you are on a server (no GUI), you can get a Pharo Virtual Machine by installing pharo-vm-core.
 
-On Ubuntu, the Launcher is installed as ''/usr/bin/pharo'', so you can type pharo on the command line to start it.
+On Ubuntu, the Launcher is installed as ''/usr/bin/pharo'', so you can type the following command on the terminal to start the Pharo Launcher.
+[[[ 
+pharo 
+]]] 
 
 !!!ArchLinux :
+
 (*http://lists.pharo.org/pipermail/pharo-users_lists.pharo.org/2014-March/010932.html*)
+
 [[[
 $ yaourt pharo-vm-latest
 $ pharo /path/to/your/image
@@ -58,11 +64,11 @@ $ pharo-launcher
 ]]]
 
 !!!Windows:
-Download and install the executable from the link provided here (*http://files.pharo.org/platform/launcher/*)
+Download and install the executable from the link provided here (*http://files.pharo.org/platform/launcher/latest.exe*)
 
 
 !!!MacOS:
-Use the link (*http://files.pharo.org/platform/launcher/*)to install PharoLauncher on Mac system.
+Use the link (*hhttp://files.pharo.org/platform/launcher/latest.dmg*)to install PharoLauncher on Mac system.
 
 After installation , you'll observe that the Launcher is installed in /Applications. 
 
@@ -75,24 +81,37 @@ The image below depicts how a PharoLauncher looks like when it is opened.
 
 
 
-+Pharo Launcher>file://figures/pharolauncher.png|width=100|label=obj+
++Pharo Launcher>file://figures/pharolauncher_edited.png|width=100|label=obj+
 
 
 
-The first screen has been divided into two parts.
-The first part 'Existing Images' displays the images already created by the user. Initially after the installation the left side with local images is empty.
-Whereas the the other 'Templates' displays the image templates from various resources available for download from the internet.
+The screen displayed initially has been divided into two parts.
+The left part 'Existing Images' displays the images already created by the user. Initially after the installation the left side with local images is empty.
+Whereas the the right side is the 'Templates' section which displays the image templates from various resources available for download from the internet.
 The 'Existing Images' section has 3 buttons : Launch, Delete and Refresh.
 The 'Templates' section has 2 buttons : Create Image and Refresh.
 At the bottom of the launcher we have the buttons for quit and settings.
 
 Select the image you wish to work on from the list and the sources provided in the 'Templates' section and download it. 
-For instance you can download "Pharo4.0 (beta)” from the options provided which is the latest image as of today. By clicking on the 'Create Image' button at the top right corner.
+
+For instance you can download "Pharo4.0 (beta)” from the options provided which is the latest image as of today. 
+
+By clicking on the 'Create Image' button at the top right corner.
+
 Note that also the images from contribution CI are available.
+
 So you can easily download "Artefact", "Moose", ... images according to your choice.
 
 It will download the image into a specific directory somewhere in your users home directory.
 Each image gets an own folder. Use the "Show in folder" menu item  to open this location.
+
+The location of the images can be changed through the 'Settings Browser' option located at the bottom-right corner.
+Go to the 'Open Settings' > 'Location of your images'. Now enter the desired path in the place provided as shown in the figure.
+
+
++Setting the storage location of the image>file://figures/location.png|width=100|label=obj+
+
+
 
 After 'Creating an image' , a dialog box appears which asks you to give a name to the image as shown in figure below.
 
@@ -118,9 +137,9 @@ To launch the image, simply select your option and click on the 'Launch' button 
 You could watch this video on PharoLauncher to get a clearer view (*https://www.youtube.com/watch?v=fNim2Yxs320*)
 
 Resources to explore further: 
--*http://pharo.org/download* 
--*http://www.smalltalkhub.com/#!/~Pharo/PharoLauncher*
--*https://ci.inria.fr/pharo-contribution/job/PharoProjectCatalog/HTML_Report/PharoLauncher.html*
--*http://lists.pharo.org/pipermail/pharo-dev_lists.pharo.org/*
+-Official Pharo Website (*http://pharo.org/*)
+-Pharo Launcher project on SmalltalkHub  (*http://www.smalltalkhub.com/#!/~Pharo/PharoLauncher*)
+-Pharo Launcher at Continuous Integration, Inria Platform (*https://ci.inria.fr/pharo-contribution/job/PharoProjectCatalog/HTML_Report/PharoLauncher.html*)
+-Pharo Mailing List discussion on Pharo Launcher  (*http://lists.pharo.org/pipermail/pharo-dev_lists.pharo.org/*)
 
 
