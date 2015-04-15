@@ -81,7 +81,7 @@ The image below depicts how a PharoLauncher looks like when it is opened.
 
 
 
-+Pharo Launcher>file://figures/pharolauncher_edited_new.png|width=100|label=obj+
++Pharo Launcher>file://figures/pharolauncher_edited_new.png|width=100|label=launcher+
 
 
 
@@ -109,7 +109,7 @@ The location of the images can be changed through the 'Settings Browser' option 
 Go to the 'Open Settings' > 'Location of your images'. Now enter the desired path in the place provided as shown in the figure.
 
 
-+Setting the storage location of the image>file://figures/location.png|width=100|label=obj+
++Setting the storage location of the image>file://figures/location.png|width=100|label=settingLocation+
 
 
 
@@ -117,7 +117,7 @@ After 'Creating an image' , a dialog box appears which asks you to give a name t
 
 
 
-+Naming your image>file://figures/rename.png|width=100|label=obj+
++Naming your image>file://figures/rename.png|width=100|label=namingImage+
 
 
 
@@ -125,13 +125,19 @@ After entering the suitable name , the image is displayed in the 'Existing Image
 
 
 
-+Your image added to the 'Existing Images'>file://figures/myimage.png|width=100|label=obj+
++Your image added to the 'Existing Images'>file://figures/myimage.png|width=100|label=imageAdded+
 
 To launch the image, simply select your option and click on the 'Launch' button located at the top right corner of the 'Existing Images' section and voila ! You have the pharo image of your choice running with the name of your choice.
 
 
 
-+Launching your image>file://figures/myimg.png|width=100|label=obj+
++Launching your image>file://figures/myimg.png|width=100|label=launchPL+
+
+!! Important Points
+
+- To run multiple images, uncheck the “Quit on Launch” checkbox located at the bottom left corner (as shown in figure *launcher*), so that the Pharo Launcher doesn't close when an image is launched.
+
+- Pharo Launcher creates a separate directory for each image, with a matching image and directory name. But when Pharo is asked to save the image with a different name, that image is stored in the directory of the older image by default. The new image thus created can not be used by the Pharo Launcher. To avoid such situation, either use the Pharo Launcher to copy an image or create a new directory and then save the image there. With Pharo 4 , we can set the storage location of the image while saving, though with the older versions it had to be done manually after saving.
 
 
 You could watch this video on PharoLauncher to get a clearer view (*https://www.youtube.com/watch?v=fNim2Yxs320*)
