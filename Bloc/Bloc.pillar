@@ -84,12 +84,13 @@ Dispatch???
 The class ==BlProtoMorph== is the root of the Morph hierarchy. A ==BlProtoMorph==  has a position 
 but its extent is computed or set by subclasses.
 
-A ==BlProtoMorph== has an eventListener that handles morph interaction. A event listener encapsulates state 
+A ==BlProtoMorph== has an eventListener that handles morph interaction. An event listener encapsulates state 
 about the interaction (in fact a listener is chain of command so listener can be dynamically added and removed).
 
 You can add an event listener using the message: ==BlProtoMorph>>addEventListener:==
 
-A morph lives in a space which is responsible of the display. A space is responsible to indirectly handle events, manage canvas, main loop and morph worlds. A space is a kind of mediator. 
+A morph lives in a space which is responsible for displaying. A space is responsible to indirectly handle events, 
+manages canvas, main loop and morph worlds. A space is a kind of mediator. 
 
 !!! Morph 
 A ==BlMorph== is a subclass of ==BlProtoMorph==. It adds support for views (graphical display of a morph) and 
@@ -110,12 +111,15 @@ Global alarm
 
 !! Playing with Anchors
 
-Bloc uses new layout for composite morphs. It is based on the anchor design developed by I. Stasenko. Basically a morph has four anchor, one in each 
+Bloc uses new layout for composite morphs. It is based on the anchor design developed by I. Stasenko. 
+Basically a morph has four anchors, one in each 
 direction and it expresses its size based on anchors attached to other morphs.
 
-An anchor is just a special kind of layout properties (==BlLayoutProperties==). It can be attached to any morph. Now only morphs with a layout policy (hence instances of ==BlMorphWithLayout==) will take advantage of them. 
+An anchor is just a special kind of layout properties (==BlLayoutProperties==). It can be attached to any morph. 
+Now only morphs with a layout policy (hence instances of ==BlMorphWithLayout==) will take advantage of them. 
 
-The following example produces two morphs: one (white) nested into  in another one (red). When the root morph changes its size, the white will update its size accordingly.
+The following example produces two morphs: one (white) nested into  in another one (red). 
+When the root morph changes its size, the white will update its size accordingly.
 [[[
 | redRoot whiteSub1 |
 redRoot := BlMorphWithLayout new.
