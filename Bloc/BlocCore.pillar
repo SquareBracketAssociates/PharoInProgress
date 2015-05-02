@@ -1,21 +1,26 @@
 {{title: Bloc core}}
 {{author: Alain Plantec}}
 
-! Bloc: a new morph framework
+! Bloc: a new Morph Framework
 
-In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc*, a new 2D graphical framework that has been redesigned from scratch. 
-Note that we did not say that Bloc is a new Morphic Framework. Morphic is just the current 2D graphical framework of Pharo. 
-Bloc has been designed to be able to embed Morphic elements so that we can use Morphic widgets during the building of Bloc.
-Thus, in a first step, backward compatibility with Morphic is kept. This means that Morphic based user interfaces can be displayed within Bloc.
-But the inverse is not true, Bloc user interfaces can not be displayed within a Morphic World. 
-When we will have enough widgets in Bloc, we will be able to make a big jump and completely separate Bloc from Morphic. 
+In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc*, a new 2D graphical framework that has been designed from scratch. Bloc has been designed by A. Plantec. 
+Bloc's goal is to reinvent Morphic (the current UI framework of Pharo), because we love Morphic but it shows its age.  
+
+
 
 We describe the overall architecture and the key players of Bloc. Then we present a quick tour of the Bloc core. 
 In this quick tour, a lot of examples are commented-out. These examples are chosen to cover the main aspects of the Bloc core from the programmer's point of view.
 
 !! What is Bloc
 Bloc is a complete rewrite of an infrastructure to display 2D graphical element such as elementary graphical objects 
-and widgets. Bloc is composed of three main categories of entities: entities managing the runtime 
+and widgets. 
+
+Note that we did not say that Bloc is a new Morphic Framework. Morphic is just the current 2D graphical framework of Pharo. Bloc has been designed to be able to embed Morphic elements so that we can use Morphic widgets during the building of Bloc.
+Thus, in a first step, backward compatibility with Morphic is kept. This means that Morphic-based user interfaces can be displayed within Bloc.
+But the inverse is not true, Bloc user interfaces can not be displayed within a Morphic World. When we will have enough widgets in Bloc, we will be able to make a big jump and completely separate Bloc from Morphic. 
+
+
+Bloc is composed of three main categories of entities: entities managing the runtime 
 (event dispatch, alarm, main rendering loop), basic graphical elements such as images, label, and more advanced widgets 
 (to be developed):
 
@@ -23,12 +28,16 @@ and widgets. Bloc is composed of three main categories of entities: entities man
 - Basic morphs. They are composed of a simple hierarchy whose root is ==BlMorph==. Each morph is potentially composed of a view, an instances of ==BlMorphView== or of one of its subclasses (the view manages the rendering) and an event listener chain (that handles interactions and implements event reactions).
 - Widgets. Each widgets is composed of a widget model implemented following a Model View Presenter style
 
+
+
+
+
 !! Installing Bloc
 The package repository of Bloc is in Smalltalkhub.
 
 [[[label=Bloc-repository|caption=The Bloc repository at Smalltalkhub|language=Smalltalk
 	MCSmalltalkhubRepository
-		owner: 'AlainPlantec'
+		owner: 'Pharo'
 		project: 'Bloc'
 		user: ''
 		password: ''
@@ -46,7 +55,7 @@ Being in a Bloc space, the only difference consists in the world-menu invocation
 
 +The new world-menu item added after Blov installation>file://figures/bloc-worldmenu-item.png|width=40|label=bloc-worldmenu+
 
-!!What is a morph 
+!!What is a Morph 
 All objects that you can see on the screen are morphs. The Pharo screen itself is a morph. A morph may be simple or composed of other morphs. As examples, a button may be a simple morph whereas a window is a composed morph. 
 
 A morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has three kinds of responsibilities: 
@@ -57,9 +66,9 @@ A morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has three kinds 
 !!! Rendering
 A ==BlMorph== renders itself through a separate object called the view of the morph. A morph view is an instance of ==BlView== or of one of its subclasses. The responsibility of a view is to draw something on a canvas to represent a morph. To do that, a view implements ==#drawOnAthensCanvas:== which takes an ==AthensCanvas== as argument. 
 
-A view can be of different kind. It can be a rectangle, a circle, an ellipse, a polygon, a text... More view kind can be added from scratch or by subclassing existing ones. 
+A view can be of different kind. It can be a rectangle, a circle, an ellipse, a polygon, a text... More view kinds can be added from scratch or by subclassing existing ones. 
 
-Moreover, complex views can be built by composition beacuse a view can be a composite (an instance of one of the subclasses of ==BlEnclosedView==). Each view of a composite has its own transform, it is managed through local coordinate and can be animated with the help of Alarms.
+Moreover, complex views can be built by composition because a view can be a composite (an instance of one of the subclasses of ==BlEnclosedView==). Each view of a composite has its own transform, it is managed through local coordinates and can be animated with the help of Alarms (shown later).
 
 Having a separate view is an important design decision. It has postive impacts on the quality of the implementation of a user interface. We see at least the following five benefits of this design:
 # Good separation of concerns: To represent an object, not only the surface painting but also the borders and the composition of the view must be managed. These responsibilities involves many methods and differents kinds of protocol. Then, separating a morph from its view has the immediate benefit to lesser the number of methods implemented by the ==BlMorph== class and to make it clearer the responsibilities of a morph. Regarding the view hierarchy, the separation of concerns has the same kind of benefit. As examples, an enclosed view can have subviews and a border but not an image view of a text view. Then methods defined to manage subviews or a border are only implemented at the ==BlEnclosedView== level and not by ==BlTextView== and ==BlPolygonView==. Separation of concerns is the main benefit which makes the next four benefits possible.
