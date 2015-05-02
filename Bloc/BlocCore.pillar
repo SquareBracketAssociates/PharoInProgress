@@ -49,25 +49,37 @@ Being in a Bloc space, the only difference consists in the world-menu invocation
 !!What is a morph 
 All objects that you can see on the screen are morphs. The Pharo screen itself is a morph. A morph may be simple or composed of other morphs. As examples, a button may be a simple morph whereas a window is a composed morph. 
 
-A simple morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has two kinds of responsibilities: is has to display itself and it has to answer to events. In order to display itself, it stores its own extent and applies affine transformations. In order to answer to events, it defines the behavior that is runned when an event is received and this is the case for all possible kinds of events.
+A morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has three kinds of responsibilities: 
+- Is has to render itself. In order to render itself, it stores its own extent and applies affine transformations. 
+- It has to answer to events. In order to answer to events, it defines the behavior that is runned when an event is received and this is the case for all possible kinds of events.
+- It has to maintain a collection of submorphs. A morph can be composed.  Moreover, it can use a particular layout strategy to automatically maintain the position and the extent of its submorphs.
 
-A composed morph is an instance of ==BlCompositeMorph==, a direct subclass of ==BlMorph==. ==BlCompositeMorph== specificity is simply to maintains a collection of submorphs. Moreover, it can use a particular layout strategy to automatically maintain the position and the extent of its submorphs.
+!!! Rendering
+A ==BlMorph== renders itself through a separate object called the view of the morph. A morph view is an instance of ==BlView== or of one of its subclasses. The responsibility of a view is to draw something on a canvas to represent a morph. To do that, a view implements ==#drawOnAthensCanvas:== which takes an ==AthensCanvas== as argument. 
 
-+The anatomy of a BlCompositeMorph>file://figures/BlMorph-inst-vars.png|width=50|label=BLCompositeMorph-anatomy+
+A view can be of different kind. It can be a rectangle, a circle, an ellipse, a polygon, a text... More view kind can be added from scratch or by subclassing existing ones. 
 
-Figure *BLCompositeMorph-anatomy* presents a table with all instance variables of a composite morph opened in a world. To browse this table by yourself, just evaluate the Script *BlCompositeMorph-opening*. When you evaluate it, don't bother if you do not see the composite morph in the screen, it is explained later.
-[[[label=BlCompositeMorph-opening|caption=Opening an empty composite morph|language=Smalltalk
-BlCompositeMorph new openInWorld inspect.
-]]]
-For now, let's focus on the table of instance variables shown in Figure *BLCompositeMorph-anatomy*:
-- announcer: a morph has an announcer
+Moreover, complex views can be built by composition beacuse a view can be a composite (an instance of one of the subclasses of ==BlEnclosedView==). Each view of a composite has its own transform, it is managed through local coordinate and can be animated with the help of Alarms.
+
+Having a separate view is an important design decision. It has postive impacts on the quality of the implementation of a user interface. We see at least the following five benefits of this design:
+# Good separation of concerns: To represent an object, not only the surface painting but also the borders and the composition of the view must be managed. These responsibilities involves many methods and differents kinds of protocol. Then, separating a morph from its view has the immediate benefit to lesser the number of methods implemented by the ==BlMorph== class and to make it clearer the responsibilities of a morph. Regarding the view hierarchy, the separation of concerns has the same kind of benefit. As examples, an enclosed view can have subviews and a border but not an image view of a text view. Then methods defined to manage subviews or a border are only implemented at the ==BlEnclosedView== level and not by ==BlTextView== and ==BlPolygonView==. Separation of concerns is the main benefit which makes the next four benefits possible.
+# Reusability of a morph: A morph implementation can be reusable whatever its view kind. Let's take the example of a button. A button is a morph which reacts to mouse click. Thus, the button behavior can be reused whatever the view. The same button implementation can be reused for a classical rectangle but also for a circle, for an image, and even for a text view, for a polygon view or a composed view. As a consequence, this impacts the number of ==BlMorph== subclasses and it makes it clearer why a ==BlMorph== subclass has to be defined.
+# Reusibility of the rendering: A view can be seen as drawing operations reified by a class. As an example, the code written to render the focus border of a morph is in fact implemented by the ==BlRectangleView== class. Without the morph/view separation, the same code may be duplicated for each morph that is supposed to draw a focus border. One can even define a focus border view class that would take into account the current user interface theme or a particular style. This view class would be reusable each time a focus border is involved for the rendering of whatever morph.
+# Simplification with less generic properties: During its lifetime, a morph may need to store dynamic properties. These properties are stored into the ==properties== instance variable of the ==BlMorph== class. This dictionary is very useful to manage temporarily defined properties and it improves a morph reusibility. But it has two serious drawbacks. (1) it is very difficult to manage and maintain a morph class that involves such kind of properties. (2) reading and writting a property stored into a dictionary is time consuming. Some of these properties are defined to store data that are useful for the rendering and only for the rendering. Instead, with separate view classes, these generic properties can be reified as instance variables.
+# Allowing a morph to dynamically change or to recompose its view: nothing prevent a morph to dynamically change its view. This can be done without changing its composition in term of submorph. Then a morph can change its presentation depending on the context and on events it handles.
+
+!!! Events
+
+!!! Composition
+
+
 !! The Bloc Infrastructure
 In this section we  present the main classes supporting the infrastructure (event dispatching, alarm, display management). 
 
 Figure *infrastructure-elements* shows the main elements of the Bloc infrastructure. A Bloc morph is an instance of ==BlMorph== or of one of its subclasses. A Bloc morph lives in a current ''space'' and can be displayed when it is added in the space morph (an instance of ==BlSpaceMorph==) of the current space.
 
 The space acts as a mediator between a low-level event fetcher (an instance of ==BlVMEventFetcher== ), a high-level event handler (an instance of ==BlEventHandler==), a main loop manager (an instance of ==BlMainLoopManager==), and the space morph (an instance of ==BlSpaceMorph==). This mediation works basically as follow:
-- the VM event fetcher gets raw events from the VM and passes them to the high-level event handler. This last one dispatches the events coming from the vm event fetcher and sends them either to the space morph or directly to the morph which has the focus (keyboard or mouse). When the space morph receives an event then it tries to look-down the morph that can react to it;
+- the VM event fetcher gets raw events from the VM and passes them to space. When the space receives an event from the VM event fetcher, then, the role of the space is to send the event to a morph. The target morph can be the root morph, or directly to a morph which has the focus (keyboard or mouse). Then, when the target morph receives the events it tries to look-down the morph that can react to it. This is done through a dispatching protocol implemented by the ==dispatchEvent:== method of ==BlMorph==. The morph which finally responds to the event can be one of its submorph or the target morph itself. 
 - the main loop manager is related to a space and holds an alarm queue and a deferred action list. It implements an infinite loop. At each round, the current space morph is redrawn, the low-level event fetcher is activated, deferred actions and ready alarms are runned.
 
 +The main elements of Bloc infrastructure>file://figures/bloc-core-main-elements.png|width=70|label=infrastructure-elements+
@@ -134,12 +146,12 @@ It is the only displayed morph that has no owner (its owner instance variable is
 
 As shown in Figure *root-morph-structure*, by default, its layout is structured as a stack of morphs: each submorph of the space morph constitutes a layer. 
 It is composed of 4 layers, distributed from the back to the front as follow:
-- the morphic world: it is an instance of ==BlWorldMorph==; it contains all morphs that can be manipulated by the user;
+- the world: it is an instance of ==BlWorldMorph==; it contains all morphs that can be manipulated by the user;
 - the tool-tips foreground: it contains the tools-tips that are drawned when the hand stays over a bloc morph (not implemented so far);
 - the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
 - the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
 
-The deep of a layer (from bottom to top) is given by the value of its layerNumber instance variable which is set with the result of the ''#defaultLayoutNumber'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
+The deep of a layer (from bottom to top) is given by the value of its zIndex instance variable which is set with the result of the ''#defaultZIndex'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
 
 !!Simple morphs
 ==BlMorph== implements the common behavior of all morphs. Its inherits from ==BlView== which brings:
@@ -176,7 +188,7 @@ Then you can move the morph by dragging the halo, resize it with the yellow hand
 To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: 
 message to a morph vith the view passed as argument. The entire view hierarchy is presented in Figure *view-hierarchy*.
 - ==BlMinimalMorphView==: this is the default transparent view;
-- ==BlEnclosedView==: a composite view that can be filled and that can have a border; Its subclasse ==BlRectangleView== is the most used but have also ==BlEllipseView== and ==BlCircleView==;
+- ==BlEnclosedView==: a composite view that can be filled and that can have a border; Its subclasse ==BlRectangleView== is the most used but one have also ==BlEllipseView== and ==BlCircleView==;
 - ==BlImageView==: a view to draw an image; ==BlFormImageView== is used to draw an image from a ==Form== and BlSvgImageView, to draw a SVG model;
 - ==BlPolygonView==: a view used to draw polygons from a list of points; the polygon border can be straight or curvy;
 - ==BlStringView==: a view to draw a strings with a font and a text color; the extent of a ==BlStringView== is computed from the rendered string and the used font;
@@ -347,7 +359,6 @@ A composite view can be used to elaborate view composed by several subviews. A =
 !!!Composing morphs
 
 !!Layout management
-
 
 !! Event management
 In this Section we learn how events are managed to make morphs live. First we present what is an event, 
