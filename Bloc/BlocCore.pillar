@@ -63,7 +63,7 @@ A morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has three kinds 
 - It has to answer to events. In order to answer to events, it defines the behavior that is runned when an event is received and this is the case for all possible kinds of events.
 - It has to maintain a collection of submorphs. A morph can be composed.  Moreover, it can use a particular layout strategy to automatically maintain the position and the extent of its submorphs.
 
-!!! Rendering
+!! Rendering
 A ==BlMorph== renders itself through a separate object called the view of the morph. A morph view is an instance of ==BlView== or of one of its subclasses. The responsibility of a view is to draw something on a canvas to represent a morph. To do that, a view implements ==#drawOnAthensCanvas:== which takes an ==AthensCanvas== as argument. 
 
 A view can be of different kind. It can be a rectangle, a circle, an ellipse, a polygon, a text... More view kinds can be added from scratch or by subclassing existing ones. 
@@ -79,7 +79,53 @@ Having a separate view is an important design decision. It has postive impacts o
 # Simplification with less generic properties: During its lifetime, a morph may need to store dynamic properties. These properties are stored into the ==properties== instance variable of the ==BlMorph== class. This dictionary is very useful to manage temporarily defined properties and it improves a morph reusibility. But it has two serious drawbacks. (1) it is very difficult to manage and maintain a morph class that involves such kind of properties. (2) reading and writing a property stored into a dictionary is time consuming. Some of these properties are defined to store data that are useful for the rendering and only for the rendering. Instead, with separate view classes, these generic properties can be reified as instance variables in a dedicated class, the view.
 # Allowing a morph to dynamically change or to recompose its view: nothing prevents a morph to dynamically change its view. This can be done without changing its composition in term of submorph. Then a morph can change its presentation depending on the context and on events it handles.
 
-!!! Events
+!! Event Listeners
+The second responsibility of a morph is to handle events. This is done via event listeners
+whose root is the class ==BlEventListener==. 
+
+A morph maintains a list of event listeners which can be added and removed using the messages
+-  ==addEventListener: anEventListener== which adds a new event listener to front of the listener list and notifies the space about this addition.
+- ==removeEventListener: anEventListener==
+
+A simple example
+
+[[[
+	here
+
+]]]
+
+
+
+An event listener is an object that can be added to a list of event listener. By default i
+
+Alain what is the difference between handleMouseLeave: and mouseLeave: anEvent
+
+
+
+
+
+!!! Other Examples 
+The following example shows how a simple circle morph get attached a listener that 
+[[[
+BlMorph blueEllipseSample
+			position: 10 @ 10;
+			addEventListener:
+					(BlHandleEventListener new
+							lastPointDo: [ :p | self inform: 'Last point: ' , p asString ];
+							yourself);
+			openInWorld
+]]]
+
+Here the ==BlHandleEventListener== ... mouseMove: wantsMouseDown: and wantsMouseMove:
+
+
+
+
+
+
+
+
+
 
 !!! Composition
 
