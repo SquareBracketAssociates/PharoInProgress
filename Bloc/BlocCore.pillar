@@ -87,20 +87,61 @@ A morph maintains a list of event listeners which can be added and removed using
 -  ==addEventListener: anEventListener== which adds a new event listener to front of the listener list and notifies the space about this addition.
 - ==removeEventListener: anEventListener==
 
-A simple example
-
-[[[
-	here
-
-]]]
 
 
 
-An event listener is an object that can be added to a list of event listener. By default i
+An event listener is an object that can be added to a list of event listener. By default the event listener is doing nothing and just passes the messages to the next event listener. 
 
+ ==BlEventListener== defines the following API: ==click:==, ==doubleClick:==, ==doubleClickTimeout:==, ==drop:==, ==keyDown:==, ==keyUp:==, ==keystrokes:==, ==mouseDown==, ==leftMouseDown:==, ==leftMouseUp:==, ....
+
+ Subclass ==BlLocalEventListener== defines methods to specify to which event the evetn listener reacts: ==wantDoubleClick:==, ....
+ 
+ 
 Alain what is the difference between handleMouseLeave: and mouseLeave: anEvent
 
 
+
+
+!!! Reacting to mouse down
+
+The following example
+
+[[[
+BlMorph new
+	withRectangleViewDo: [ :v | v color: Color red ];
+	addEventListener: BlMouseStillDownEventListenerExample1 new;
+	openInWorld		
+]]]
+
+[[[
+BlLocalEventListener subclass: #BlMouseStillDownEventListenerExample1
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'Bloc-Core-Examples'
+]]]
+
+[[[
+BlMouseStillDownEventListenerExample1>>mouseStillDown: anEvent
+	Transcript show: '1'.
+	super mouseStillDown: anEvent.
+]]]
+[[[
+BlMouseStillDownEventListenerExample1>>wantsMouseDown: anEvent
+	^ true 
+]]]
+[[[		
+BlMouseStillDownEventListenerExample1>>wantsMouseStillDown: anEvent
+	^ true		
+]]]
+
+
+!!! Another simple example
+Let us look at the ==BlListenerToTestDoubleClick== example. It shows how an event listener can manage simple click, doubleclick and double click timeout. 
+
+[[[
+
+
+]]]
 
 
 
