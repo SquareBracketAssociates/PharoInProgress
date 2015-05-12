@@ -1,0 +1,27 @@
+! Building a Contact Manager
+
+!!
+
+[[[
+contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
+]]]
+
+[[[
+Object subclass: #Contact
+	package: 'Contact-Manager'
+]]]
+
+
+[[[
+Contact class>>newNamed: aString email: anEmailString
+^ self new
+]]]
+
+[[[
+Contact>>setName: aString email: anEmailString
+	fullName := aString.
+	email := anEmailString.
+]]]
+!!
+
+!!
