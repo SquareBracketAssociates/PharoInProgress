@@ -463,5 +463,44 @@ evens are distributed to morphs and again and how to manage the hooks provided l
 
 !! Alarms and stepping
 
+A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
+
+To create an alarm the message ==asAlarm== is sent to a valuable:  ==asAlarm== can also be sent to a ==MessageSend==, to a ==WeakMessageSend == or to a ==BlockClosure==. Regarding periodic alarms (see below), it is  preferrable to use a ==WeakMessageSend == to facilitate the automatic removal of obsolete alarms from the alarm queue.
+ 
+An alarm can be
+- scheduled: using ==schedule==, ==scheduleIn: aDelay, scheduleAt: a Time in milliseconds ==
+- deferred using the message ==defer== , in that case, it can't be periodic and is stored in a ==WaitfreeQueue== owned by the space main loop manager (see ==BlMainLoopManager== and it deferred actions property).
+
+An alarm can start immediately after is has been scheduled (default case). It can be setup to wait during a given amount of milliseconds by using the ==delay:== message. An alarm can also be setup to be periodic. A periodic alarm is reschedule after it has been runned. It is re-runned after the given period is over. A period is set using the ==period:== message with a valuable passed as argument. The result of sending value to this valuable must be an integer representing the number of millisesonds to wait between to executions of the alarm. Having a valuable instead of a constant integer allows the actual period to change from one round to the next round.
+
+An alarm is runned only if it is valid. An invalid alarm is automatically removed from its alarm queue. The validity is tested by using the  ==isValid== message. To be considered as valid, the receiver must be a valid alarm receiver and the action must be a valid alarm valuable (see == isValidAsAlarmReceiver== and ==isValidAsAlarmValuable==).
+
+In case of a ==BlockClosure== converted as a periodic alarm, one must pay attention that the ==BlockClosure== is considered as the receiver of the alarm. As a receiver, a ==BlockClosure== is always valid. Thus, such a periodic alarm can never be unscheduled automatically. Instead, it must be unscheduled programmatically by using the ==unschedule== message. Another way to properly allow automatic removal of the alarm is to use the ==asAlarmDependingOn: == message. Then, the life time of the alarm is  the one of the object passed as argument: when the argument turns invalid (as an alarm receiver ), then the alarm is unscheduled.
+
+In case an alarm is build from a valuable with formal parameters (a message send, a weak message send or a block closure with formal parameters), it is possible to setup the alarm with the actual parameters to used when the alamr is runned. Setup the parameter values is done by using the ==#parameter:== or the ==#parameters:== message. The argument is a collection of valuables. The actual parameters are computed at running time from this collection of valuables.
+
+Any alarm queue can be created, started and stopped independently of the space alarm queue. In that case, the scheduling/unscheduling of an alarm is done by using the ==#scheduleIntoQueue:== and ==#unscheduleFromQueue:== message sends.  See ==BlAlarmQueue== comments for more informations.
+
+Examples:
+
+- Simple alarms
+(MessageSend receiver: [ self inform: 'I''m runned from an alarm' ] selector: #value) asAlarm schedule.
+[ self inform: 'I''m runned from an alarm' ] asAlarm schedule.
+
+- An alarm with a delay
+[ self inform: 'I''m runned from an alarm' ] asAlarm delay: 1000; schedule
+
+- A periodic alarm
+| m |
+m := BlMorph redRectangleSample openInWorld.
+(WeakMessageSend receiver: m selector: #translateBy: ) asAlarm argument: 1; period: 1000; schedule
+
+| m |
+m := BlMorph redRectangleSample openInWorld.
+([ :t | m translateBy:  t ] asAlarmDependingOn: m)  argument: 1; period: 1000; schedule
+
+
+
+
 !! Interacting with announcements
 
