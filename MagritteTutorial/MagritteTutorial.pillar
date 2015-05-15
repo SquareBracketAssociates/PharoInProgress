@@ -1,0 +1,49 @@
+! Building a Contact Manager
+
+!! Creating the Model
+
+[[[language=Smalltalk
+contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
+]]]
+
+[[[language=Smalltalk
+Object subclass: #Contact
+	package: 'Contact-Manager'
+]]]
+
+
+[[[language=Smalltalk
+Contact class>>newNamed: aString email: anEmailString
+	^ self new
+		setName: aString email: anEmailString;
+		yourself
+]]]
+
+In initialize
+[[[language=Smalltalk
+Contact>>setName: aString email: anEmailString
+	fullName := aString.
+	email := anEmailString.
+]]]
+
+
+Inspect 
+
+[[[language=Smalltalk
+contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
+contact
+]]]
+
+!! Improving inspecting experience
+
+[[[
+Contact>>gtInpsectorGravatarIn: composite
+	<gtInspectorPresentationOrder: 20>
+	composite morph
+		title: 'Gravatar';
+		display: [ self gravatarAsForm ]
+]]]
+
+!! More
+
+!! More 
