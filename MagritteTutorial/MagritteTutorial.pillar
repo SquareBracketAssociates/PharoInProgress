@@ -25,9 +25,9 @@ MCGemstoneRepository
  
  Browse to *http://localhost:8080/seaside/personeditor* and check if you can see all the features presented during the lecture. All the following exercises will be built upon this simple model.
  
- You should get an application as shown in Figure *editor*
+You should get an application as shown in Figure *editor*.
  
- +A person editor.>file:///figures/personeditor.png|label=editor+
++A person editor.>file://figures/personeditor.png|label=editor|width=60+
  
  
 !!! Exercise 1
