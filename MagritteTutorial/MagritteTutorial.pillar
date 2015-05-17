@@ -1,6 +1,6 @@
-! Practising Magritte 
+! Magritte Katas
 
-This chapter presents some exercises about Magritte. They are based on the Magritte Tutorial written by Lukas Renggli (the original designer and implementor of Magritte). We thank him for Magritte. The current exercises has been ported to version 3.0 of Magritte. Magritte30 supports instance-based declarations while Magritte20 was only supporting class-based declarations. 
+This chapter presents some exercises about Magritte. They are based on the Magritte Tutorial written by Lukas Renggli (the original designer and implementor of Magritte). We thank him for Magritte and this set of exercises. The exercises has been ported to Magritte 30 and Seaside 3.1. Magritte30 supports instance-based declarations while Magritte20 was only supporting class-based declarations. 
 
 The exercises start simple and with detailled instructions on how to perform the given tasks. Exercises marked with a star are a bit trickier, you might want to solve them later on. Sometimes you will probably not exactly know what class to use, what method to call or what parameters to pass, use the power of Pharo (senders, implementers, references, ...) to browse the source-code of Magritte, you might even discover some other features that were not presented during this tutorial.
 
@@ -15,7 +15,7 @@ MCGemstoneRepository
 	password: ''
 ]]]
 
- Make sure your Seaside server is running within the image by browsing the counter application at *http://\-local\-host:8080/\-seaside/examples/\-counter*
+ Make sure your Seaside server is running within the image by browsing the counter application at *http://\-local\-host:8080/examples/\-counter*
 
 
 
@@ -23,14 +23,14 @@ MCGemstoneRepository
 
  Have a look at the source-code of the classes ==MAPersonModel==, ==MAAddressModel==, and ==MAPhoneModel==. 
  
- Browse to *http://localhost:8080/seaside/personeditor* and check if you can see all the features presented during the lecture. All the following exercises will be built upon this simple model.
+ Browse to *http://localhost:8080/personeditor* and check if you can see all the features presented during the lecture. All the following exercises will be built upon this simple model.
  
 You should get an application as shown in Figure *editor*.
  
 +A person editor.>file://figures/personeditor.png|label=editor|width=60+
  
  
-!!! Exercise 1
+!!! Exercise 1: Adding a simple field
 
  Add a new field that holds a ''Comment'' about the person, display it as a text-area field as the last element. Test it in the Web browser by starting a new session on the same application. If you are required to add more than one new method by hand you did something wrong.
  
@@ -38,13 +38,16 @@ You should get an application as shown in Figure *editor*.
 !!!! Solution.
 In the ==MADescription== hierarchy there is a class ==MAStringDescription== which is used to describe a string. You can try to use it like this:
 [[[
+MAPersonModel>>comment
+	^ comment 
+	
 MAPersonModel>>descriptionComment
-	 	<magritteDescription>
-	  	^ MAStringDescription new
-	 			accessor: 'comment'; 
-	 			label: 'Comment';
-	 			priority: 100 ; 
-	 			yourself
+	<magritteDescription>
+	^ MAStringDescription new
+			accessor: #comment; 
+			label: 'Comment';
+			priority: 100 ; 
+			yourself
 ]]]
  
 The form input rendered is a text-input whereas the subject asks you for a text-area (a text-input on more than one line). 
@@ -55,10 +58,66 @@ Use this class as follows:
 [[[
 MAPersonModel>>descriptionComment
  	^ MAMemoDescription new
-	 			accessor: 'comment'; 
+	 			accessor: #comment; 
 	 			label: 'Comment';
 	 			priority: 100 ; 
 	 			yourself
 ]]]
  A text-area is then displayed.
 
+
+!!! Exercise 2: Adding Nationality as a single selection
+
+Add a new field that holds the Nationality of the person, display it as a sorted drop-down box with a few selectable countries. Put it right after the Address field. The default choice for new objects should be Switzerland.
+
+!!!! Solution 2
+When you want to ask the user to choose one element in a list of multiple, you should use the ==MASingleOptionDescription== class. This class is a subclass of ==MAOptionDescription== which accepts an ==options:== message to specify the different choices. 
+The default choice (displayed by Magritte if no other choices have been selected) is chosen with the ==default:== message:
+
+
+[[[
+MAPersonModel>>descriptionNationality
+	^ (MASingleOptionDescription auto: ’nationality’ label: ’Nationality’ priority: 55)
+		options: #( ’Switzerland’ ’France’ ’Germany’ ); default: ’Switzerland’;
+		beSorted;
+		yourself
+]]] 
+ 
+You can use the ==beSorted== message to sort values in the list.
+You can add also the ==beRequired== to make sure that the user cannot choose an empty item in the list. 
+
+!!! Exercise 3: Adding email
+
+Add a new field that holds the E-Mail of the person, display it as a required text-field. Add custom conditions to force the user to give a valid e-mail address. Don’t allow addresses from the providers hotmail.com and gmx.com, gmx.de, gmx.it, etc. 
+
+Test your code in the Web browser.
+
+
+!!!!Solution 3.
+An E-Mail is basically a string. So, to start, you can just ask for a string:
+
+[[[
+MAPersonModel>>ddescriptionEmail
+	<magritteDescription>
+	 ^ MAStringDescription new
+			accessor: #email;
+			label: 'Email';
+			priority: 95;
+			yourself
+]]]
+
+If you open a browser on ==MADescription== class (protocol validation), you will see that we can send the message ==addCondition:labelled:== to a description
+
+[[[
+MAPersonModel>>descriptionEmail
+	<magritteDescription>
+	^ (MAStringDescription new
+		accessor: #email;
+		label: 'Email';
+		priority: 95;
+		yourself)
+		addCondition: [ :value | value matches: '#*@#*.#*' ] labelled: 'Please enter a valid email';
+		addCondition: [ :value | (value matches: '#*@hotmail.com') not ] labelled: 'Hotmail users not allowed';
+		addCondition: [ :value | (value matches: '#*@gmx.#*') not ] labelled: 'GMX users not allowed';
+		beRequired; yourself
+]]]
