@@ -1,49 +1,64 @@
-! Building a Contact Manager
+! Practising Magritte 
 
-!! Creating the Model
+This chapter presents some exercises about Magritte. They are based on the Magritte Tutorial written by Lukas Renggli (the original designer and implementor of Magritte). We thank him for Magritte. The current exercises has been ported to version 3.0 of Magritte. Magritte30 supports instance-based declarations while Magritte20 was only supporting class-based declarations. 
 
-[[[language=Smalltalk
-contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
-]]]
+The exercises start simple and with detailled instructions on how to perform the given tasks. Exercises marked with a star are a bit trickier, you might want to solve them later on. Sometimes you will probably not exactly know what class to use, what method to call or what parameters to pass, use the power of Pharo (senders, implementers, references, ...) to browse the source-code of Magritte, you might even discover some other features that were not presented during this tutorial.
 
-[[[language=Smalltalk
-Object subclass: #Contact
-	package: 'Contact-Manager'
-]]]
+!! Getting Started 
 
-
-[[[language=Smalltalk
-Contact class>>newNamed: aString email: anEmailString
-	^ self new
-		setName: aString email: anEmailString;
-		yourself
-]]]
-
-In initialize
-[[[language=Smalltalk
-Contact>>setName: aString email: anEmailString
-	fullName := aString.
-	email := anEmailString.
-]]]
-
-
-Inspect 
-
-[[[language=Smalltalk
-contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
-contact
-]]]
-
-!! Improving inspecting experience
+Get an image and bring the configuration browser and install the stable version of MagicMagritte.
 
 [[[
-Contact>>gtInpsectorGravatarIn: composite
-	<gtInspectorPresentationOrder: 20>
-	composite morph
-		title: 'Gravatar';
-		display: [ self gravatarAsForm ]
+MCGemstoneRepository
+	location: 'http://ss3.gemstone.com/ss/MagritteMagic'
+	user: ''
+	password: ''
 ]]]
 
-!! More
+ Make sure your Seaside server is running within the image by browsing the counter application at *http://\-local\-host:8080/\-seaside/examples/\-counter*
 
-!! More 
+
+
+!! Juggle with Descriptions
+
+ Have a look at the source-code of the classes ==MAPersonModel==, ==MAAddressModel==, and ==MAPhoneModel==. 
+ 
+ Browse to *http://localhost:8080/seaside/personeditor* and check if you can see all the features presented during the lecture. All the following exercises will be built upon this simple model.
+ 
+ You should get an application as shown in Figure **
+ 
+ +A person editor.>file://figures/personeditor.png+
+ 
+ 
+!!! Exercise 1
+
+ Add a new field that holds a ''Comment'' about the person, display it as a text-area field as the last element. Test it in the Web browser by starting a new session on the same application. If you are required to add more than one new method by hand you did something wrong.
+ 
+ 
+!!!! Solution.
+In the ==MADescription== hierarchy there is a class ==MAStringDescription== which is used to describe a string. You can try to use it like this:
+[[[
+MAPersonModel>>descriptionComment
+	 	<magritteDescription>
+	  	^ MAStringDescription new
+	 			accessor: 'comment'; 
+	 			label: 'Comment';
+	 			priority: 100 ; 
+	 			yourself
+]]]
+ 
+The form input rendered is a text-input whereas the subject asks you for a text-area (a text-input on more than one line). 
+
+Have a look at ==MAStringDescription== subclasses. You will see a ==MAMemoDescription== class with a ==lineCount:== method. 
+
+Use this class as follows:
+[[[
+MAPersonModel>>descriptionComment
+ 	^ MAMemoDescription new
+	 			accessor: 'comment'; 
+	 			label: 'Comment';
+	 			priority: 100 ; 
+	 			yourself
+]]]
+ A text-area is then displayed.
+
