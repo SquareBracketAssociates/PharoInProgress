@@ -121,3 +121,25 @@ MAPersonModel>>descriptionEmail
 		addCondition: [ :value | (value matches: '#*@gmx.#*') not ] labelled: 'GMX users not allowed';
 		beRequired; yourself
 ]]]
+
+
+!!! Exercice 4: Reusing Descriptions
+
+Reuse the description of the Nationality from ==MAPersonModel== in the model of the address ==MAAddressModel== by calling the appropriate description of the person and changing the label to ==Country==. Make sure not to modify the original description by creating a copy. Test it in the Web browser.
+
+
+!!!! Solution 4.
+
+Descriptions are created in methods. To reuse a description, you can just send the method:
+
+[[[
+MAAddressModel>>descriptionCountry
+	<magritteDescription>
+	^ MAPersonModel new descriptionNationality copy
+		label: 'Country'; 
+		yourself
+]]]
+
++The Nationality description is reused by the ==MAAddressModel==.>files://figures/addressWithCountry.png+
+
+
