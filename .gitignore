@@ -14,6 +14,10 @@
 *.pillar.md
 *.pillar.tex
 *.pillar.html
+*.pdf
+*.md
+*.tex
+*.html
 *~
 /crash.dmp
 .DS_Store
