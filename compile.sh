@@ -30,12 +30,13 @@ function pillar_one() {
 
 function mypdflatex() {
   pillar_file="$1"
+  basename=${pillar_file%.*}
 
   echo "Compiling PDF from $pillar_file..."
-  ${LATEX_COMPILER} -halt-on-error -file-line-error -interaction batchmode "$pillar_file" 2>&1 1>/dev/null
+  ${LATEX_COMPILER} -halt-on-error -file-line-error -interaction batchmode "$basename" 2>&1 1>/dev/null
   ret=$?
   if [[ $ret -ne 0 ]]; then
-    cat $pillar_file.log
+    cat $basename.log
     echo "Can't generate the PDF!"
     exit 1
   fi
@@ -44,6 +45,7 @@ function mypdflatex() {
 function produce_pdf() {
   dir="$1"
   pillar_file="$2"
+  
 
   cd "$dir"         # e.g., cd Zinc/
   mypdflatex "$pillar_file" && mypdflatex "$pillar_file"
