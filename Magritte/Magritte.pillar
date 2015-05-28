@@ -10,29 +10,30 @@ In this chapter we describe Magritte, its design and how to customize it. Now be
 
 In this section we present the key principles. With such knowledge you can get 80\% of the power of Magritte without knowing all its possible customizations. The key idea behind Magritte is the following: given one object with a set of values, and a description of this information, we will create automatically tools that treat such information and for example automatically create Seaside components. 
 
-*ref:basicPrinciple* shows that a person address', John's address, instance of the class Address, is described by a description object which is attached to the class Address. A program (i.e., database query, generic UI, seaside component builder) will interpret the value of the instance by using its descriptions.
+Figure *basicPrinciple* shows that a person address', John's address, instance of the class Address, is described by a description object which is attached to the class Address. A program (i.e., database query, generic UI, seaside component builder) will interpret the value of the instance by using its descriptions.
 
-+An object is described by a description which is defined on its class.>file://figures/basicPrinciple.png|width=60%+
++An object is described by a description which is defined on its class.>file://figures/basicPrinciple.png|width=60%|label=basicPrinciple+
 
 Here are the basic description assumptions:
 
-- An object is described by adding methods named ==description== (naming convention) to the class-side of its class. Such description methods create different description entities. The following ==Address== class method creates a string description object that has a label 'Street', a priority and two accessors street and street: to access it.
+- An object is described by adding methods named ==description== (naming convention) to its class. Such description methods create different description entities. The following ==MAAddress== class method creates a string description object that has a label 'Street', a priority and two accessors street and street: to access it.
 
 [[[
-Address class>>descriptionStreet
+MAAddress>>descriptionStreet
+	<magritteDescription>
 	^ MAStringDescription new
 		accessor: #street;
 		label: 'Street';
-		priority: 100;
+		priority: 10;
 		yourself
 ]]]
 
 Note that there is no need to have a one to one mapping between the instance variables of the class and the associated descriptions.
 
-- All descriptions are automatically collected and put into a container description when sending ==description== to  the object (see *ref:describingAddress*).
+- All descriptions are automatically collected and put into a container description when sending ==description== to  the object (see Figure *describingAddress*).
 - Descriptions are defined programmatically and can also be queried. They support the collection protocol (==do:==,  ==select:==...).
 
-+Describing an Address.>file://figures/describingAddress.png|width=90%+
++Describing an Address.>file://figures/describingAddress.png|width=90%|label=describingAddress+
 
 ""Obtaining a component."" Once an object is described, you can obtain a Seaside component by sending to the object the message ==Object>>asComponent==. For example to get a component for an address: ==anAddress asComponent==.
 
@@ -56,3 +57,146 @@ You can also use the message +index:MAContainer!asComponentOn:+ ==MAContainer>>a
 ((Address descriptionStreet , Address descriptionPlace) 
 	asComponentOn: anAddress) addValidatedForm 
 ]]]
+
+!! First Example
+
+Let us go over a simple but complete example. We want to develop an application to manage person, address and phone number as shown in Figure *addressOur*.
+
++Our address design.>file://figures/address.png|width=60%|label=addressOur+ 
+
+We define a class ==MAAddress== with four instance variables and their corresponding accessors. 
+
+[[[
+Object subclass: #Address
+	instanceVariableNames: 'street place plz canton'
+	classVariableNames: ''
+	category: 'MaAddress'
+]]]
+
+[[[
+MAAddress class>>example1
+	| address | 
+	address := self new.
+	address plz: 1001.
+	address street: 'Sesame'.
+	address place: 'DreamTown'.
+	address canton: 'Bern'.
+	^ address
+]]]
+
+Then we add the descriptions to the ==MAAddress== class as follows: the street name and the place are described by a string description, the PLZ is a number with a range between 1000 and 9999, and since the canton is one of the predefined canton list (our address is for Switzerland so far), we describe it as a single option description.
+
+[[[
+MAAddress>>descriptionStreet
+		<magritteDescription>
+		
+		^ MAStringDescription new
+			accessor: #street;
+			label: 'Street';
+			priority: 10;
+			yourself
+]]]
+
+[[[
+MAAddress>>descriptionPlz
+		<magritteDescription>
+		
+		^ MANumberDescription new
+			accessor: #plz;
+			label: 'PLZ';
+			priority: 20;
+			min: 1000;
+			max: 9999;
+			yourself
+]]]
+
+[[[
+MAAddress>>descriptionPlace
+		<magritteDescription>
+	
+		^ MAStringDescription new
+				accessor: #place;
+				label: 'Place';
+				priority: 30;
+				yourself
+]]]
+
+[[[
+MAAddress>>descriptionCanton
+		<magritteDescription>
+	
+		^ MASingleOptionDescription new
+			options: #( 'Zurich' 'Bern' 'Luzern' 'Uri' 'Schwyz' 'Unterwalden' 'Glarus' 'Zug' 'Freiburg' 'Solothurn' 'Basel' 'Schaffhausen' 'Appenzell' 'St. Gallen' 'Graubunden' 'Aargau' 'Thurgau' 'Ticino' 'Vaud' 'Valais' 'Neuchatel' 'Geneve' 'Jura' );
+			reference: MAStringDescription new;
+			accessor: #canton;
+			label: 'Canton';
+			priority: 40;
+			beSorted;
+			yourself
+]]]
+Now we can start manipulating the descriptions. Inspect the description object of the address object:
+
+[[[
+| address |
+address := Address example1.
+address description inspect.
+]]]
+
+Now we can iterate over the descriptions and get the values associated with the descriptions of our address model:
+
+[[[
+| address |
+address := Address example1.
+address description do: [ :description |
+	Transcript
+		show: description label; show: ':'; tab;
+		show: (description toString: (address readUsing: description));
+		cr ]
+]]]
+Executing the second code snippet outputs the following in the Transcript:
+
+[[[
+Street:    Sesame
+PLZ:       1001
+Place:     DreamTown
+Canton:    Bern
+]]]
+
+""Creating a Seaside Editor."" Now we are ready to create a Seaside component automatically in a similar manner. 
+
+[[[
+WAComponent subclass: #MyContactAddress
+	instanceVariableNames: 'addressForm'
+	classVariableNames: ''
+	category: 'MaAddress'
+]]]
+
+[[[
+MyContactAddress>>initialize
+	super initialize.
+	addressForm := Address example1 asComponent
+]]]
+
+[[[
+MyContactAddress>>children
+	^ Array with: addressForm
+]]]
+
+The method ==asComponent== sent to the address object automatically builds a Seaside component for us. The resulting editor is displayed in Figure *addressUI*.
+
++Address example1 asComponent.>file://figures/addressUI.png|width=90%|label=addressUI+
+
+To enable validation and add buttons to save and cancel the editing process is a matter of adding a decoration. The message ==addValidatedForm== decorates the component with the necessary rendering and behavior.
+
+[[[
+MyContactAddress>>initialize
+	super initialize.
+	addressForm := Address example1 asComponent.
+	addressForm addValidatedForm
+]]]
+
+As a result we get a complete address editor, as seen in Figure *addressSaveCancel*.
+
++Same Magritte generated component with buttons and validation.>file://figures/addressSaveCancel.png|width=90%|label=addressSaveCancel+
+
+In summary Magritte is really easy to use with Seaside. You put your descriptions on the class-side according to a naming-convention. You can then ask your model objects for their descriptions by sending the message ==description== or alternatively you directly ask Magritte to build a Seaside editor for you by sending the message ==asComponent==.
