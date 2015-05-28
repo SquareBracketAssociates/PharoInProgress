@@ -51,7 +51,7 @@ anAddress asComponent addValidatedForm: { #save -> 'Save'. #cancel -> 'Cancel' }
 
 A description container is an object implementing collection behavior (==collect:==, ==select:==, ==do:==, ==allSatisfy:==, ...). Therefore you can send the normal collection messages to extract the parts of the descriptions you want. You can also iterate over the description or concatenate new ones. Have a look at the ==MAContainer== protocol.
 
-You can also use the message +index:MAContainer!asComponentOn:+ ==MAContainer>>asComponentOn:== with aModel to build or select part of a description and get a component on a given model. The following code schematically shows the idea: two descriptions are assembled and a component based on these two descriptions is built.
+You can also use the message ==MAContainer>>asComponentOn:== with aModel to build or select part of a description and get a component on a given model. The following code schematically shows the idea: two descriptions are assembled and a component based on these two descriptions is built.
 
 [[[
 ((Address descriptionStreet , Address descriptionPlace) 
@@ -200,3 +200,96 @@ As a result we get a complete address editor, as seen in Figure *addressSaveCanc
 +Same Magritte generated component with buttons and validation.>file://figures/addressSaveCancel.png|width=90%|label=addressSaveCancel+
 
 In summary Magritte is really easy to use with Seaside. You put your descriptions on the class-side according to a naming-convention. You can then ask your model objects for their descriptions by sending the message ==description== or alternatively you directly ask Magritte to build a Seaside editor for you by sending the message ==asComponent==.
+
+
+!! Descriptions
+
+Descriptions, as we have seen in the above examples, are naturally organized in a description hierarchy. A class diagram of the most important descriptions is shown in Figure *description*. Different kinds of descriptions exist: simple type-descriptions that directly map to Pharo classes, and some more advanced descriptions that are used to represent a collection of descriptions, or to model relationships between different entities.
+
++Description hierarchy.>file://figures/description.png|width=80%|label=description.+
+
+Descriptions are central to Magritte and are connected to accessors and conditions that we present below. 
+
++Descriptions are a composite and connected via accessors.>file://figures/centralGlue|width=60%|label=centralGlue+
+
+#""Type Descriptions."" Most descriptions belong to this group, such as the ==ColorDescription==, the ==DateDescription==, the ==NumberDescription==, the ==StringDescription==, the ==BooleanDescription==, etc. All of them describe a specific Smalltalk class; in the examples given, this would be Color, Date, Number and all its subclasses, String, and Boolean and its two subclasses True and False. All descriptions know how to perform basic tasks on those types, such as to display, to parse, to serialize, to query, to edit, and to validate them.
+#""Container Descriptions."" If a model object is described, it is often necessary to keep a set of other descriptions within a collection, for example the description of a person consists of a description of the title, the family name, the birthday, etc. The ==ContainerDescription== class and its subclasses provide a collection container for other descriptions. In fact the container implements the whole collection interface, so that users can easily iterate (==do:==), filter (==select:==, ==reject:==), transform (==collect:==) and query (==detect:==, ==anySatisfy:==, ==allSatisfy:==) the containing descriptions.
+#""Option Descriptions."" The ==SingleOptionDescription== describes an entity, for which it is possible to choose up to one item from a list of objects. The ==MultipleOptionDescription== describes a collection, for which it is possible to choose any number of items from a predefined list of objects. The selected items are described by the referencing description.
+#""Relationship Descriptions."" Probably the most advanced descriptions are the ones that describe relationships between objects. The ==ToOneRelationshipDescription== models a one-to-one relationship; the ==ToManyRelationshipDescription== models a one-to-many relationship using a collection. In fact, these two descriptions can also be seen as basic type descriptions, since the ==ToOneRelationshipDescription== describes a generic object reference and the ==ToManyRelationshipDescription== describes a collection of object references. 
+
+!! Exceptions
+
+Since actions on the meta-model can fail. In addition, objects might not match a given meta-model. Finally it is often important to present to the end users readable error messages. Magritte introduces an exception hierarchy which knows about the description, the failure and a human-readable error message as shown in Figure *exceptions*.
+
++Exceptions.>file://figures/exceptions.png|width=80%|label=exceptions+
+
+
+!! Adding Validation
+
+Descriptions can have predicates associated with them to validate the input data. Magritte calls such validation conditions associated with a description. A condition is simply a block that returns true or false. A simple one is the single field condition which is passed the pending value directly and can be attached directly to your descriptions. It is as simple as the following block which checks the length of the value once the blanks are removed.
+
+[[[
+aDescription addCondition: [ :value | value withBlanksTrimmed size > 3 ] 
+]]]
+
+There are advantages to having your rules outside your domain objects, especially if you're taking advantage of Magritte as an Adaptive Object Model where users can build their own rules. 
+It also allows the mementos to easily test data for validity outside the domain object and gives you a nice place to hook into the validation system in the  components. Still you have to pay attention since it may weaken your domain model. 
+
+""Multiple Field Validation."" When we did the Mini-reservation example in previous chapters we wanted the starting date to be later than today. With Magritte we can express this point as follows: 
+
+[[[
+MAAddress>>descriptionStartDate
+	<magritteDescription>
+
+	^ MADateDescription new 
+		accessor: #startDate;
+		label: 'Start Date';
+		addCondition: [ :value | value > Date today ];
+		beRequired;
+		yourself
+]]]
+
+[[[
+MAAddress>>descriptionEndDate
+	<magritteDescription>
+	
+    ^ MADateDescription new 
+       accessor: #endDate;
+        label: 'End Date';
+        addCondition: [ :value | value > Date today ];
+        beRequired;
+        yourself
+]]]
+
+Now to add a validation criterion that depends on several field values, you have to do a bit more than that because you cannot from one description access the other. Suppose that we want to enforce that the endDate should be after the startDate. We cannot add that rule to the endDate description because we cannot reference the startDate value. We need to add the rule in a place  where we can ensure all single field data exists but before it's written to the object from the mementos. 
+
+We need to add a rule to the objects container description like this
+
+[[[
+MAAddress>>descriptionEndDate
+	<magritteDescription>
+    ^ super descriptionContainer
+        addCondition: [ :object |
+            (object readUsing: self descriptionEndDate) > 
+                (object readUsing: self descriptionStartDate)]
+        labelled: 'End date must be after start date';
+        yourself
+]]]
+
+This simply intercepts the container after it is built, and adds a multi field validation by accessing the potential value of those fields. You get the memento for the object, and all the field values are in its cache, keyed by their descriptions. You simply read the values and validate them before they have a chance to be written to the real business object. Multi field validations are a bit more complicated than single field validations but this pattern works well.
+
+!! Accessors and Mementos
+
+""Accessors."" In Smalltalk data can be accessed and stored in different ways. Most common data is stored within instance variables and read and written using accessor methods, but sometimes developers choose other strategies, for example to group data within a referenced object, to keep their data stored within a dictionary, or to calculate it dynamically from block closures. Magritte uses a strategy pattern to be able to access the data through a common interface, see Figure *accessors*.
+
++Accessors in Magritte.>file://figures/descriptionGlue.png|width=70%|label=accessor+
+
+By far the most commonly used accessor type is the ==SelectorAccessor==. It can be instantiated with two selectors: a zero argument selector to read, and a one argument selector to write. For convenience  it is possible to specify a read selector only, from which the write selector is  inferred automatically. 
+
+The ==MADictionaryAccessor== is used to add and retrieve data from a dictionary with a given key. This access strategy is mainly used for prototyping as it allows one to treat dictionaries like objects with object-based instance variables. 
+
+When a memento writes valid data to its model, it does so through accessors which are also defined by  the descriptions. ==MAAccessor== subclasses allow you to define how a value gets written to your class.
+
+""Mementos."" Magritte introduces mementos that behave like the original model and that delay modifications until they are proven to be valid. When components read and write to domain objects, they do it using mementos rather than working directly on  the objects. The default memento is ==MACheckedMemento==. The mementos give Magritte a place to store invalid form data prior to allowing the data to be committed to the domain object. It also allows Magritte to detect concurrency conflicts. By never committing invalid data to domain objects, there's never a need to roll anything back. So mementos are good since editing might turn a model (temporarily) invalid, canceling an edit shouldn't change the model and concurrent edits of the same model should be detected and (manually) merged. ==mementoClass== is a class factory that you can specialize to specify your own memento. But normally you should not need that. 
+
++Mementos (simplified version).>file://figures/mementosSimpler.png|width=50%|label=mememtos+
