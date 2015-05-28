@@ -77,8 +77,8 @@ The default choice (displayed by Magritte if no other choices have been selected
 
 [[[
 MAPersonModel>>descriptionNationality
-	^ (MASingleOptionDescription auto: ’nationality’ label: ’Nationality’ priority: 55)
-		options: #( ’Switzerland’ ’France’ ’Germany’ ); default: ’Switzerland’;
+	^ (MASingleOptionDescription auto: 'nationality' label: 'Nationality' priority: 55)
+		options: #( 'Switzerland' 'France' 'Germany' ); default: 'Switzerland';
 		beSorted;
 		yourself
 ]]] 
@@ -88,7 +88,7 @@ You can add also the ==beRequired== to make sure that the user cannot choose an 
 
 !!! Exercise 3: Adding email
 
-Add a new field that holds the E-Mail of the person, display it as a required text-field. Add custom conditions to force the user to give a valid e-mail address. Don’t allow addresses from the providers hotmail.com and gmx.com, gmx.de, gmx.it, etc. 
+Add a new field that holds the E-Mail of the person, display it as a required text-field. Add custom conditions to force the user to give a valid e-mail address. Don't allow addresses from the providers hotmail.com and gmx.com, gmx.de, gmx.it, etc. 
 
 Test your code in the Web browser.
 
