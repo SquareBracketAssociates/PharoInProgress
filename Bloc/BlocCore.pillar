@@ -463,7 +463,7 @@ evens are distributed to morphs and again and how to manage the hooks provided l
 
 !! Alarms and stepping
 
-A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
+A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue==.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
 
 To create an alarm the message ==asAlarm== is sent to a valuable:  ==asAlarm== can also be sent to a ==MessageSend==, to a ==WeakMessageSend == or to a ==BlockClosure==. Regarding periodic alarms (see below), it is  preferrable to use a ==WeakMessageSend == to facilitate the automatic removal of obsolete alarms from the alarm queue.
  
