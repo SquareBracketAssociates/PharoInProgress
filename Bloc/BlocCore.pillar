@@ -82,26 +82,135 @@ Having a separate view is an important design decision. It has postive impacts o
 # Allowing a morph to dynamically change or to recompose its view: Nothing prevents a morph to dynamically change its view. This can be done without changing its composition in term of submorph. Then a morph can change its presentation depending on the context and on events it handles without introducing unwanted complexity. As an example, the hand morph is a composite morph. When it is dragging, the hand morph contains a submorph which is the dragged morph. In that case, not only the dragged morph can change or modify its view while it is dragged but also the hand morph itself.
 
 !! Event Listeners
-The second responsibility of a morph is to handle events. This is done via event listeners
-whose root is the class ==BlEventListener==. 
+The second responsibility of a morph is to handle events. This is done via event listeners. ==BlEventListener== is the root of the hierarchy of event listeners.  It implements the default behavior shared by all the event listeners. An event listener behaves as an event receiver for the system and the morph event hierarchy (see ==BlAbstractEvent== hierarchy).  An event listener is always used within an event listener chain. There are two kinds of event listener chain:
+- The first one is the  global chain that is owned by the space
+- The second is the local one. Each morph has its own local chain. 
+The tail event listener is alway specific. The global chain tail is an instance of ==BlSpaceEventListener==, the tail of a local chain is an instance of ==BlMorphEventListener==. The other event listeners are instance of a subclass of ==BlGlobalEventListener== or of ==BlLocalEventListener==. 
 
-A morph maintains a list of event listeners which can be added and removed using the messages
--  ==addEventListener: anEventListener== which adds a new event listener to front of the listener list and notifies the space about this addition.
-- ==removeEventListener: anEventListener==
+!!!An event journey
+Any new event is first managed by the space global chain. This is the responsibility of the space chain to dispatch the event to a particular morph or to do other actions. If an event is at the end dispatched to a morph, then the morph local chain is used to manage the event. Whatever the kind of event listener chain (local or global), the event circulation is implemented with two passes, from the head to the tail of the chain.
 
+!!!!The first Pass
+The first pass relies on the ==#handleEvent:== message. As an example, regarding the global chain, when the VM event fetcher builds an event, this event is passed to the space  by sending ==#handleEvent:== to it. Then, the space directly send ==#handleEvent:== to the head of its event listener chain  with the same event passed as argument. At the end of the first pass, the event is passed to the tail of the chain. Then, the role of the chain tail is to dispatch the event to the head of the same event listener chain. This is the start of the second pass. 
 
+As an illustration, this first pass can easily be instrumented to log all events. To do that, just implement a subclass of ==BlGlobalEventListener== with the ==#handleEvent:== shown in Script *script-global-logger*:
 
+[[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
+MyTranscriptGlobalLogger>>handleEvent:  anEvent
+	Transcript show: anEvent asString , String cr.
+	^ super handleEvent: anEvent
+]]]
 
-An event listener is an object that can be added to a list of event listener. By default the event listener is doing nothing and just passes the messages to the next event listener. 
+To see this event listener in action, one have to open the ==Transcript== and to add a ==MyTranscriptGlobalLogger== instance to the space chain as follow:
 
- ==BlEventListener== defines the following API: ==click:==, ==doubleClick:==, ==doubleClickTimeout:==, ==drop:==, ==keyDown:==, ==keyUp:==, ==keystrokes:==, ==mouseDown==, ==leftMouseDown:==, ==leftMouseUp:==, ....
+''BlUniverse runningSpace addEventListener: MyTranscriptGlobalLogger new.''
 
- Subclass ==BlLocalEventListener== defines methods to specify to which event the evetn listener reacts: ==wantDoubleClick:==, ....
- 
- 
-Alain what is the difference between handleMouseLeave: and mouseLeave: anEvent
+A easier possibility is to send ==#plug== to the global event event listener:
 
+''MyTranscriptGlobalLogger new plug.''
 
+To remove the logger,  just send ==#unplug== to the eventListener or send ==#removeEventListener:== to the space with the event listener as argument.
+
+Script *script-global-logger-script* can be used to experiment this global logger:
+[[[label=script-global-logger-script|caption=A script to experiment a global event logger|language=Smalltalk
+	| logger |
+	logger := MyTranscriptGlobalLogger new.
+	logger plug.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging' ] fork
+]]]
+
+The same kind of logging can be used at the morph level. To log all the events that a morph is asked to handle, just define a ==MyTranscriptLocalLogger== class as a subclass of ==BlLocalEventListener==, implement the same ==#handleEvent:== method as in  ==MyTranscriptGlobalLogger== and run the Script *script-local-logger-script*:
+
+[[[label=script-local-logger-script|caption=A script to experiment a local event logger|language=Smalltalk
+	| logger morph |
+	morph := BlMorph new
+		withRectangleViewDo: [ :v | v color: Color blue ];
+		openInWorld.
+	logger := MyTranscriptLocalLogger new.
+	morph addEventListener: logger.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging'] fork
+]]]
+
+!!!! The second pass
+As a dispatch mechanism, when the event reach the tail at the end of the first pass, the message sent to the head of the chain depends on the class of the event. For example, for a incoming ==BlMouseDownEvent==, the behavior of a ==BlSpaceEventListener== (the tail of the global chain) is to send ==#mouseDown:== to the head of the event listener chain. In fact, the ==BlSpaceEventListener==  send the dispatching message ==#sentToNext:== to the event with the chain head as argument. 
+
+Any intermediate event listener can implement whatever action and at the end pass the event to the next listener. At the end of this second pass, the tail of the chain receives again the event but through the send of the event specific message. Regarding the example of the space event listener chain  and of a ==BlMouseDownEvent==, at the end of the second pass, the message ==#mouseDown:== is sent to the ==BlSpaceEventListener== with the event as argument. 
+
+As an illustration, this second pass can also be easily instrumented to log particular events. For example, the previous example can be adapted to log only mouse down events. To do that, just implement a subclass of ==BlGlobalEventListener== with the  ==#mouseDown:== implementation shown in Script *script-mouseDown-global-logger*.
+
+[[[label=script-mouseDown-global-logger|caption=A logger for all mouse down events|language=Smalltalk
+MyMouseDownGlobalLogger>>mouseDown:  anEvent
+	Transcript show: anEvent asString , String cr.
+	^ super handleEvent: anEvent
+]]]
+
+Script *script-global-logger-script* which was given to illustrate the first pass can be used but with a ==MyMouseDownGlobalLogger== instead of a ==MyTranscriptGlobalLogger==. This is shown in Script *script-mouseDown-global-logger-script*.
+[[[label=script-mouseDown-global-logger-script|caption=A logger for all mouse down events|language=Smalltalk
+	| logger |
+	logger := MyMouseDownGlobalLogger new.
+	logger plug.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging' ] fork
+]]]
+
+Now, the same method can be used to log every mouse down events that a particular morph receives. Just implement a ==MyMouseDownLocalLogger== class that inherits from ==BlLocalEventListener== with the following ==#mouseDown:== implementation shown in Script *script-mouseDown-local-logger*. The ==#mouseDown:== message is sent to a morph only if it declares its interest for this event kind. Notice the redefinition of the ==#wantsMouseDown:== method that return ''true''. 
+
+[[[label=script-mouseDown-local-logger|caption=A logger for all mouse down events that a particular morph receives|language=Smalltalk
+MyMouseDownLocalLogger>>mouseDown: anEvent
+	Transcript show: anEvent asString, String cr.
+	^ super mouseDown: anEvent
+
+MyMouseDownGlobalLogger>>wantsMouseDown: anEvent
+		^ true
+]]]
+
+Again, the same kind of script can be used to see this local event listener in action. See Script *script-mouseDown-local-logger-script*.
+
+[[[label=script-mouseDown-local-logger-script|caption=A script to show all mouse down events that a particular morph receives|language=Smalltalk
+	| logger morph |
+	morph := BlMorph new
+		withRectangleViewDo: [ :v | v color: Color blue ];
+		openInWorld.
+	logger := MyMouseDownLocalLogger new.
+	morph addEventListener: logger.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug ] fork
+]]]
+
+!!!!Additional passes
+From one event listener to another, the behavior can differ when an event listener  receives a message. By default, the tail event listener behave  differently than the intermediate listeners. As an example, when a space event listener receives ==#mouseUp:==, then it stores the event (the space event listener stores the last mouse event), and then it sends the event to the current mouse down target.
+
+In fact, when it receives and event, each listener of the chain can react as follow:
+- Do nothing and pass the event to the next event listener. This is the default behavior of intermediate listeners which class inherits from ==BlEventListener==.
+- Do some action and do not relay the event to the next event listener. This is the behavior of a tail.
+- Do some action and pass the event to the next event listener.  This is the typical behavior of an additional intermediate event listener. 
+
+When an event listener receives and event, it can create another kind of event and then send the event. As a consequence, an additional pass is implemented for the newly created event. For example, this is the case when a ==BlSpaceEventListener== receives a ==BlMouseEnterEvent==. Normally, the ==BlMouseEnter== is sent to the morph that has been set as the handler by the ==BlMouseOverHandler==. But, as you can read in the ==BlSpaceEventListener== ==#mouseEnter:== implementation shwon in Script *script-mouseEnter-of-space-listener*, if the hand is dragging, then instead,  a ==BlMouseEnterDraggingEvent== is created and sent to the space event listener.  In fact, the ==#privateReinjectEvent:==  message is sent to start the additional pass from the head of the  event listener chain which is passed as argument. Note that ==#handleEvent:== is sent with the newly created  ==BlMouseEnterDragging==. 
+
+[[[label=script-mouseEnter-of-space-listener|caption=The BlSpaceEventListener mouseEnter implementation|language=Smalltalk
+BlSpaceEventListener >> mouseEnter: anEvent	
+	self
+		privateReinjectEvent: [ :listener | 
+			anEvent hand isDragging
+				ifTrue: [ 
+					| enterDragging |
+					enterDragging := anEvent asMouseEnterDragging.
+					^ listener handleEvent: enterDragging ] ].
+	anEvent handler handleEvent: anEvent.
+]]]
 
 
 !!! Reacting to mouse down
@@ -463,7 +572,7 @@ evens are distributed to morphs and again and how to manage the hooks provided l
 
 !! Alarms and stepping
 
-A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
+A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue==.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
 
 To create an alarm the message ==asAlarm== is sent to a valuable:  ==asAlarm== can also be sent to a ==MessageSend==, to a ==WeakMessageSend == or to a ==BlockClosure==. Regarding periodic alarms (see below), it is  preferrable to use a ==WeakMessageSend == to facilitate the automatic removal of obsolete alarms from the alarm queue.
  

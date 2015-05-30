@@ -140,6 +140,6 @@ MAAddressModel>>descriptionCountry
 		yourself
 ]]]
 
-+The Nationality description is reused by the ==MAAddressModel==.>files://figures/addressWithCountry.png+
++The Nationality description is reused by the ==MAAddressModel==.>file://figures/addressWithCountry.png+
 
 
