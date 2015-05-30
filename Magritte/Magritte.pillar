@@ -206,7 +206,7 @@ In summary Magritte is really easy to use with Seaside. You put your description
 
 Descriptions, as we have seen in the above examples, are naturally organized in a description hierarchy. A class diagram of the most important descriptions is shown in Figure *description*. Different kinds of descriptions exist: simple type-descriptions that directly map to Pharo classes, and some more advanced descriptions that are used to represent a collection of descriptions, or to model relationships between different entities.
 
-+Description hierarchy.>file://figures/description.png|width=80%|label=description.+
++Description hierarchy.>file://figures/descriptionhierarchy.png|width=80%|label=description.+
 
 Descriptions are central to Magritte and are connected to accessors and conditions that we present below. 
 
@@ -221,7 +221,7 @@ Descriptions are central to Magritte and are connected to accessors and conditio
 
 Since actions on the meta-model can fail. In addition, objects might not match a given meta-model. Finally it is often important to present to the end users readable error messages. Magritte introduces an exception hierarchy which knows about the description, the failure and a human-readable error message as shown in Figure *exceptions*.
 
-+Exceptions.>file://figures/exceptions.png|width=80%|label=exceptions+
++Exceptions.>file://figures/magritte-exceptions.png|width=80%|label=exceptions+
 
 
 !! Adding Validation
@@ -293,3 +293,44 @@ When a memento writes valid data to its model, it does so through accessors whic
 ""Mementos."" Magritte introduces mementos that behave like the original model and that delay modifications until they are proven to be valid. When components read and write to domain objects, they do it using mementos rather than working directly on  the objects. The default memento is ==MACheckedMemento==. The mementos give Magritte a place to store invalid form data prior to allowing the data to be committed to the domain object. It also allows Magritte to detect concurrency conflicts. By never committing invalid data to domain objects, there's never a need to roll anything back. So mementos are good since editing might turn a model (temporarily) invalid, canceling an edit shouldn't change the model and concurrent edits of the same model should be detected and (manually) merged. ==mementoClass== is a class factory that you can specialize to specify your own memento. But normally you should not need that. 
 
 +Mementos (simplified version).>file://figures/mementosSimpler.png|width=50%|label=mememtos+
+
+
+
+!! Custom Views
+
+Components control how your objects display. Some  descriptions have an obvious one to one relationship with a UI component while others could easily be shown by several different components. *views* shows some components. For example, an ==MAMemoDescription== would be represented by a text area, but a ==MABooleanDescription== could be a checkbox, or a drop down with true and false, or a radio group with true and false. 
+ 
+Each description defaults to a component, but allows you to override and specify any component you  choose, including any custom one you may write using the message ==Description>>componentClass:==. 
+
+[[[
+aDescription componentClass: aClass
+]]]
+
++Some Magritte specific widgets.>file://figures/widgets.png|label=views|width=70%+
+
+You can also define your own view by following the steps: 
+- Create a subclass of ==MADescriptionComponent==.
+- Override ==renderEditorOn:== and/or ==renderViewerOn:== as necessary.
+- Use your custom view together with your description by using the accessor ==componentClass:==. 
+- Possibly add your custom view to its description into ==defaultComponentClasses==. 
+
+
+
+!! Custom Descriptions
+
+In some cases it might happen that there is no description provided to use with a  class. If your domain manipulates money (amount and currency) or URLs (scheme, domain, port, path, parameters) you may want to define your own descriptions (or load an extension package that already provides these descriptions) to take advantage of Magritte. 
+
+Extending Magritte is simple, create your own description but remember that Magritte is described within itself so you have to provide certain information.
+ 
+- Create a subclass of ==MAElementDescription==.
+- On the class-side override: ==isAbstract== to return false, ==label== to return the name of the description. On the instance-side override: ==kind== to return the base-class,  ==acceptMagritte:== to enable visiting and ==validateSpecific:== to validate.
+- Create a view, if you want to use it for UI building. 
+ 
+We suggest you have a look at existing descriptions. In addition, carefully choosing the right superclass can already provide you part of what you are looking for. Parsing, printing and (de)serialization is implemented by the following visitors: ==MAStringReader==, ==MAStringWriter==, ==MABinaryReader== and ==MABinaryWriter==.
+
+
+!! Summary 
+
+While Magritte is really powerful, using a meta-data system will add another indirection layer to your application, so this is important to understand how to use such power and when to just use normal development techniques. A good and small example to learn from is the Conrad conference management system developed to manage the ESUG conference available at *http://www.squeaksource.com/Conrad.html*. 
+
+Here Magritte is used to describe the different forms and all the data. The Pier content management system is a more complex example of using Magritte, it can be downloaded at *http://www.piercms.com*.
