@@ -66,7 +66,39 @@ A view can be of different kind. It can be a rectangle, a circle, an ellipse, a 
 
 Moreover, complex views can be built by composition as a view can be a composite (an instance of one of the subclasses of ==BlEnclosedView==). Each view of a composite has its own transform, it is managed through local coordinates and can be animated with the help of Alarms (shown later).
 
-!!! Example
+!!! Examples
+
+The first example create a morph with the red rectangular view. 
+
+[[[label=script-simpleview|caption=Implementation of a simple event logger|language=Smalltalk
+| m |
+m := BlMorph new
+	withRectangleViewDo: [ :v | v color: Color red ];
+	yourself.
+m openInWorld.
+m
+]]]
+
+Note that you can create a morph without a view and add a view dynamically to it later.
+Here executing this snippet does not display the morph since it does not have a view. 
+
+[[[label=script-simpleview|caption=Implementation of a simple event logger|language=Smalltalk
+| m |
+m := BlMorph new
+		inspect;
+		openInWorld.
+m
+]]]
+
+Using the inspector you can add a view using the following snippet ==self withRectangleViewDo: [ :v | v color: Color green ]==.
+
+As a shortcut a morph can be created from a view using the message ==asMorph==. The following expression is equivalent to the previous one.
+ 
+[[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
+BlRectangleView new asMorph inspect; openInWorld
+]]]
+
+A morph can dynamical changes its view. For example the following morph changes its view when it is grabbed or dropped.
 
 [[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
 Morph new
@@ -76,10 +108,16 @@ Morph new
 BlRectangleView new asMorph open	
 ]]]
 
+!!!! Implementation points. By default the view of a morph is a MinimalView which does not support view addition. 
+We can change the minimal view using the message ==view:== and then add subviews using the messages ==viewDo:== or ==addView:==
 
-A morph can dynamical changes its view. 
+[[[
+b := BlMorph new view: (BlRectangleView new color: Color blue; yourself).
+b viewDo: [:v | v addView: (BlCircleView new color: Color red; yourself) ].
 
-
+or
+b view addView: (BlCircleView new color: Color red; yourself)
+]]]
 
 !!! Design Rationale
 Having a separate view is an important design decision. It has postive impacts on the quality of the implementation of a user interface. We see at least the following benefits of this design:
@@ -92,8 +130,11 @@ Having a separate view is an important design decision. It has postive impacts o
 # Allowing a morph to dynamically change or to recompose its view: Nothing prevents a morph to dynamically change its view. This can be done without changing its composition in term of submorph. Then a morph can change its presentation depending on the context and on events it handles without introducing unwanted complexity. As an example, the hand morph is a composite morph. When it is dragging, the hand morph contains a submorph which is the dragged morph. In that case, not only the dragged morph can change or modify its view while it is dragged but also the hand morph itself.
 
 !! Event Listeners
-The second responsibility of a morph is to handle events. This is done via event listeners. ==BlEventListener== is the root of the hierarchy of event listeners.  It implements the default behavior shared by all the event listeners. An event listener behaves as an event receiver for the system and the morph event hierarchy (see ==BlAbstractEvent== hierarchy).  An event listener is always used within an event listener chain. There are two kinds of event listener chain:
-- The first one is the  global chain that is owned by the space
+The second responsibility of a morph is to handle events. This is done via event listeners. ==BlEventListener== is the root of the hierarchy of event listener classes.  It implements the default behavior shared by all the event listeners. An event listener behaves as an event receiver for the system and the morph event hierarchy (see ==BlAbstractEvent== hierarchy).  An event listener is always used within an event listener chain. THis chain acts as a chain of responsibility where elements appearing first in the chain give or not control their next element. 
+This approach supports a high flexibility since an element may be plugged dynamically in the chain and can control the flow of processing.
+
+There are two kinds of event listener chain:
+- The first one is the  global chain that is owned by the space.
 - The second is the local one. Each morph has its own local chain. 
 The tail event listener is alway specific. The global chain tail is an instance of ==BlSpaceEventListener==, the tail of a local chain is an instance of ==BlMorphEventListener==. The other event listeners are instance of a subclass of ==BlGlobalEventListener== or of ==BlLocalEventListener==. 
 
