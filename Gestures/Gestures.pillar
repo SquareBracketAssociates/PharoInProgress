@@ -1,0 +1,54 @@
+!Gestures in OSWindow
+!!How to use gestures in your application ?
+You have to create a custom event handler. It has to inherit from the existing event handler named OSWindowGestureHandler.
+An important thing is to call super in the method visitTouchPointerDown/Move/up. 
+It is important because the gesture handler uses these events to gather informations about the fingers for gestures detection.
+
+
+[[[caption=Once you created your handler you just have to register the desired gestures|language=smalltalk
+CustomGestureHandler new registerGesture: OSTouchTwoFingersScroll new
+]]]
+
+
+
+!!How do basic gestures work ?
+There is currently six basic gestures:
+-Drag (Down, Move, Up)
+-Hold
+-Double Tap
+-Scroll
+-Rotation
+-Swipe ( move from edge )
+
+
+Some of these gestures are customizable, for each gestures you have those settings:
+-Hold
+--Maximum distance moved to consider as static
+--Time to hold
+-Double Tap
+--Distance from one tap to another
+--Time between two taps
+-Pinch
+--Maximum distance between the two fingers
+--Minimum distance traveled by each finger
+-Rotation
+--Minimal angle wandered before detection
+-Scroll
+--Minimal distance traveled by each finger
+--Persistent scrolling (once you scroll vertically you can't scroll horizontallyand vice versa)
+-Swipe
+--Minimal distance to an edge
+
+You can find a short video presenting these *here>https://youtu.be/t_6xbAVIlH0*.
+
+!!How to create new gestures ?
+Create your new events corresponding to your gesture. It has to inherit from OSTouchComplexEvent.
+
+Your gesture detector has to inherit from OSTouchGestureFactory. In this class there already is two methods:
+- 'sendToEventHandler:' to send your generated events to the event handler.
+- 'centerOfAllFinger' which is a function who calculates the center of the gesture.
+In order to detect your gesture you can use the informations contained in the instance variable activeFinger. These informations are automatically updated by the handler.
+
+
+
+
