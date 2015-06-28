@@ -152,7 +152,7 @@ MyTranscriptGlobalLogger>>handleEvent:  anEvent
 	^ super handleEvent: anEvent
 ]]]
 
-To see this event listener in action, one have to open the ==Transcript== and to add a ==MyTranscriptGlobalLogger== instance to the space chain as follow:
+To see this event listener in action, one have to open the ==Transcript== and to add a ==MyTranscriptGlobalLogger== instance to the space chain as follows:
 
 ''BlUniverse runningSpace addEventListener: MyTranscriptGlobalLogger new.''
 
@@ -242,14 +242,14 @@ Again, the same kind of script can be used to see this local event listener in a
 ]]]
 
 !!!!Additional passes
-From one event listener to another, the behavior can differ when an event listener  receives a message. By default, the tail event listener behave  differently than the intermediate listeners. As an example, when a space event listener receives ==#mouseUp:==, then it stores the event (the space event listener stores the last mouse event), and then it sends the event to the current mouse down target.
+From one event listener to another, the behavior can differ when an event listener  receives a message. By default, the tail event listener behaves  differently than the intermediate listeners. As an example, when a space event listener receives ==#mouseUp:==, then it stores the event (the space event listener stores the last mouse event), and then it sends the event to the current mouse down target.
 
-In fact, when it receives and event, each listener of the chain can react as follow:
+In fact, when it receives and event, each listener of the chain can react as follows:
 - Do nothing and pass the event to the next event listener. This is the default behavior of intermediate listeners which class inherits from ==BlEventListener==.
 - Do some action and do not relay the event to the next event listener. This is the behavior of a tail.
 - Do some action and pass the event to the next event listener.  This is the typical behavior of an additional intermediate event listener. 
 
-When an event listener receives and event, it can create another kind of event and then send the event. As a consequence, an additional pass is implemented for the newly created event. For example, this is the case when a ==BlSpaceEventListener== receives a ==BlMouseEnterEvent==. Normally, the ==BlMouseEnter== is sent to the morph that has been set as the handler by the ==BlMouseOverHandler==. But, as you can read in the ==BlSpaceEventListener== ==#mouseEnter:== implementation shwon in Script *script-mouseEnter-of-space-listener*, if the hand is dragging, then instead,  a ==BlMouseEnterDraggingEvent== is created and sent to the space event listener.  In fact, the ==#privateReinjectEvent:==  message is sent to start the additional pass from the head of the  event listener chain which is passed as argument. Note that ==#handleEvent:== is sent with the newly created  ==BlMouseEnterDragging==. 
+When an event listener receives an event, it can create another kind of event and then send the event. As a consequence, an additional pass is implemented for the newly created event. For example, this is the case when a ==BlSpaceEventListener== receives a ==BlMouseEnterEvent==. Normally, the ==BlMouseEnter== is sent to the morph that has been set as the handler by the ==BlMouseOverHandler==. But, as you can read in the ==BlSpaceEventListener== ==#mouseEnter:== implementation shown in Script *script-mouseEnter-of-space-listener*, if the hand is dragging, then instead,  a ==BlMouseEnterDraggingEvent== is created and sent to the space event listener.  In fact, the ==#privateReinjectEvent:==  message is sent to start the additional pass from the head of the  event listener chain which is passed as argument. Note that ==#handleEvent:== is sent with the newly created  ==BlMouseEnterDragging==. 
 
 [[[label=script-mouseEnter-of-space-listener|caption=The BlSpaceEventListener mouseEnter implementation|language=Smalltalk
 BlSpaceEventListener >> mouseEnter: anEvent	
@@ -334,7 +334,7 @@ In this section we  present the main classes supporting the infrastructure (even
 
 Figure *infrastructure-elements* shows the main elements of the Bloc infrastructure. A Bloc morph is an instance of ==BlMorph== or of one of its subclasses. A Bloc morph lives in a current ''space'' and can be displayed when it is added in the space morph (an instance of ==BlSpaceMorph==) of the current space.
 
-The space acts as a mediator between a low-level event fetcher (an instance of ==BlVMEventFetcher== ), a high-level event handler (an instance of ==BlEventHandler==), a main loop manager (an instance of ==BlMainLoopManager==), and the space morph (an instance of ==BlSpaceMorph==). This mediation works basically as follow:
+The space acts as a mediator between a low-level event fetcher (an instance of ==BlVMEventFetcher== ), a high-level event handler (an instance of ==BlEventHandler==), a main loop manager (an instance of ==BlMainLoopManager==), and the space morph (an instance of ==BlSpaceMorph==). This mediation works basically as follows:
 - the VM event fetcher gets raw events from the VM and passes them to space. When the space receives an event from the VM event fetcher, then, the role of the space is to send the event to a morph. The target morph can be the root morph, or directly to a morph which has the focus (keyboard or mouse). Then, when the target morph receives the events it tries to look-down the morph that can react to it. This is done through a dispatching protocol implemented by the ==dispatchEvent:== method of ==BlMorph==. The morph which finally responds to the event can be one of its submorph or the target morph itself. 
 - the main loop manager is related to a space and holds an alarm queue and a deferred action list. It implements an infinite loop. At each round, the current space morph is redrawn, the low-level event fetcher is activated, deferred actions and ready alarms are runned.
 
@@ -377,7 +377,7 @@ When a Bloc space is shut down, morph stepping, the alarm queue, the VM event fe
 
 External packages may need to interact with the Bloc infractructure when a space is started or stopped. As an example, in Bloc, the halo management is implemented as an external package. When a Bloc space is started, then a halo foreground morph is added to the root morph (an instance of BlSpaceMorph) and the ==BlHaloMorph== class is added as an observer of all the mouse events that are sent through the space announcer. When a Bloc space is stopped, the halo foreground morph is removed and the ==BlHaloMorph== class removes itself from the space observers. 
 
-To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#startUpHook'' and ''#shutDownHook'' in ==BlBlocSpace==. This hook works as follow:
+To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#startUpHook'' and ''#shutDownHook'' in ==BlBlocSpace==. This hook works as follows:
 - after a space has been started, all methods with the ''spaceStartUp'' pragma keyword are collected and invoked with the started space passed as argument.
 - before a space is stopped, all methods with the ''spaceShutDown'' pragma keyword are collected and invoked with the stopped space passed as argument.
 
@@ -401,13 +401,13 @@ It is the only displayed morph that has no owner (its owner instance variable is
 +The root morph structure>file://figures/space-morph-structure.png|width=70|label=root-morph-structure+
 
 As shown in Figure *root-morph-structure*, by default, its layout is structured as a stack of morphs: each submorph of the space morph constitutes a layer. 
-It is composed of 4 layers, distributed from the back to the front as follow:
+It is composed of 4 layers, distributed from the back to the front as follows:
 - the world: it is an instance of ==BlWorldMorph==; it contains all morphs that can be manipulated by the user;
 - the tool-tips foreground: it contains the tools-tips that are drawned when the hand stays over a bloc morph (not implemented so far);
 - the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
-- the hand foreground: it is an instance of ==BlHandForegroundMorph==; it's only submorph is the hand morph.
+- the hand foreground: it is an instance of ==BlHandForegroundMorph==; its only submorph is the hand morph.
 
-The deep of a layer (from bottom to top) is given by the value of its zIndex instance variable which is set with the result of the ''#defaultZIndex'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
+The depth of a layer (from bottom to top) is given by the value of its zIndex instance variable which is set with the result of the ''#defaultZIndex'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
 
 !!Simple morphs
 ==BlMorph== implements the common behavior of all morphs. Its inherits from ==BlView== which brings:
