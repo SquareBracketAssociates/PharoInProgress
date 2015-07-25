@@ -1,0 +1,190 @@
+! MetaBorg: A board game framework
+
+
+Some documentation on MetaBorg, a framework for building board games.
+
+
+!! Metaphor
+
+The underlying design metaphor is the following scene. There is a board (made of a material layer of things and immaterial layer of data) on a table, players sitting around and a director standing. He says 'play' successively to them and, as a consequence, they according to their thoughts (play-conditions) modify other players' thoughts saying things to them and modify the board with their hands.
+
+!!! Main classes 
+
+All framework classes are prefixed with 'BG'. What follows is some info on main classes, for more detail see respective class comments.
+
+>>BGBoard
+knowledge of game board, composed by its
+-space
+aBGBoardSpace
+-contents
+there are two types, those that can't be moved over the board but just placed/displaced (aBGSteadyContent, known by each BGBoardPlace that made aBGBoardSpace) and those that can (aBGMovableContent, stored in variable movableContents which is expected to be a dictionary with associations 'movableName' -> aBGMovableContent)
+-display
+on which it shows
+
+
+>>BGBoardSpace
+knowledge of a rectangular board space, composed by many BoardPlace
+
+
+>>BGBoardContent
+knowledge of board content, there are two types, those that can't be moved over the board but just placed/displaced (BGSteadyContent) and those that can (BGMovableContent)
+
+it holds on variable 'showSelector' a selector symbol to plug showing behaviour, this is initialized with method defaultShowSelector
+
+
+>>BGData
+knowledge of game data that doesn't belong to any particular object (like lives, points, ... ), knows its display and notifies it on change
+
+
+>>BGPlayer
+has two responsibilities
+
+-action of modifying some of these :  director's board (aBGBoard),  director's data (aBGData), its own/other players' (BGPlayer) play-conditions (=knowledge that alters how aBGPlayer behaves when receiving #play msg, it can be any object) beacause of two possible reasons
+
+1) when receiving #play it modifies some of the previous accordingly to collaboration with its play-conditions which are obtained statically/dinamically (kept in instance variables/return of a msg)
+('conditioning' group is to hold methods that alters play-conditions)
+
+the highest priority play-condition is aBGPlayState in instance variable 'playState', so when receiving #play one of the four methods at group 'playing-main' will be executed
+('playing-actions' is to group all other playing action methods)
+
+2) as a result of doing some work related to its playing purpose (done not because receiving msg #play but other msg) (ej aLevelChanger also understands #goToLevel, aPieceMover also understands #undoMove and keeps necessary knowledge)
+
+also to support the previous modifications he knows its BGDirector in instance variable 'director' and has some shortcut methods to accessing to his knowledge ('accessing-director' group)
+
+-tells the player that should play afiter him (#nextPlayer)
+
+
+>>BGDirector
+action of directing game flow (to run the game send 'BGDirector new play'), to do this he
+
+1°) initialize and holds the knowledge of the things that made up the board game playing :
+- the board (aBGBoard at variable 'board')
+- the players (a dictionary of associations 'playerName' -> aBGPlayer , at variable 'players')
+- the data (aBGData, at variable 'data')
+- the user-interface (aBGUserInterface, at variable 'gameUI')
+
+2°) his #unpausedPlay method consists in a loop of :
+find which player should play next (first player is 'human', following ones are obtained sending #nextPlayer to last playing one) and send him #play
+
+3°) is responsible for menu (showing it and doing its actions, at group 'input-menu') and for reacting to user closing the game's window
+
+-------
+
+under group 'constants' there are methods overridable by subclasses to configure framework default behaviour, in particular subclasses should always consider #gameName, #millisecondsBetweenLoops and #settingsClass
+
+these same feature occurs in other framework classes under 'constants' method group
+
+
+>>BGUserInterface
+action of interacting with the user handling input and showing the game board and data (aBGBoard +a BGData),
+
+it's composed by aBGBoardDisplay (at 'boardDisplay') and aBGDataDisplay (at 'dataDisplay') to which it delegates,
+also knows game director (aBGDirector) and window wrapping around itself
+
+
+EXAMPLES
+Concrete game's classes share a common prefix. To download examples see DOWNLOAD section.
+To run example games, send
+BGDirector gameMenu.
+
+Alternatively to run them from each game's director, send
+PacManGame new play.
+SokobanGame new play.
+TetrisGame  new play.
+SnakeGame new play.
+SameColorGame new play.
+MinesGame new play.
+
+
+WORKFLOW
+To implement a game with the framework a possible work flow is
+1) define game's director player (subclass of BGDirector) and then define/implement successively what is needed in each msg sent from within BGDirector's msg #initialize (look at example games implementation)
+2) run game sending 'BGDirectorSubclass new play' and adjust details according debug windows
+3) add enhancements
+
+
+DOWNLOAD
+You can install configuration MetaBorg from Configuration Browser on 3.0 and 4.0 . This will download packages of framework (MetaBorg) and example games (BgBoxPush, BgEatBullet, BgDropPiece, BgEatElongating, BgSameColor, BgMines)
+
+FEEDBACK
+If you like to send any feedback comments on design / names / implementation / functionalities to add / questions you can add a comment below / mail me at laura(dot)risani(at)gmail(dot)com.
+
+Thanks for you valuable feedback to people on the pharo-users list: stepharo , nacho, olivier auverlot , kilon alios, Ben Coman
+
+UPDATES
+
+>>29/06/15
+-menu does not pause game
+-enhanced looks of Sokoban and Pacman
+-added method group 'decoding' at BGMovableDisplay and BGPlaceDisplay to support storing images as constant string methods
+
+>>26/06/15
+-framework's package name is now 'MetaBorg', previoulsy to this update was 'BgBoardician'
+
+>> 28/05/15
+-added game BgMines
+-moved work 'user pointing at a position on the board' from game level (BgMines, BgSameColor) to framework level, to do so refactored BGHuman and its subclasses
+-to support dual arrow-keyboard pointing, added at BGHuman method groups 'playing-pointer' 'playing-keys', BGPointer class, added this dual support to games BgMines, BgSameColor
+-redesigned the menu
+-displaying the menu pauses the game
+-recategorized methods
+-updated BGDirector subclasses #gameName
+-added BGDirector>>gameMenu
+
+
+>>20/05/15
+BgBoardician
+-added BGBoard class>>#from:aString (+supporting methods at groups 'instantiation' and 'builders') to build a board from a string
+-add BGDirector>>#replaceBoard:aBGBoard (and supporting methods at group 'input/output') to once displaying a board, display a new one with different dimensions (this implies changing the gameUI for a new one)
+
+BgSokoban
+-added levels 1 to 5 builded from strings
+-deleted class BPBoardSpace
+
+>> 08/04/2015
+-renamed
+    package names to real game names
+    BGBoardContent to BGBoardItem
+    BGMovableContent to BGMovableItem,
+    BGNoContent to BGNoItem,
+    BGSteadyContent to BGSteadyItem,
+    BGContentImposible to BGItemImposible
+    BGBoardSubclass to BGBoardClass (and all alike in 'constants' group)
+-replaced #class sends
+-CRC styled the comments
+-changed 'settings class' by 'class variables + settings builder method (on class side)'
+-added catalog class side methods
+
+>>27/03/15
+new Configuration uploaded
+ -framework and game examples : added comments to all classes, no 'as yet unclassified', ran code critics, added 'about' menu entry
+ -game examples: removed EMonsterMover subclasses (extended it and modified PacManGame>>#initializePlayers accordingly), changed BGDirector subclasses names to meaningful ones (see DOWNLOAD section for current msgs to run example games)  
+
+>>29/03/15
+-added menu entries: logScore, show/clearScores, about, and methods for them
+-moved UI methods to BGUserInterface, instead of sending 'self inform: / request:'
+-implemented SameColor game on package BgSameColor
+Posted by Laura Risani at 8:57 AM 
+Email This
+BlogThis!
+Share to Twitter
+Share to Facebook
+Share to Pinterest
+
+No comments:
+Post a Comment
+ 
+Older Post Home
+Subscribe to: Post Comments (Atom)
+About Me
+
+Laura Risani  
+
+View my complete profile
+Blog Archive
+
+▼  2015 (2)
+▼  June (1)
+MetaBorg
+►  March (1)
+Simple template. Powered by Blogger.
