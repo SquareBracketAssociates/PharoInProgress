@@ -38,7 +38,7 @@ Now, we have the code, which does all previous steps, so if you are not interest
 
 Fig *FigAB2Example* shows a typical test case for an Adams-Bashforth solver.
 
-+A typical testcase for an Adams-Bashforth solver example>file://pictures/AB2.png|width=80|label=FigAB2Example+
++A typical testcase for an Adams-Bashforth solver example>file://figures/AB2.png|width=80|label=FigAB2Example+
 
 
 
@@ -175,7 +175,7 @@ Gofer new
 ]]]
 
 
-+Download SMark>file://pictures/Download-SMark.png|width=75|label=Download SMark+
++Download SMark>file://figures/Download-SMark.png|width=75|label=Download SMark+
 
 
 
@@ -183,7 +183,7 @@ Gofer new
 Now we can get started and write a first benchmark. 
 To do so, you need to create the new class, where your future benchmarks will be defined. Pay attention: this class must be a subclass of ==SMarkSuit==. Let's call it ==SomeBenchmark==.
 
-+Writing benchmark>file://pictures/Writing-benchmark1.png|width=70+
++Writing benchmark>file://figures/Writing-benchmark1.png|width=70+
 
 It's time to write your first benchmark. To follow SMark's convention you have to prefix names of your benchmark methods with the prefix ==bench"==. Then write your code. For example:
 
@@ -196,7 +196,7 @@ But not all benchmarks look so simple. For example in the context of ODE project
 
 WRITE IT HERE as Pharo code !!!
 
-+Midpoint test and benchmark>file://pictures/Midpoint-benchmark.png|width=100+
++Midpoint test and benchmark>file://figures/Midpoint-benchmark.png|width=100+
 
 As you can see on this image benchmark is very similar to a test. So if you are writing tests for your code, adding some benchmarks will be a piece of cake.
 
@@ -206,15 +206,15 @@ As you can see on this image benchmark is very similar to a test. So if you are 
 One of the most important reasons why we write the benchmark is the result of it's execution.
 To see this result in workspace you should execute ==SomeBenchmark run== or better ==SomeBenchmark run: iterationNumber== and pass a number of iterations.
 
-+Running benchmarks 1>file://pictures/Runing-benchmark1.png|width=70+
++Running benchmarks 1>file://figures/Runing-benchmark1.png|width=70+
 
 Same as the tests, benchmarks have ==setUp== method, which can be used to initialise all the shared data for benchmarks. In my case it looked like that:
 
-+Running benchmarks 2>file://pictures/Runing-benchmark2.png|width=80+
++Running benchmarks 2>file://figures/Runing-benchmark2.png|width=80+
 
 And then our benchmark was DRYed to this: (SD what does it mean DRYed?)
 
-+Running benchmarks 3>file://pictures/Runing-benchmark3.png|width=80+
++Running benchmarks 3>file://figures/Runing-benchmark3.png|width=80+
 
 
 ""Nota bene"": Don't forget to write ==super setUp== in the ==setUp== methods of subclasses.
@@ -247,7 +247,7 @@ SomeBenchmark class>>runAll:  numOfIterations
         each run: numOfIterations ]) joinUsing: Character cr
 ]]]
 
-+Improving SMark>file://pictures/Improving-Smark1.png|width=80+
++Improving SMark>file://figures/Improving-Smark1.png|width=80+
 
 
 !!Quality criteria for Math-ODE
@@ -263,11 +263,11 @@ For Math-ODE project, we wrote new package Math-Accuracy-ODE. There we have meth
 Put some code here too
 ]]]
 
-+Accuracy for AB2 method>file://pictures/Accuracy-for-AB2-method.png|width=80+
++Accuracy for AB2 method>file://figures/Accuracy-for-AB2-method.png|width=80+
 
-+Accuracy for AB3 method>file://pictures/Accuracy-for-AB3-method.png|width=80+
++Accuracy for AB3 method>file://figures/Accuracy-for-AB3-method.png|width=80+
 
-+Accuracy's initialise>file://pictures/Accuracy-initialise.png|width=80+
++Accuracy's initialise>file://figures/Accuracy-initialise.png|width=80+
 
 and methods for running them:
 
@@ -316,7 +316,7 @@ MCHttpRepository
 We get our benchmarks data as an ordered collection shown in Figure *grresults*
 
 
-+Benchmarks results>file://pictures/Benchmarks-results.png|width=80|label=grresults+
++Benchmarks results>file://figures/Benchmarks-results.png|width=80|label=grresults+
 
 However it is not suitable for Graph-ET and this is why we transform it to the dictionary as follows
 
@@ -332,7 +332,7 @@ benchmarksData
 SD: It is not clear to me that we get a dictionnary!
 
 
-+benchmarksData>file://pictures/benchmarksData.png|width=80|label=benchmarksData+
++benchmarksData>file://figures/benchmarksData.png|width=80|label=benchmarksData+
 
 Then the method which draws the diagram has the following definition: 
 [[[
@@ -368,18 +368,18 @@ graphBenchmarks
 When you execute the following expression in a workspace ==SciSmalltalkMetrificator graphBenchmarks==
 you will get the graph shown in Figure *graphBenchmarks* and displayed with Graph-ET as Figure *graphBenchmarksIn*.
 
-+graphBenchmarks result>file://pictures/graphBenchmarks-result.png|width=50|label=graphBenchmarks+
++graphBenchmarks result>file://figures/graphBenchmarks-result.png|width=50|label=graphBenchmarks+
 
 
-+Benchmarks in Graph-ET>file://pictures/4BenchmarksinGraph-ET.png|width=50|label=graphBenchmarksIn+
++Benchmarks in Graph-ET>file://figures/4BenchmarksinGraph-ET.png|width=50|label=graphBenchmarksIn+
 
  
 ""Nota bene:"" in the case that your benchmark results are close to zero, it is necessary to increase the ''problemSize'', which multiplies the results (as shown in Figure *ProblemSize*). Make the smallest your results greater or equal to 10.
 
-%+ProblemSize equal 100.>file://pictures/5ProblemSize-equal-100.png|width=50+ 
+%+ProblemSize equal 100.>file://figures/5ProblemSize-equal-100.png|width=50+ 
 
 
-+ProblemSize equal 1>file://pictures/6ProblemSize-equal-1.png|width=50|label=ProblemSize+
++ProblemSize equal 1>file://figures/6ProblemSize-equal-1.png|width=50|label=ProblemSize+
 
    
 As you can see the results are similar, but not identical.
@@ -390,7 +390,7 @@ As you can see the results are similar, but not identical.
 In addition to benchmarks we get our accuracies data as a dictionary as shown in Figure *AccRes*.
 This means that we can chart them immediately. 
 
-+Accuracies results>file://pictures/Accuracies-results.png|width=80|label=AccRes+
++Accuracies results>file://figures/Accuracies-results.png|width=80|label=AccRes+
 
 
 [[[
@@ -430,12 +430,12 @@ WAHTClass>>graphAccuracy
 
  ""Nota bene:"" you can get an image similar to the Figure *smallStep*.
  
-+Accuracies with the small step size>file://pictures/7.png|width=50|label=smallStep+
++Accuracies with the small step size>file://figures/7.png|width=50|label=smallStep+
 
 The problem is that step size, that I used, was so small, that every method returned almost the same result.
   The graph of accuracies with the larger step looks different :
 
-+Accuracies with the larger step size>file://pictures/8Accuracies-in-Graph-ET.png|width=50|label=8Accuracies-in-Graph-ET+
++Accuracies with the larger step size>file://figures/8Accuracies-in-Graph-ET.png|width=50|label=8Accuracies-in-Graph-ET+
  
 You can experiment a lot with Graph-ET. For example, in Figure *8Accuracies-in-Graph-ET* you can see that the biggest deviation comes from the Euler and Backward Euler methods, which are the first order methods. And the family of Adam-Moulton multistep methods (Trapezoid, AM3, AM4) returns the best results.
 
@@ -445,21 +445,21 @@ Now we ask ourselves an important question: How does the deviation vary dependin
 
 On the image the darker colors  correspond to the smaller steps. We can see that the colors are distributed differently. It depends on how each method's result is close to the actual point. For example, the Euler and BackwardEuler methods are approaching to the point from one side, so the colors change smoothly.
 
-+Example 1>file://pictures/9.png|width=50+
++Example 1>file://figures/9.png|width=50+
 
 An even more impressive thing is the dependence of accuracy on the initial state.
 
-+Example 2>file://pictures/10.png|width=50+
++Example 2>file://figures/10.png|width=50+
 
 On the ''y''-axis we have deviation between given and actual results. The intensity of the color displays the shift of initial value both positive or negative.
 The shades of a blue color indicate the negative deviation, and the shades of red - the positive deviation.
 The best methods are those, that at zero point have black colour. Because, the closer we are to the initial point (it is indicated with a black colour close to ''x''-axis ), the closer we are to the actual value.
 
-+Deviation scale>file://pictures/11.jpg|width=50+
++Deviation scale>file://figures/11.jpg|width=50+
 
  As with previous images, the graphics of Euler and BackwardEuler methods are the simplest, with the colors that are changing gradually. However, exactly these methods draw the most attention, and from their graphs we can understand that they are not the best methods. This happens because, if we take the point ''(A@@0@@ - 1)'' as the initial one, than we will get a value less than ''A@@4@@'' and closer to the function which is drawn with blue colour. 
 
-+Euler method>file://pictures/12.png|width=50+
++Euler method>file://figures/12.png|width=50+
 
 
 For the BackwardEuler method it's the same situation with initial point ''(A@@0@@ + 1)''. 
@@ -473,12 +473,8 @@ In Graph-ET you even can merge the graphs of the benchmarks and the accuracies.
 
 Benchmarks are measured in milliseconds, and the accuracies are just the numbers. Therefore, to merge it correctly, we converted all values to percentages.
 
-+Benchmark's and accuracy's values in percentages>file://pictures/13.png|width=50+
++Benchmark's and accuracy's values in percentages>file://figures/13.png|width=50+
 
 In this image accuracy is red and benchmark's time is blue.
 
 It's important and interesting, because we can see both the most accurate and the quickest methods. As a result we can determine which method is the best for our ODE.
-
-
-
-
