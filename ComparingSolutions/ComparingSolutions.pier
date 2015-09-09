@@ -17,7 +17,7 @@ To understand how you can work with the ODE package, let's look at the example w
 
 @@comment May be you should give one example of an ODE and an example of 
 
-Let's start. First of all you need to understand how this method works.  The Adams–Bashforth methods are multistep explicit methods. Numerical methods for ordinary differential equations approximate solutions to initial value problems of the form
+Let's start. First of all you need to understand how this method works.  The Adams-Bashforth methods are multistep explicit methods. Numerical methods for ordinary differential equations approximate solutions to initial value problems of the form
  ''x' = f( t,x )'',  ''x( t@@0@@ ) = x@@0@@''. 
 
 The result is approximations for the value of  ''x(t)''  at discrete times '' t@@i@@'': ''x@@i@@ {{{html: ≈}}} {{{markdown: ≈}}} {{{latex: $\approx$}}} x( t@@i@@ )'' where ''t@@i@@ = t@@0@@ + i*h'', where h is the time step (sometimes referred to as delta t or dt ). 
