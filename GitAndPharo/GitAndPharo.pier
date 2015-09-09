@@ -80,13 +80,11 @@ MCFileTreeGitRemoteRepository
 	branch: ''
 ]]]
 
-Press Ok. After a short delay, a repository inspector will open.
+Press Ok. After a short delay, a repository inspector will open. Behind the scene, the git repository is fetched in the directory where your image is.
 You're set: you can save packages in this repository, and, to send the changes back to the remote repository, just select ==Push==. 
 If you want to update from the remote repository, press ==Pull== and it will pull the remote changes and merge them with yours.
 
-You can now explore all the versions available in the repository. To change to another branch, you need to go back to the 
-command line, go inside the directory where your Pharo image is running from, and find there the GitAndPharoTutorial/ subdirectory. 
-Inside, you can list all branches and select one, here the branch issue_1:
+To work in another branch, you need to go back to the command line to the directory where your Pharo image is, and find there the ==GitAndPharoTutorial/== sub-directory. Inside, you can list all branches and select one:
 
 [[[
 $ git branch -a
@@ -103,9 +101,7 @@ Switched to a new branch 'issue_1'
 
 Go back to Pharo and press refresh to see the repository inspector updates itself.
 
-Note that, with git, the first checkout was done carefully so that we would create a local branch called "issue_1", 
-and set that branch so that it would match the remote branch (defined on the github server) called origin/issue_1. 
-Once the branch has been created (by default, master is setup in this way), to change to it we just need to use git checkout:
+Note that, with git, the checkout above was done carefully so that we would create a local branch called "issue_1", and set that branch so that it would match the remote branch (defined on the github server) called "origin/issue_1". Once the branch has been created (by default, master is setup in this way), to change to it we just need to use git checkout:
 
 [[[
 $ git checkout master
@@ -116,8 +112,8 @@ Switched to branch 'issue_1'
 Your branch is up-to-date with 'origin/issue_1'.
 ]]]
 
-This is just a very short introduction to git. Git has a lot of documentation and may be setup in many different ways. 
-We recommand reading on-line material and books if you want to know more about Git, but we will keep explaining a bit 
+This is just a very short introduction to Git. Git has a lot of documentation and may be setup in many different ways.
+We recommand reading on-line material and books if you want to know more about Git, but we will keep explaining a bit
 more of Git as we go through this chapter.
 
 !! Working with FileTree
@@ -125,6 +121,8 @@ more of Git as we go through this chapter.
 FileTree is the default module for exporting Monticello packages to a standard file hierarchy and, by this operation, 
 allowing a version control system to handle the files. We will now describe the process of working with FileTree and Git 
 for the same workflow as above.
+
+@@authorToDo why should we be interested in this process? What are the pros and cons?
 
 The first step is to clone GitAndPharoTutorial from github, expecting you to have registered in github as explained above, 
 and forked in github the GitAndPharoTutorial as well. In the command line, use ==git clone== with an ssh or an https url.
@@ -137,7 +135,7 @@ Create a FileTree repository from Monticello. Open Monticello, add a repository 
 and select the GitAndPharoTutorial/ directory created by the git clone above. You should get the following view, 
 noting that, contrary to gitfiletree above, you have no reference to the branch and no history.
 
---- Add a screenshot of the repository
+@@authorToDo Add a screenshot of the repository
 
 Modify and save the package inside Pharo into the repository (adding a space to one of the methods and 
 saving it should be enough modifications). Open the repository: in that window note that only the latest version of the 
@@ -184,7 +182,7 @@ HEAD is now at b988b3a... Added BorderedMorph
 
 Return in Pharo, open the repository or refresh a repository window. Note that the version number for the package is:
 
---- Screenshot
+@@authorToDo Screenshot
 
 You can study the difference between the two versions. Before doing anything however, you need to go back to the command line and reset back to the master branch otherwise your saves will be done in a detached state.
 
@@ -203,7 +201,7 @@ $ git pull
 
 !! Merge
 
---- Explain merging, using the sample repository.
+@@authorToDo Explain merging, using the sample repository.
 
 Merging is a key operation in a version control system and is one of the reasons to use Git with Pharo: to have Git record merge 
 operations. We will restart with a clean version of the GitAndPharoTutorial:
@@ -229,7 +227,7 @@ and add a FileTree repository on the GitAndPharoMerge folder.
 
 
 !! Multi-user workflow
--- from then on these are notes.
+@@authorToDo from then on these are notes.
 
 Start with the centralised workflow. Shows that it works perfectly well when combined with an approach in Pharo which is one person, one package.
 
@@ -270,6 +268,8 @@ Is there a way to use it from Monticello?
 Work underway to write LibCGit bindings using NativeBoost. Once done, we would have to integrate it with the above. Of course it is usable on platforms which have NativeBoost support.
 
 !!!!GitFileTree-MergeDriver
+
+@@authorToDo there is some documentation in *https://github.com/ThierryGoubier/GitFileTree-MergeDriver*
 
 Underway, need to explain and package that.
 
