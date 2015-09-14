@@ -148,10 +148,7 @@ visualization nodeBuilder: nodeBuilder.
 visualization open
 ]]]
 
-
-   
-+Adding interaction>file://figures/butterfly-label.pn|width=50|label=butterfly-label+   
-
++Adding interaction>file://figures/butterfly-label.png|width=50|label=butterfly-label+
 
 So to add the label, it is always the same way to proceed, work on the node builder. The positions available for the label are specified using the following messages:
 - ==inside==
