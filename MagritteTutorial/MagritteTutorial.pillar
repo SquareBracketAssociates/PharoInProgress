@@ -1,33 +1,63 @@
 ! Magritte Katas
 
-This chapter presents some exercises about Magritte. They are based on the Magritte Tutorial written by Lukas Renggli (the original designer and implementor of Magritte). We thank him for Magritte and this set of exercises. The exercises has been ported to Magritte 30 and Seaside 3.1. Magritte30 supports instance-based declarations while Magritte20 was only supporting class-based declarations. 
+This chapter presents some exercises about Magritte. They are based on the Magritte Tutorial written by Lukas Renggli (the original designer and implementor of Magritte). We thank him for Magritte and this set of exercises. The exercises has been ported to Magritte 30 and Seaside 3.1. Magritte30 supports instance-based declarations while Magritte20 was only supporting class-based declarations. The exercises have been enhanced and are maintained by Stéphane Ducasse and Damien Cassou. 
 
 The exercises start simple and with detailled instructions on how to perform the given tasks. Exercises marked with a star are a bit trickier, you might want to solve them later on. Sometimes you will probably not exactly know what class to use, what method to call or what parameters to pass, use the power of Pharo (senders, implementers, references, ...) to browse the source-code of Magritte, you might even discover some other features that were not presented during this tutorial.
 
 !! Getting Started 
 
-Get an image and bring the configuration browser and install the stable version of MagicMagritte.
+Get an image and bring the Configuration Browser and install the stable version of MagicMagritte.
 
-[[[
+
+In case you need to know where the code of the tutorial is saved. It is in the following repository:
+
+[[[language=smalltalk
 MCGemstoneRepository
 	location: 'http://ss3.gemstone.com/ss/MagritteMagic'
 	user: ''
 	password: ''
 ]]]
 
- Make sure your Seaside server is running within the image by browsing the counter application at *http://\-local\-host:8080/examples/\-counter*
 
+Make sure your Seaside server is running within the image by browsing the counter application at *http://\-local\-host:8080/examples/\-counter*
 
+If it is not, the seaside control panel from Tools menu of the world menu. 
 
 !! Juggle with Descriptions
 
- Have a look at the source-code of the classes ==MAPersonModel==, ==MAAddressModel==, and ==MAPhoneModel==. 
- 
- Browse to *http://localhost:8080/personeditor* and check if you can see all the features presented during the lecture. All the following exercises will be built upon this simple model.
- 
+Have a look at the source-code of the classes ==MAPersonModel==, ==MAAddressModel==, and ==MAPhoneModel==. In essence a person is described by different attributes such as it first name, name email, birthday... In addition it in relation with an address object and it has a list of phones. 
+
+Here are the class definitions. Note that the class names are a bit overkill with the Model prefix. In future versions, we may drop it. 
+
+[[[language=smalltalk
+Object subclass: #MAPersonModel
+	instanceVariableNames: 'title firstName lastName homeAddress officeAddress picture birthday phones password'
+	classVariableNames: ''
+	category: 'Magritte-Tutorial'
+]]]
+
+[[[language=smalltalk
+Object subclass: #MAPhoneModel
+	instanceVariableNames: 'kind number'
+	classVariableNames: ''
+	category: 'Magritte-Tutorial'
+]]]
+
+[[[language=smalltalk
+Object subclass: #MAAddressModel
+		instanceVariableNames: 'street plz place canton nationality'
+		classVariableNames: ''
+		category: 'Magritte-Tutorial'
+]]]
+
+All the following exercises will be built upon this simple model.
+	
+Browse to *http://localhost:8080/personeditor* and check if you can see all the features presented during the lecture. 
+
 You should get an application as shown in Figure *editor*.
- 
+
 +A person editor.>file://figures/personeditor.png|label=editor|width=60+
+ 
  
  
 !!! Exercise 1: Adding a simple field
@@ -35,13 +65,20 @@ You should get an application as shown in Figure *editor*.
  Add a new field that holds a ''Comment'' about the person, display it as a text-area field as the last element. Test it in the Web browser by starting a new session on the same application. If you are required to add more than one new method by hand you did something wrong.
  
  
+ 
 !!!! Solution.
-In the ==MADescription== hierarchy there is a class ==MAStringDescription== which is used to describe a string. You can try to use it like this:
-[[[
+Add the following instance variable and accessor. 
+
+[[[language=smalltalk
 MAPersonModel>>comment
 	^ comment 
-	
-MAPersonModel>>descriptionComment
+]]]
+
+
+In the ==MADescription== hierarchy, there is a class ==MAStringDescription== which is used to describe a string. You can try to use it like this:
+
+[[[language=smalltalk
+MAPersonModel >> descriptionComment
 	<magritteDescription>
 	^ MAStringDescription new
 			accessor: #comment; 
@@ -51,36 +88,43 @@ MAPersonModel>>descriptionComment
 ]]]
  
 The form input rendered is a text-input whereas the subject asks you for a text-area (a text-input on more than one line). 
-
 Have a look at ==MAStringDescription== subclasses. You will see a ==MAMemoDescription== class with a ==lineCount:== method. 
 
 Use this class as follows:
-[[[
-MAPersonModel>>descriptionComment
+[[[language=smalltalk
+MAPersonModel >> descriptionComment
+	<magritteDescription>
  	^ MAMemoDescription new
 	 			accessor: #comment; 
 	 			label: 'Comment';
 	 			priority: 100 ; 
 	 			yourself
 ]]]
- A text-area is then displayed.
+
+A text-area is then displayed.
 
 
 !!! Exercise 2: Adding Nationality as a single selection
 
-Add a new field that holds the Nationality of the person, display it as a sorted drop-down box with a few selectable countries. Put it right after the Address field. The default choice for new objects should be Switzerland.
+Add a new field that holds the nationality of the person, display it as a sorted drop-down box with a few selectable countries. Put it right after the address field. The default choice for new objects should be Switzerland.
 
-!!!! Solution 2
-When you want to ask the user to choose one element in a list of multiple, you should use the ==MASingleOptionDescription== class. This class is a subclass of ==MAOptionDescription== which accepts an ==options:== message to specify the different choices. 
+!!!! Solution.
+When you want to ask the user to choose one element in a list of multiple, you should use the ==MASingleOptionDescription== class. This class is a subclass of ==MAOptionDescription== which accepts the ==options:== message to specify the different choices. 
 The default choice (displayed by Magritte if no other choices have been selected) is chosen with the ==default:== message:
 
-
-[[[
-MAPersonModel>>descriptionNationality
-	^ (MASingleOptionDescription auto: 'nationality' label: 'Nationality' priority: 55)
-		options: #( 'Switzerland' 'France' 'Germany' ); default: 'Switzerland';
-		beSorted;
-		yourself
+[[[language=smalltalk
+MAPersonModel >> descriptionNationality 
+	<magritteDescription>
+ 	^ (MASingleOptionDescription new 
+			accessor: #nationality;
+			label: 'Nationality';
+			priority: 55; 
+			yourself)
+			options: #( 'Switzerland' 'France' 'Germany' ); 
+			default: 'Switzerland';
+			beSorted; 
+			beRequired;
+			yourself
 ]]] 
  
 You can use the ==beSorted== message to sort values in the list.
@@ -93,11 +137,11 @@ Add a new field that holds the E-Mail of the person, display it as a required te
 Test your code in the Web browser.
 
 
-!!!!Solution 3.
+!!!!Solution.
 An E-Mail is basically a string. So, to start, you can just ask for a string:
 
-[[[
-MAPersonModel>>ddescriptionEmail
+[[[language=smalltalk
+MAPersonModel >> descriptionEmail
 	<magritteDescription>
 	 ^ MAStringDescription new
 			accessor: #email;
@@ -108,8 +152,8 @@ MAPersonModel>>ddescriptionEmail
 
 If you open a browser on ==MADescription== class (protocol validation), you will see that we can send the message ==addCondition:labelled:== to a description
 
-[[[
-MAPersonModel>>descriptionEmail
+[[[language=smalltalk
+MAPersonModel >> descriptionEmail
 	<magritteDescription>
 	^ (MAStringDescription new
 		accessor: #email;
@@ -124,16 +168,17 @@ MAPersonModel>>descriptionEmail
 
 
 !!! Exercice 4: Reusing Descriptions
+You can also reuse a description. For example, we will reuse nationality description from ==MAPersonModel== in the address ==MAAddressModel== by calling the appropriate description of the person  and changing the label to ==Country==. Make sure not to modify the original description by creating a copy. 
 
-Reuse the description of the Nationality from ==MAPersonModel== in the model of the address ==MAAddressModel== by calling the appropriate description of the person and changing the label to ==Country==. Make sure not to modify the original description by creating a copy. Test it in the Web browser.
+Test it in the Web browser.
 
 
-!!!! Solution 4.
+!!!! Solution. 
 
 Descriptions are created in methods. To reuse a description, you can just send the method:
 
-[[[
-MAAddressModel>>descriptionCountry
+[[[language=smalltalk
+MAAddressModel >> descriptionCountry
 	<magritteDescription>
 	^ MAPersonModel new descriptionNationality copy
 		label: 'Country'; 
@@ -142,4 +187,58 @@ MAAddressModel>>descriptionCountry
 
 +The Nationality description is reused by the ==MAAddressModel==.>file://figures/addressWithCountry.png+
 
+Note that here we create a new person because there is no reference from ==MAAddressModel== to ==MAPersonModel==.
+
+!!! Exercise 5: Food for Thought 
+
+Before stating to use seaside in combination with Magritte it is worth to step back and ask ourself some questions:
+
+- Make a rough guess on how much code was saved by using Magritte compared to a manual approach in Seaside. 
+- From when on does it make sense to use a meta-model? 
+- What are the advantages / disadvantages?
+
+
+!! Seaside integration
+
+Up to now we have been working with descriptions only, we didn’t write any line of Seaside code. Moreover the model was not remembered somewhere and therefore was lost between different sessions. In this section we will concentrate on Seaside and build a simple user-interface that allows us to manage multiple persons. 
+To get an idea of how the result could look like, see Figure 1.
+
+
+!!! Exercise 6: Introducing the Person Manager Application
+
+Start by creating a new subclass of ==WAComponent== called ==MAPersonManager==. Add a class instance-variable called ==Persons== that will serve us as a simple place to keep the model objects. Initialize it with an empty ==OrderedCollection==. Register the newly created class as a new Seaside entry point named ==personmanager==. Create a method ==renderContentOn:== that displays the heading 'Person Manager'.
+￼
+Test the setup of your new application in the Web browser.
+
+!!!! Solution.
+
+[[[language=smalltalk
+WAComponent subclass: #MAPersonManager
+	instanceVariableNames: ''
+	classVariableNames: 'Persons'
+	category: 'Magritte-Tutorial'
+]]]
+
+[[[language=smalltalk
+MAPersonManager class >> initialize
+	"self initialize"
+	
+	super initialize.
+	self persons: OrderedCollection new.
+	WAAdmin register: self asApplicationAt: 'personmanager'
+]]]
+
+
+[[[language=smalltalk
+MAPersonManager >> renderContentOn: html
+		html heading: 'Person Manager'. 
+]]]
+
+
+!!! Exercise 7: Adding a contact
+
+
+Create an action-method ==add==, that creates a new instance of ==MAPersonModel==, calls the default Magritte editor and adds it to our collection. 
+Note that Magritte will answer nil, if the user hits the cancel-button in the editor. 
+Create a link in your page that will execute the ==add== method.
 
