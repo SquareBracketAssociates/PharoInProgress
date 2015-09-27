@@ -1,5 +1,14 @@
 !Git And Pharo
 
+This document is a work in progress. Useful references include:
+
+- *https://github.com/ThierryGoubier/GitFileTree-MergeDriver*
+- *http://blog.yuriy.tymch.uk/2015/07/pharo-and-github-versioning-revision-2.html*
+- *http://forum.world.st/Metacello-GIT-methodProperties-json-td4818097.html*
+- *https://www.mail-archive.com/pharo-dev@lists.pharo.org/msg31108.html*
+- *http://comments.gmane.org/gmane.comp.lang.smalltalk.pharo.user/21661*
+- *https://www.mail-archive.com/pharo-dev%40lists.pharo.org/msg17601.html*
+
 todo Sept 2014: add some pictures and should ask thierry to finish it :)
 
 In the future Pharo sources will be managed with Git. Howvever it takes time to arrive to a solution 
