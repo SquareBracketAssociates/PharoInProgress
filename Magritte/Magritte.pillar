@@ -39,7 +39,7 @@ Note that there is no need to have a one to one mapping between the instance var
 
 It is often useful to decorate the component with buttons like cancel and Ok. This can be done by sending the message ==WAComponent>>addValidatedForm== to the component. Note that you can also change the label of the validating form using ==addValidatedForm:== and passing an array of associations whose first element is the message to be sent and the second the label to be displayed.
 
-A Magritte form is generally wrapped with a form decoration via  ==WAComponent>>addValidatedForm==. Magritte forms don't directly work on your domain objects. They work on a memento of the values pulled from your object using the descriptions. When you call ==save==, the values are validated using the descriptions, and only after passing all validation rules are the values committed to your domain object by the momentos via the accessors.
+A Magritte form is generally wrapped with a form decoration via  ==WAComponent>>addValidatedForm==. Magritte forms don't directly work on your domain objects. They work on a memento of the values pulled from your object using the descriptions. When you call ==save==, the values are validated using the descriptions, and only after passing all validation rules are the values committed to your domain object by the mementos via the accessors.
 
 [[[
 anAddress asComponent addValidatedForm.
