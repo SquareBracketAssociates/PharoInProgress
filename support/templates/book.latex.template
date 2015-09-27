@@ -39,6 +39,7 @@
 		  {../Spec/}
 		  {../Telescope/}
 		  {../XMLPullParser/}
+                  {../SimpleStatistics/}
 }
 %=================================================================
 \let\wholebook=\relax
