@@ -204,7 +204,7 @@ Methods ==skipWhile:== and ==skipWhileAny== are repeating versions of the previo
 
 !!!Operator: text
 
-Methods ==textOf:== and ==textOfAny== throw an exception if current event isn't a start tag, or doesn't match a supplied tag name. If it succeeds then it consumes the start tag, the (optional) text event within it and the following matching end tag. It returns the text content of the text event that was consumed, or an empty string ==''== if there is no text event within the tag.
+Methods ==textOf:== and ==textOfAny== throw an exception if current event isn't a start tag, or doesn't match a supplied tag name. If it succeeds then it consumes the start tag, the (optional) text event within it and the following matching end tag. It returns the text content of the text event that was consumed, or an empty string =='\'== if there is no text event within the tag.
 
 
 

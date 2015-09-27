@@ -1,0 +1,68 @@
+{
+  "author" : "Damien Cassou",
+  "title" : "Saving your Pharo code in a Git repository"
+}
+
+What is Git and Why Should I Care
+
+! A Tutorial
+
+!! Create your Project
+
+- on Github
+- in Pharo
+- commit and push
+
+!! Create a Baseline
+
+!! Create a Jenkins job
+
+!! Register on the Pharo Catalog
+
+create a configuration
+
+!! Create a Travis configuration
+
+! Setting up an Advanced Environment: the Merge Driver
+
+- the problem
+- git pharo merge driver
+
+! Managing Project Configurations
+
+!!Baselines
+
+what is it. How does it work. How does it compare to ==ConfigurationOf== classes.
+
+!!Configurations
+
+- the #stable definitions
+- the #development definition
+- writing a configuration that depends on a project hosted in git
+
+
+! Loading Git-based Projects in your Image
+
+- with read-only access
+- with read-write access
+
+!! Specifying the README of your Project
+
+! Using Git Branches
+
+! Using Continuous Integration
+
+!! Jenkins
+
+!! Travis
+
+! Example Projects
+
+To learn from others, you might want to have a look at these projects:
+
+- https://github.com/DamienCassou/pharo-jenkins
+- https://github.com/Uko/QualityAssistant
+
+! References
+
+links to external documentation
