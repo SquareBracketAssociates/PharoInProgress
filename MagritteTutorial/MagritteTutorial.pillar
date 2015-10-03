@@ -443,7 +443,62 @@ MAPersonManager >> filteredDescriptionsFrom: aPerson
 ]]]
      
 [[[language=smalltalk
-MAPersonManager >>  initialize
+MAPersonManager >> initialize
     super initialize.
     self report: (MAReport rows: self persons description: (self  filteredDescriptionsFrom: self persons first))
 ]]]
+
+
+!!! Exercise 14: Adding extra column
+
+Add a new column to the report to hold commands to view and edit entries. To get a hint on how to achieve the desired behaviour, browse the references of ==MACommandColumn==.
+
+!!!! Solution 14.
+
+We define an instance of ==MACommandColumn== to group two commands. Note that we use two variants to show that we can control the text displayed from the action performed. 
+
+[[[
+MAPersonManager >> initialize
+	super initialize.
+	self report: (MAReport rows: self persons description: (self  filteredDescriptionsFrom: self persons first)).
+	self report addColumn: (MACommandColumn new 
+						addCommandOn: self selector: #viewPerson:; 
+						addCommandOn: self selector: #editPerson: text: 'Edit'; yourself)
+]]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
