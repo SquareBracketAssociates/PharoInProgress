@@ -238,7 +238,75 @@ MAPersonManager >> renderContentOn: html
 !!! Exercise 7: Adding a contact
 
 
-Create an action-method ==add==, that creates a new instance of ==MAPersonModel==, calls the default Magritte editor and adds it to our collection. 
-Note that Magritte will answer nil, if the user hits the cancel-button in the editor. 
+In the ==MAPersonManager== class, define the method ==add==, that creates a new instance of ==MAPersonModel==, calls the default Magritte editor and adds it to our collection. Note that Magritte will answer ==nil==, when the user hits the cancel button in the editor. 
 Create a link in your page that will execute the ==add== method.
 
+
+!!!! Solution. 
+
+A Seaside component is created from a model using the message ==asComponent==. Around a component, you can add buttons to save and cancel using the message ==addValidatedForm==. If you want to use another component instead of the current one, use the message ==call:==. This method returns what answered the component:
+
+[[[language=smalltalk
+MAPersonManager >> add
+	| person |
+	person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
+	person isNil
+		ifFalse: [ self class persons add: person ]
+]]]
+
+
+Let's see how one add a link to a page:
+[[[language=smalltalk
+MAPersonManager >> renderContentOn: html 
+	html heading: 'Person Manager'.
+	html anchor
+		callback: [ self add ]; with: [ html text: 'add'']
+]]]
+
+!!! Exercise 8: Rendering the contacts
+
+Create an accessor ==persons== for the class-variable Persons on the instance-side of ==MAPersonManager==
+Render a list of all persons within MAPersonManager. 
+
+!!!!Solution 8.
+
+We define a simple accessor either using the class side message or directly accessing the variable. 
+[[[
+MAPersonManager >> persons 
+	^ self class persons
+]]]
+or 
+[[[
+MAPersonManager >> persons 
+	^ Persons
+]]]
+
+We modify the rendering method to display the persons. 
+
+[[[
+MAPersonManager >> renderContentOn: html 
+	html heading: 'Person Manager'. 
+	html anchor
+		callback: [ self add ];
+		with: [ html text: 'add'' ]. 
+	html break.
+	self persons
+		do: [ :person | self renderLineForPerson: person on: html ] separatedBy: [ html break ]
+]]]
+
+For this we introduce a dedicated method: 
+[[[
+MAPersonManager >> renderLineForPerson: aPerson on: html
+	html 
+		text: aPerson firstName; 
+		space; text: aPerson lastName
+]]]
+
+
+
+
+
+
+
+
+!!! Exercise 8: 
