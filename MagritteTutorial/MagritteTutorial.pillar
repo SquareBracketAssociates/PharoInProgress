@@ -13,9 +13,9 @@ In case you need to know where the code of the tutorial is saved. It is in the f
 
 [[[language=smalltalk
 MCGemstoneRepository
-	location: 'http://ss3.gemstone.com/ss/MagritteMagic'
-	user: ''
-	password: ''
+    location: 'http://ss3.gemstone.com/ss/MagritteMagic'
+    user: ''
+    password: ''
 ]]]
 
 
@@ -31,27 +31,27 @@ Here are the class definitions. Note that the class names are a bit overkill wit
 
 [[[language=smalltalk
 Object subclass: #MAPersonModel
-	instanceVariableNames: 'title firstName lastName homeAddress officeAddress picture birthday phones password'
-	classVariableNames: ''
-	category: 'Magritte-Tutorial'
+    instanceVariableNames: 'title firstName lastName homeAddress officeAddress picture birthday phones password'
+    classVariableNames: ''
+    category: 'Magritte-Tutorial'
 ]]]
 
 [[[language=smalltalk
 Object subclass: #MAPhoneModel
-	instanceVariableNames: 'kind number'
-	classVariableNames: ''
-	category: 'Magritte-Tutorial'
+    instanceVariableNames: 'kind number'
+    classVariableNames: ''
+    category: 'Magritte-Tutorial'
 ]]]
 
 [[[language=smalltalk
 Object subclass: #MAAddressModel
-		instanceVariableNames: 'street plz place canton nationality'
-		classVariableNames: ''
-		category: 'Magritte-Tutorial'
+        instanceVariableNames: 'street plz place canton nationality'
+        classVariableNames: ''
+        category: 'Magritte-Tutorial'
 ]]]
 
 All the following exercises will be built upon this simple model.
-	
+    
 Browse to *http://localhost:8080/personeditor* and check if you can see all the features presented during the lecture. 
 
 You should get an application as shown in Figure *editor*.
@@ -70,8 +70,8 @@ You should get an application as shown in Figure *editor*.
 Add the following instance variable and accessor. 
 
 [[[language=smalltalk
-MAPersonModel>>comment
-	^ comment 
+MAPersonModel >> comment
+    ^ comment 
 ]]]
 
 
@@ -79,12 +79,12 @@ In the ==MADescription== hierarchy, there is a class ==MAStringDescription== whi
 
 [[[language=smalltalk
 MAPersonModel >> descriptionComment
-	<magritteDescription>
-	^ MAStringDescription new
-			accessor: #comment; 
-			label: 'Comment';
-			priority: 100 ; 
-			yourself
+    <magritteDescription>
+    ^ MAStringDescription new
+            accessor: #comment; 
+            label: 'Comment';
+            priority: 100 ; 
+            yourself
 ]]]
  
 The form input rendered is a text-input whereas the subject asks you for a text-area (a text-input on more than one line). 
@@ -93,12 +93,12 @@ Have a look at ==MAStringDescription== subclasses. You will see a ==MAMemoDescri
 Use this class as follows:
 [[[language=smalltalk
 MAPersonModel >> descriptionComment
-	<magritteDescription>
- 	^ MAMemoDescription new
-	 			accessor: #comment; 
-	 			label: 'Comment';
-	 			priority: 100 ; 
-	 			yourself
+    <magritteDescription>
+     ^ MAMemoDescription new
+                 accessor: #comment; 
+                 label: 'Comment';
+                 priority: 100 ; 
+                 yourself
 ]]]
 
 A text-area is then displayed.
@@ -114,17 +114,17 @@ The default choice (displayed by Magritte if no other choices have been selected
 
 [[[language=smalltalk
 MAPersonModel >> descriptionNationality 
-	<magritteDescription>
- 	^ (MASingleOptionDescription new 
-			accessor: #nationality;
-			label: 'Nationality';
-			priority: 55; 
-			yourself)
-			options: #( 'Switzerland' 'France' 'Germany' ); 
-			default: 'Switzerland';
-			beSorted; 
-			beRequired;
-			yourself
+    <magritteDescription>
+     ^ (MASingleOptionDescription new 
+            accessor: #nationality;
+            label: 'Nationality';
+            priority: 55; 
+            yourself)
+            options: #( 'Switzerland' 'France' 'Germany' ); 
+            default: 'Switzerland';
+            beSorted; 
+            beRequired;
+            yourself
 ]]] 
  
 You can use the ==beSorted== message to sort values in the list.
@@ -142,28 +142,28 @@ An E-Mail is basically a string. So, to start, you can just ask for a string:
 
 [[[language=smalltalk
 MAPersonModel >> descriptionEmail
-	<magritteDescription>
-	 ^ MAStringDescription new
-			accessor: #email;
-			label: 'Email';
-			priority: 95;
-			yourself
+    <magritteDescription>
+     ^ MAStringDescription new
+            accessor: #email;
+            label: 'Email';
+            priority: 95;
+            yourself
 ]]]
 
 If you open a browser on ==MADescription== class (protocol validation), you will see that we can send the message ==addCondition:labelled:== to a description
 
 [[[language=smalltalk
 MAPersonModel >> descriptionEmail
-	<magritteDescription>
-	^ (MAStringDescription new
-		accessor: #email;
-		label: 'Email';
-		priority: 95;
-		yourself)
-		addCondition: [ :value | value matches: '#*@#*.#*' ] labelled: 'Please enter a valid email';
-		addCondition: [ :value | (value matches: '#*@hotmail.com') not ] labelled: 'Hotmail users not allowed';
-		addCondition: [ :value | (value matches: '#*@gmx.#*') not ] labelled: 'GMX users not allowed';
-		beRequired; yourself
+    <magritteDescription>
+    ^ (MAStringDescription new
+        accessor: #email;
+        label: 'Email';
+        priority: 95;
+        yourself)
+        addCondition: [ :value | value matches: '#*@#*.#*' ] labelled: 'Please enter a valid email';
+        addCondition: [ :value | (value matches: '#*@hotmail.com') not ] labelled: 'Hotmail users not allowed';
+        addCondition: [ :value | (value matches: '#*@gmx.#*') not ] labelled: 'GMX users not allowed';
+        beRequired; yourself
 ]]]
 
 
@@ -179,10 +179,10 @@ Descriptions are created in methods. To reuse a description, you can just send t
 
 [[[language=smalltalk
 MAAddressModel >> descriptionCountry
-	<magritteDescription>
-	^ MAPersonModel new descriptionNationality copy
-		label: 'Country'; 
-		yourself
+    <magritteDescription>
+    ^ MAPersonModel new descriptionNationality copy
+        label: 'Country'; 
+        yourself
 ]]]
 
 +The Nationality description is reused by the ==MAAddressModel==.>file://figures/addressWithCountry.png+
@@ -214,24 +214,24 @@ Test the setup of your new application in the Web browser.
 
 [[[language=smalltalk
 WAComponent subclass: #MAPersonManager
-	instanceVariableNames: ''
-	classVariableNames: 'Persons'
-	category: 'Magritte-Tutorial'
+    instanceVariableNames: ''
+    classVariableNames: 'Persons'
+    category: 'Magritte-Tutorial'
 ]]]
 
 [[[language=smalltalk
 MAPersonManager class >> initialize
-	"self initialize"
-	
-	super initialize.
-	self persons: OrderedCollection new.
-	WAAdmin register: self asApplicationAt: 'personmanager'
+    "self initialize"
+    
+    super initialize.
+    self persons: OrderedCollection new.
+    WAAdmin register: self asApplicationAt: 'personmanager'
 ]]]
 
 
 [[[language=smalltalk
 MAPersonManager >> renderContentOn: html
-		html heading: 'Person Manager'. 
+        html heading: 'Person Manager'. 
 ]]]
 
 
@@ -248,19 +248,19 @@ A Seaside component is created from a model using the message ==asComponent==. A
 
 [[[language=smalltalk
 MAPersonManager >> add
-	| person |
-	person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
-	person isNil
-		ifFalse: [ self class persons add: person ]
+    | person |
+    person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
+    person isNil
+        ifFalse: [ self class persons add: person ]
 ]]]
 
 
 Let's see how one add a link to a page:
 [[[language=smalltalk
 MAPersonManager >> renderContentOn: html 
-	html heading: 'Person Manager'.
-	html anchor
-		callback: [ self add ]; with: [ html text: 'add'']
+    html heading: 'Person Manager'.
+    html anchor
+        callback: [ self add ]; with: [ html text: 'add'']
 ]]]
 
 !!! Exercise 8: Rendering the contacts
@@ -271,42 +271,179 @@ Render a list of all persons within MAPersonManager.
 !!!!Solution 8.
 
 We define a simple accessor either using the class side message or directly accessing the variable. 
-[[[
+[[[language=smalltalk
 MAPersonManager >> persons 
-	^ self class persons
+    ^ self class persons
 ]]]
 or 
-[[[
+[[[language=smalltalk
 MAPersonManager >> persons 
-	^ Persons
+    ^ Persons
 ]]]
 
 We modify the rendering method to display the persons. 
 
-[[[
+[[[language=smalltalk
 MAPersonManager >> renderContentOn: html 
-	html heading: 'Person Manager'. 
-	html anchor
-		callback: [ self add ];
-		with: [ html text: 'add'' ]. 
-	html break.
-	self persons
-		do: [ :person | self renderLineForPerson: person on: html ] separatedBy: [ html break ]
+    html heading: 'Person Manager'. 
+    html anchor
+        callback: [ self add ];
+        with: [ html text: 'add'' ]. 
+    html break.
+    self persons
+        do: [ :person | self renderLineForPerson: person on: html ] separatedBy: [ html break ]
 ]]]
 
 For this we introduce a dedicated method: 
-[[[
+[[[language=smalltalk
 MAPersonManager >> renderLineForPerson: aPerson on: html
-	html 
-		text: aPerson firstName; 
-		space; text: aPerson lastName
+    html 
+        text: aPerson firstName; 
+        space; 
+        text: aPerson lastName
 ]]]
 
 
 
 
+!!! Exercise 9: Enhancing the list
+Improve the list entries rendering so that existing persons can be edited. 
 
 
+!!!!Solution 9.
+First we define a new method named ==editPerson:== which presents its argument 
+as a form component. 
 
 
-!!! Exercise 8: 
+[[[language=smalltalk
+MAPersonManager >> editPerson: aPerson
+    self call: (aPerson asComponent addValidatedForm; yourself)
+]]]
+
+Second we modify the ==renderLineForPerson:on:== method to add a link that invokes the previous method. 
+[[[language=smalltalk
+MAPersonManager>>renderLineForPerson: aPerson on: html 
+    html anchor
+        callback: [ self editPerson: aPerson ];
+        with: [ html text: aPerson firstName; 
+                    space; 
+                    text: aPerson lastName ]
+]]]
+
++Persons with edit and view.>file://figures/personmanager-list2withView.png+
+
+
+!!! Exercise 10: Readonly 
+Render an additional link called view, as seen in Figure 1, to display the entry in a read-only view. You can turn a component into read-only mode by sending the message ==readonly:== with a boolean stating the read-only status.
+
+!!!! Solution.
+
+First we define a method that will show the values of a component. 
+
+[[[language=smalltalk
+MAPersonManager >> viewPerson: aPerson 
+    self call: (aPerson asComponent 
+        addForm: #(cancel); 
+        readonly: true; 
+        yourself)
+]]]
+
+[[[language=smalltalk
+MAPersonManager >> renderLineForPerson: aPerson on: html 
+    html anchor
+        callback: [ self editPerson: aPerson ];
+        with: [ html text: aPerson firstName; 
+                        space; 
+                        text: aPerson lastName ].
+    html space.
+    html anchor
+        callback: [ self viewPerson: aPerson ];
+        with: [ html text: 'view' ].
+]]]
+
+
+!! Using Magritte Reports
+
+Rendering a list like this is nice, but it doesn’t scale well if you have many entries. As well it doesn’t take advantage of the nice descriptive model we have. Luckily Magritte includes built in reporting facilities that we will be extending our application with. For example professional applications such as the one of Quuve are fully developed with Magritte and based on Magritte report.  
+In this section we make our little application look like Figure 2.
+
+!!!Exercise 11: A first report 
+Add an instance variable that will refer to the report. Add accessors. 
+Add a new child component to ==MAPersonManager== and initialize it, lazily or within the method ==initialize==, with the following expression ==MAReport rows: self persons description: self persons magritteDescription==. Pay attention that the ==children== message should return all the subcomponent of the receiver. 
+Once done, render the report instead of the list.
+
+
+!!!! Solution 11. 
+
+[[[language=smalltalk
+WAComponent subclass: #MAPersonManager
+    instanceVariableNames: 'report'
+    classVariableNames: 'Persons'
+    category: 'Magritte-Tutorial'
+]]]
+
+[[[language=smalltalk
+MAPersonManager >> report 
+    ^ report
+MAPersonManager >> report: aReport 
+    report := aReport    
+]]]
+
+We initialize the report following the 
+
+[[[language=smalltalk
+MAPersonManager >> initialize
+    super initialize.
+    self report: (MAReport rows: self persons description: self persons first magritteDescription)
+]]]
+
+Now we define the method ==children== to make sure that the report component is correctly returned. 
+
+[[[language=smalltalk
+MAPersonManager >> children
+    ^ OrderedCollection with: self report
+]]]
+
+[[[language=smalltalk
+MAPersonManager >> renderContentOn: html 
+    html heading: 'Person Manager'. 
+    html anchor on: #add of: self. 
+    html render: self report
+]]]
+
+
+!!! Exercise 12: Handling adding refresh
+
+Play with the report in your browser: sort the rows, add new persons... You will probably notice that the report doesn’t update itself when adding new persons.  It's because the report creates a copy. Call the message ==refresh== on the report to fix this problem. 
+
+!!!!Solution 12
+
+We change the definition of the ==add== method. 
+
+[[[language=smalltalk
+MAPersonManager >> add 
+    | person |
+    person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
+    person isNil 
+        ifFalse: [ 
+            self persons add: person.
+            self report refresh ]
+]]]
+
+!!! Exercise 13: Filtering information
+Right now almost all the information about a person is displayed within the report, if you enter much data this gives a very wide Web page. Filter out all the descriptions except the ones for ==firstName==, ==lastName== and ==email==.
+
+!!!!Solution 13. 
+
+[[[language=smalltalk
+MAPersonManager >> filteredDescriptionsFrom: aPerson
+
+    ^ aPerson magritteDescription select: [ :each | 
+         #(firstName lastName email) includes: each accessor selector ] 
+]]]
+     
+[[[language=smalltalk
+MAPersonManager >>  initialize
+    super initialize.
+    self report: (MAReport rows: self persons description: (self  filteredDescriptionsFrom: self persons first))
+]]]
