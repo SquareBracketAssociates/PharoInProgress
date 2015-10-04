@@ -457,7 +457,7 @@ Add a new column to the report to hold commands to view and edit entries. To get
 
 We define an instance of ==MACommandColumn== to group two commands. Note that we use two variants to show that we can control the text displayed from the action performed. 
 
-[[[
+[[[language=smalltalk
 MAPersonManager >> initialize
 	super initialize.
 	self report: (MAReport rows: self persons description: (self  filteredDescriptionsFrom: self persons first)).
@@ -467,15 +467,51 @@ MAPersonManager >> initialize
 ]]]
 
 
+!!! Exercise 15: Adding a search facilities 
+We will now implement a search functionality within your report. The user should be asked for a filter string that will be compared to all the string-fields within the persons. 
+
+To get some pointers have a look at the implementors and senders of ==rowFilter:==, ==toString:== and ==readUsing:==, and ==matches:==. Add a clear link as well, to remove any filter.
 
 
+!!!! Solution 15.
 
+The method ==rowFilter:== expects a block returning a boolean telling if the row should be shown. 
 
+[[[language=smalltalk
+MAPersonManager >> filter
+	| filter |
+	filter := self request: 'Enter a filter string'. 
+	self report rowFilter: [ :person |
+		(self report columns collect: [ :col |
+			col magritteDescription in: [ :desc | desc toString: (person readUsing: desc) ] ]) anySatisfy: [:value | value matches: filter ] ]
+]]]
 
+The solution does not compare the search to only string fields but to all the values of the receiver converted to strings.
+The following expression 
 
+[[[
+(self report columns collect: [ :col |
+	col description in: [ :desc | desc toString: (person readUsing: desc) ] ])
+]]]
 
+returns a collection of strings of the value held by the receiver (here a person). 
 
+Clearing the filter is simply to set its argument to ==nil==. 
+[[[language=smalltalk
+MAPersonManager >> clear
+	self report rowFilter: nil
+]]]
 
+[[[language=smalltalk
+MAPersonManager >> renderContentOn: html
+	html heading: 'Person Manager'.
+	#( add filter clear )
+		do: [ :symbol | html anchor on: symbol of: self ]
+		separatedBy: [ html space ]. 
+	html render: self report
+]]]
+
+SD: check because when pressing on editView I got a "requiresMultipartForm" is nil
 
 
 
