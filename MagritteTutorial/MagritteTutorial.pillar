@@ -515,26 +515,95 @@ SD: check because when pressing on editView I got a "requiresMultipartForm" is n
 
 
 
+!! Giving access to end-users
+
+As experience shows, customers are often not completely satisfied with the features the application developers are giving to them. They want more and they want to be able to customize everything by themselves. Thanks to the reflective nature of Magritte - all the descriptions within Magritte are described with Magritte descriptions itself - we can easily provide the necessary functionality to offer flexibility to end-users. 
+
+!!!Question 16
+ Point your browser to http://localhost:8080/seaside/magritte/editor. You should get a browse navigating the different descriptions themselves. What you see is that a description is an object having multiple fields. 
+In addition since a description is also described using magritte we can get easily a editor to edit descriptions. 
+Browse the class ==MADescriptionEditor==: it is the one implementing the description example editor itself. 
+
+The class ==MADescriptionEditor== uses an instance of ==MAAdaptativeModel==. This class is just a mock to act as a described object.
+It has only two instance-variables: one references a description-container, the other a dictionary mapping description-elements to actual values. Have a look at the methods ==readUsing:== and ==write:using:==, and their default implementations in Object. Why are those methods overridden in this class? Because this class can represent any object but the object field values are not stored the same way as a normal object.
 
 
+!!! Question 17: not sure that we will keep it.
+
+Add a class variable to ==MAPersonModel== called ==CustomDescription==. Initialize it with an empty instance of ==MAContainer==. Create an accessor method. Override ==magritteDescription== on the instance-side, call super and compose it with the ==CustomDescription==. So far, you should see no difference in the behaviour of the application when testing it.
+
+!!!! Solution 17.
+
+[[[language=smalltalk
+MAPersonModel class >> customDescription 
+	^ CustomDescription
+	
+MAPersonModel class >> customDescription: aContainer 
+	CustomDescription := aContainer
+]]]
+
+[[[language=smalltalk
+MAPersonModel class >> initialize
+	super initialize.
+	self customDescription: MAContainer new
+	
+MAPersonModel >> customDescription
+	^ self class customDescription
+]]]
+	
+[[[language=smalltalk
+MAPersonModel >> magritteDescription
+	^ super magritteDescription copy
+		addAll: self customDescription; yourself
+]]]
+
+Execute: ==MAPersonModel initialize== 
+
+Note that we add a customise element shared by all the instances but we could do the same at the instance level. 
+Now when working with table it is mandatory that all the rows have the same description. 
+
+!!! Exercise 19
+ Add another link above your report to let the user edit the custom description. Unfortunately the default implementation of MADescriptionEditor has no way to go back to the caller. The simplest solution is to subclass ==MADescriptionEditor== and render an additional button by overriding ==renderButtonsOn:== that answers the modified description.
+ 
+ 
+!!!! Solution 19
+
+[[[language=smalltalk
+MADescriptionEditor subclass: #MAPersonDescriptionEditor
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'Magritte-Tutorial'
+]]]
+
+[[[language=smalltalk
+MAPersonManager >> modifyPersonModel
+	| description |
+	description := self call: (MAPersonDescriptionEditor new
+		magritteDescription: MAPersonModel customDescription). 
+	description isNil
+		ifFalse: [ MAPersonModel customDescription: description ]
+]]]
 
 
+[[[language=smalltalk
+MAPersonManager >> renderContentOn: html
+	html heading: 'Person Manager'.
+	#( modifyPersonModel add filter clear )
+		do: [ :symbol | html anchor on: symbol of: self ]
+		separatedBy: [ html space ]. 
+	html render: self report
+]]]
+
+[[[language=smalltalk
+MAPersonDescriptionEditor >> renderButtonsOn: html 
+	super renderButtonsOn: html.
+	html submitButton
+		on: #save of: self
+]]]
+
+Now you can add and save a new and specific description representing a new object.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+SD: Should check with the version of magritte that does not break on XML...
 
 
