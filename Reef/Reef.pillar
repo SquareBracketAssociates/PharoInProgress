@@ -1,6 +1,6 @@
-!Reef: Reconciling Javascript and Seaside
+! Reef: Reconciling Javascript and Seaside
 
-Reef is a framework to build dynamic components embedding Javascript developed by E. Lorenzano. Reef is a complement to Seaside. Reef does not replace Seaside, instead, it makes easier the definition and use of AJAX/Javascript. Reef makes the writing of Ajax interaction much simpler since as a developer there is no need to manipulate Javascript using queries and string concatenation. Reef also integrates smoothly with JS libraries such bootstrapp.
+Reef is a framework to build dynamic components embedding Javascript developed by E. Lorenzano. Reef is a complement to Seaside. Reef does not replace Seaside, instead, it makes easier the definition and use of AJAX/Javascript. Reef makes the writing of Ajax interaction much simpler since as a developer there is no need to manipulate Javascript using queries and string concatenation. Reef also integrates smoothly with JS libraries such Bootstrapp.
 
 A reef component can be embedded inside a Seaside one: we call Reef entities components for this reason.  A Seaside component can also be embedded inside a Reef one. 
 
@@ -9,8 +9,8 @@ In this document, we propose you a journey with Reef to show you its power. We w
 
 !!Installation
 
-To get started with download the latest Seaside image that you can find on *http://www.seaside.st* then execute the following expression:
-
+To get started with Reef, download the latest Seaside image that you can find on *http://www.seaside.st* then execute the following expression:
+SD: point to the CI
 
 [[[{Loading Reef}
 Gofer it
@@ -25,65 +25,76 @@ Gofer it
 (ConfigurationOfReef project version: #stable) load: 'All'. 
 ]]]
 
-
+You can also get access to an image built for you by Jenking and that already contains all the loaded packages SDLM: Is there a CI for reef.
 
 !!A Reef Counter
 
-Let us start to code a simple counter as a reef computer.
+Let us start to code a simple counter as a reef computer. This example will show how we can control
+the partial refresh of an component. 
 
 
-[[[
-WAComponent subclass: #CounterApplication
+[[[language=smalltalk
+WAComponent subclass: #ReefCounter
     instanceVariableNames: 'count'
     classVariableNames: ''
-    poolDictionaries: ''
-    category: 'CounterApplication'
+    category: 'ReefSandbox'
 ]]]
 
 Then we define an ==initialize== method
 
-[[[
-CounterApplication>>initialize 
+[[[language=smalltalk
+ReefCounter >> initialize 
     super initialize.
     count := 0
 ]]]
 
-!!! A first version with a little problem.
-We create a panel to which we add a view on the counter, and two anchors. 
-Note that we use a block ==[count asReefView]== so that when the panel is refreshed the current value is used. 
-asReefView is a shortcut to create the corresponding default view component. For a number we just convert into the corresponding text view, a REText (as you can see browsing implementors of ==asReefView==). 
+!!! A first version with a little problem
+
+We will create a panel to which we add a view on the counter, and two anchors. 
+
+
+
 
 Blocks are the way we link client and server behavior.
 Each anchor gets a label and a callback. Unless specified differently, the callbacks are executed as 
 Ajax callbacks (no new page is rendered but there is a request to the server). 
 
-[[[
-CounterApplication>>renderContentOn1: html
+SDL: why we do not use initializeContents?
+
+
+[[[language=smalltalk
+ReefCounter >> renderContentOn: html
     | panel |
     "This has one problem: it refreshes all (including anchors)"
-    html render: ((panel := REPanel new)
-        class: 'counter';
-        add: [ count asReefView ];
+    panel := REPanel new.
+    panel class: 'counter';
+        add: [ REText with: count ];
         add: (REAnchor new 
             label: '+';
             callback: [ 
                 count := count + 1. 
-                panel refresh  ];
+                panel refresh ];
             yourself);
         add: (REAnchor new 
             label: '-';
             callback: [ 
                 count := count - 1. 
                 panel refresh ];
-            yourself);
-        yourself)
+            yourself).
+    html render: panel	
 ]]]
 
-Then we register the application
-[[[
-REApplication
-	registerAsApplication: 'reef-counter'
-		roots: CounterApplication
+Note that we use a block ==[ REText with: count ]== so that when the panel is refreshed the current value of the counter is used and not the value when the component structure was created. SDML: but the structure is generated at rendering time so I do not see really precisely the diff.
+
+
+Then we register the application using a registration process dedicated for Reef. 
+
+[[[language=smalltalk
+ReefCounter class >> initialize
+    "self initialize"
+    REApplication
+        registerAsApplication: 'reefCounter'
+        root: ReefCounter
 ]]]
 
 Now you should get the following in your web-browser
@@ -91,13 +102,85 @@ Now you should get the following in your web-browser
 +A Seaside Counter based on Reef>file://figures/ReefCounter.png|width=50|label=review+ 
 
 
-!!! A second version with controlled refresh.
-In the previous definition, the anchors were unnecessary refreshed. Indeed the complete panel containing all the three elements was refreshed. A panel is the unit of refresh in HTML so we enclose what we want to refresh via ajax.
 
-Here we use a container, i.e. a component refreshing only its children and not itself. Then the anchor callbacks will refresh the panel containing the value.
+
+
+!!!!About asReefView. 
+==asReefView== is a shortcut to create the corresponding default view component. For a number we just convert into the corresponding text view, a ==REText== (as you can see browsing implementors of ==asReefView==). 
+
+[[[language=smalltalk
+Object >> asReefView
+    "Answer a view of my self"
+    ^ REText with: self
+]]]
+
+So the previous definition is equals to the following one:
+
+[[[language=smalltalk
+ReefCounter >> renderContentOn: html
+    | panel |
+    "This has one problem: it refreshes all (including anchors)"
+    panel := REPanel new.
+    panel class: 'counter';
+        add: [ count asReefView ];
+        add: (REAnchor new 
+               label: '+';
+               callback: [ 
+                   count := count + 1. 
+                   panel refresh  ];
+            yourself);
+        add: (REAnchor new 
+            label: '-';
+            callback: [ 
+                count := count - 1. 
+                panel refresh ];
+            yourself).
+    html render: panel	
+]]]
+
+SDLM HOw could I see that there are refreshed too much.
+Putting a self inform: 'jlkljk'
 
 [[[
-CounterApplication>>renderContentOn: html
+	renderContentOn: html
+	    | panel |
+	  "This has one problem: it refreshes all (including anchors)"
+		panel := REPanel new.
+	    panel class: 'counter';
+			add: [ count asReefView ];
+			add: (REAnchor new 
+	               label: '+';
+	               callback: [ 
+	                   count := count + 1. 
+							self inform: 'in +'.
+	                   panel refresh  ];
+	            yourself);
+	        add: (REAnchor new 
+	            label: '-';
+	            callback: [ 
+	                count := count - 1. 
+						self inform: 'in -'.
+	                panel refresh ];
+	            yourself).
+		 html render: panel	
+]]]
+
+SDLM: I do not get a inform on a separate page
+When I press + I only see + and not + and - so I do not get your refresh too much story.
+
+
+!!! A second version with controlled refresh
+
+In the previous definition, the anchors were unnecessary refreshed. Indeed a panel is the unit of refresh in HTML: the complete panel containing all the three elements was refreshed. So we should use a different container for the anchors and heading. 
+
+Old text: 
+
+In the previous definition, the anchors were unnecessary refreshed. Indeed the complete panel containing all the three elements was refreshed. SDLM why? A panel is the unit of refresh in HTML so we enclose what we want to refresh via ajax. SDLM: I do not get the enclose
+
+Here we use a container, i.e. a component refreshing only its children and not itself. Then the anchor callbacks will refresh the panel containing the value but not the complete
+
+[[[language=smalltalk
+ReefCounter >> renderContentOn: html
     | panel |    
     panel := REPanel with: [ count asReefView ].
     html render: (REContainer new 
@@ -120,25 +203,22 @@ CounterApplication>>renderContentOn: html
 
 Now to get a better look we can use the Reef library as follows: 
 
-[[[
-CounterApplication class>>register 
-    "self register"
+[[[language=smalltalk
+ReefCounter class >> initialize 
+    "self initialize"
     (REApplication 
-        registerAsApplication: 'reef-counter' 
-        root: self)
-        addLibrary: REBootstrapLibrary
+        registerAsApplication: 'reefCounter' 
+        root: self) addLibrary: REBootstrapLibrary
 ]]]
 
 
-!!! Refining the heading.
+!!! Refining the heading
 
+[[[language=smalltalk
+ReefCounter >> renderContentOn: html
 
-[[[
-CounterApplication>>renderContentOn: html
-    | panel |
-    
+    | panel |    
     panel := REPanel with: [ REHeading with: count ].
-    
     html render: (REContainer new 
         add: panel;
         add: (REAnchor new 
@@ -165,17 +245,9 @@ CounterApplication>>renderContentOn: html
 So far the counter example does not really show the power of Reef in action.
 
 
-!!Todo Application
 
-
-Here a todo :)
-
-
-
-
-
-!!Creating a Search Component
-We will create a Reef component and embed it inside a Seaside one. 
+!! Creating a Search Component
+We will create a Reef component and embed it inside a Seaside one. In this section, we are going to create a dynamic search of classes and show basic AJAX interaction.
 
 
 !!!A Simple Reef Component Form
@@ -184,80 +256,89 @@ To create a form in Reef, you need to subclass from class ==REForm==. ==REForm==
 
 
 [[[
-REForm subclass: #RTSearchPart
-	...
-
+REForm subclass: #RTSearch
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'ReefSandbox'
 ]]]
 
-  ==REForm== is a subclass of ==REContainer== which is the root of the components that can have children. Other reef container components are ==REPanel==, ==REGrid==, and ==REList==. Of course such components can be further specialised: hence ==REPanel== is the superclass of ==REDialog==, ==REAccordion==, ==RECarousel==, and ==RETabs==. All these components can then contain other components as shown in Figure~\ref{review}. 
+  ==REForm== is a subclass of ==REContainer== which is the root of the components that can have children. Other reef container components are ==REPanel==, ==REGrid==, and ==REList==. Of course such components can be further specialised: hence ==REPanel== is the superclass of ==REDialog==, ==REAccordion==, ==RECarousel==, and ==RETabs==. All these components can then contain other components as shown in Figure *@hierarchy*. 
 
 +The ==REView== hierarchy: ==REContainer== is the root of the component container components.>file://figures/REViewHierarchy|width=50|label=hierarchy+ 
 
 
-Now let us go back to our ==RTSearchPart== class. You need to override the method ==initializeContents== to add children components to your container widget. We use the message ==add:== to add subcomponents. 
+Now let us go back to our ==RTSearch== class. You need to override the method ==initializeContents== to add children components to your container widget. It plays similar role than ==childen== in plain Seaside. We use the message ==add:== to add subcomponents. 
 
 [[[
-RTSearchPart>>initializeContents
-	self add: 'Search'.
+RTSearch>>initializeContents
+	self add: 'Search :'.
 	self add: RETextField new.
 ]]]
 
-\sd{should avoid to harcode class name}
+SDLM: why a string? 
 
-And this is it for our first 'part component' (we usually call reef components \emph{parts}, as a convention to make explicit the fact that a Reef component is often just a part of a Seaside component.
+And this is it for our first component. 
 
+!!! A Host Seaside Component
+Now to see the component in action we define a simple traditional Seaside component.
 
-!!!A Host Seaside Component}
-Now to see our creation in action we will define a simple traditional Seaside component.
-
-[[[
+[[[smalltalk=language
 WAComponent subclass: #RTWebApplication
 	instanceVariableNames: 'searchComponent'
-	...
+	classVariableNames: ''
+	category: 'ReefSandbox'
 ]]]
 
-\sd{the name sucks!}
+Now we initialize the Seaside component and we make sure that the Reef component is turned into 
+a Seaside one by sending it in addition the message ==asComponent==.
 
-[[[
-RTWebApplication>>initialize
+[[[smalltalk=language
+RTWebApplication >> initialize
 	super initialize.
-	searchComponent := RTSearchPart new asComponent.
+	searchComponent := RTSearch new asComponent.
 ]]]
 
-Since the part will be a children of the application, we should return it as part of the children protocol. 
+Since the reef component will be a children of the application, we should return it as part of the children protocol of the Seaside component.
 
-[[[
-RTWebApplication>>children
+[[[smalltalk=language
+RTWebApplication >> children
 	^ Array with: searchComponent
 ]]]
 
 Finally we just render the part and do nothing special. 
 
-[[[
-RTWebApplication>>renderContentOn: html
+[[[smalltalk=language
+RTWebApplication >> renderContentOn: html
 	html render: searchComponent
 ]]]
 
-As you may have noticed, search component is not just holding an instance of ==RTSearchPart==. Indeed we send the ==asComponent== to this instance before assigning it to the instance variable. And indeed a part of the magic here is this ==asComponent== message send. This message says to any Reef component to be wrapped into a Seaside component. This component can now be added to your Seaside application as any other component.
+As you may have noticed, the search component is not just holding an instance of ==RTSearch==. Indeed we send the ==asComponent== to this instance before assigning it to the instance variable. And indeed a part of the magic here is this ==asComponent== message send. This message says to any Reef component to be wrapped into a Seaside component. This component can now be added to your Seaside application as any other component.
 
-!!!Registering. As any Seaside application we should register it. Execute in a workspace or define as class ==initialize== method the following expression and execute it. 
+!!!Registering
 
-[[[
-REApplication 
-	registerAsApplication: 'simpleTutorial'
-	root: RTWebApplication
+As with any Seaside application we should register it but we register as a Reef application not a plain Seaside one. Here we use the ==REApplication== and not ==WAAdmin== SDLM: check if this is correct.  Execute in a workspace or define as class ==initialize== method the following expression and execute it. 
+
+[[[smalltalk=language
+RTWebApplication class >> initialize
+	"self initialize"
+	
+	REApplication 
+		registerAsApplication: 'reefSandbox'
+		root: RTWebApplication
 ]]]
 
 
-You may wonder why we should register our application as a Reef application and not as a simple Seaside application. This is because
-Reef supports client side updates and other cool feature that we will present later. 
-In addition, a Reef application needs to be configured with some elements: 1) we need some jQuery libraries 2) We need a div tag always present in our browser (a ''dispatcher area'' to process AJAX requests) ==REApplication class>>registerAsApplication:root:== does that for you, but you could do this by yourself and use the common application registering mechanism.
+You may wonder why we should register our application as a Reef application and not as a simple Seaside application. This is because Reef supports client side updates and other cool features that we will present later. 
+In addition, a Reef application needs to be configured with some elements: 
+
+# we need some jQuery libraries 
+# We need a div tag always present in our browser (a ''dispatcher area'' to process AJAX requests) ==REApplication class>>registerAsApplication:root:== does that for you, but you could do this by yourself and use the common application registering mechanism.
 
 
 
-!!!First version.
+!!!First version
 
-So, executing your application in *http://localhost:8080/simpleTutorial*, we get the result shown in Figure *first*:
+So, executing your application in *http://localhost:8080/sandbox*, we get the result shown in Figure *@v1*:
 
 +A simple component (version 1).>file://figures/SearchPartV1|width=50|label=v1+ 
 
@@ -268,44 +349,56 @@ just the first step, now we are going to add behavior to our text field widget.
 +A simple component (version 2).>file://figures/SearchPartV2|width=50|label=v2+ 
 
 
+We will do something a bit crazy, each time a key is pressed in the text field we will show it to the user using an alert. 
 
-[[[
-RTSearchPart>>initializeContents
-	self add: 'Search'.
+
+[[[language=smalltalk
+RTSearch >> initializeContents
+	self add: 'Search :'.
 	self add: (RETextField new
-		onKeyPressed: [:me | me triggerThenDo: [self inform: text] ];
-		callback: [:v | text := v]
+		onKeyPress: [ :me | me triggerThenDo: [ self inform: text ] ];
+		callback: [ :v | text := v ];
+		yourself)
 ]]]
 
+Please not that we add a text instance variable to hold  IDO NOT KNOW WHAT FOR NOW
 \sd{what is text? a new instance variable in SearchPart}
 
-Changes introduced: 
-- We added a ==callback:== message. The ==callback:== message looks like a standard seaside brush and in fact is the same.
-- We added an ==onKeyPress:== message. This is different from Seaside. In plain Seaside,
-you need to send a Javascript string to this kind of messages (tag events). 
-In Reef, that's not what you do. Instead, you use a block with Smalltalk code (at least in most cases). 
-In this case, the ==onKeyPress:== block is getting the text field as a parameter (it is optional), and we are saying: trigger this widget and then execute another action.
-\sd{wht is trigger this widget means?}
 
+- We used a ==callback:== Reef message. The ==callback:== message looks like a standard Seaside brush and in fact is the same. It is executed at the end to store the value entered in the text field. SDLM: is it executed at the end?
+
+- We used the ==onKeyPress:== message. This is different from Seaside. In plain Seaside,
+you need to send a Javascript string to this kind of messages (tag events). 
+In Reef, that's not what you do. Instead, you use a block of code. 
+In this case, the ==onKeyPress:== block is getting the text field as a parameter (it is optional), and we  trigger this widget and then execute another action.
+SDLM: what does it mean to trigger the widget exactly. 
 
 Let's test it! When you enter a character you should get the inform as shown in Figure *v2*.
 
-!!!Adding a feedback panel.
+!!!Adding a feedback panel
 
 Now we want to add a panel to show the classes whose name matches the input. 
-For this we are going to modify our ==RESearchPart== class again. We add a new instance 
+For this we are going to modify our ==RESearch== class again. We add a new instance 
 variable named ==resultsPanel== that will display all the matching results.
+It will contain a panel containing a list of panels.
 
 [[[
-REForm subclass: #RTSearchPart
+REForm subclass: #RTSearch
 	instanceVariableNames: 'text resultsPanel'
-	...
+	classVariableNames: ''
+	category: 'ReefSandbox'
 ]]]
 
 
+What changes will we introduce?
+- We add a panel instance variable (==resultsPanel==) 
+- Then, we modified ==onKeyPress:== to call ==search== instead of showing a dialog. 
 
-[[[
-RESearchPart>>initializeContents
+We create a ==REPanel== and we add it as a subcomponent of the ==RTSearch== componnent. 
+Note that we change the action that is executed at each keyStroke: now we invoke the search method. 
+
+[[[language=smalltalk
+RESearch >> initializeContents
 	resultsPanel := REPanel new.
 	self add: 'Search'.
 	self add: (RETextField new
@@ -314,70 +407,77 @@ RESearchPart>>initializeContents
 	self add: resultsPanel
 ]]]
 
-
-
-[[[
-RESearchPart>>search
-	resultsPanel removeAll.
-	text ifNotEmpty: [ 
-		resultsPanel
-			addAll: (Smalltalk classNames
-					select: [:each | each beginsWith: text]
-					thenCollect: [ :each | 
-							REPanel new 
-								add: each ; yourself ]);
-			refresh ]
-]]]
-
-This one is better
-[[[
-RESearchPart>>search
-	resultsPanel removeAll.
-	text ifNotEmpty: [
-		resultsPanel
-			addAll: (Smalltalk classNames select: [:each | each beginsWith: text]);
-			refresh ]
-]]]
-
-
-\sd{I do not see why we are adding a new panel? because we removeall the items
-so we could just add the items inside}
-
-What changes did we introduce?
-- we added a panel instance variable (==resultPanel==) 
-- then, we modified ==onKeyPress:== to call ==search== instead of showing a dialog. 
-- The ==search== method does a refresh of the panel by doing:
+The ==search== method does a refresh of the panel by doing:
 -- remove all children (if any) 
 -- add all class names with a name starting with ''text'', as a new panel (we need a panel because we want a name per line...) 
 -- send a ==refresh== message, which actually performs the refresh of the panel content. 
 
+[[[language=smalltalk
+RESearch >> search
+	resultsPanel removeAll.
+	text ifNotEmpty: [ 
+		resultsPanel
+			addAll: (Smalltalk globals classNames
+						select: [ :each | each beginsWith: text ]
+						thenCollect: [ :each | REPanel new add: each ; yourself ]);
+			refresh ]
+]]]
 
-Once you refreshed your application, you should see Figure *v3*.
+
+Once you refreshed your application, you should see Figure *@v3*.
 
 +With the matching list of classes as feedback (version 3).>file://figures/SearchPartV3|width=50|label=v3+ 
 
 
+All the refreshing behavior is done in the client. 
+
+
 So we are done with your first Reef component. What you should notice is that we did not talk about JavaScript since it is encapsulated in Reef components. 
 
+SDLM: why the delete button does not work. 
 
+[[[language=smalltalk
+RESearch >> initializeContents
+	resultsPanel := REPanel new.
+	self add: 'Search'.
+	self add: (RETextField new
+		onKeyPress: [:me | me triggerThenDo: [self search] ];
+		callback: [:v | text := v]).
+	self add: resultsPanel.
+	self add: (REAnchor new 
+					label: 'Press me client!';
+					callback: [ self inform: 'Pressed!' ] ;
+					yourself)	
+]]]					
+					
+is equivalent to 
 
+[[[
+	...
+	self add: (REAnchor new 
+					label: 'Press me client!';
+					callback: [ self inform: 'Pressed!' ] asReefClientCallback ;
+					yourself)	
+]]]					
+						
 !!Dealing with Callbacks
-One of the strengths of Reef is that we can control the interaction between the client and the server. 
+One of the strengths of Reef is that we can control the interaction between the client and the server. With Reef the programmer can decide that a request should be resolved on the client without a complete page generation or on the contrary to generate a full new page. Now we will look into this with a bit more depth and explanation. 
 
 !!!Client-Server interaction in Reef
 
-One of the most important features in Seaside is it's natural flow, achieved through the use of closures under the forms of callbacks. One of the problems on using a client-side library, such as ==jQuery== or any JavaScript library, is the loose of this natural feeling.
+One of the most important features in Seaside is its natural flow, achieved through the use of closures under the forms of callbacks. One of the problems when using a client-side library, such as ==jQuery== or any JavaScript library, is the loss of this natural feeling and simplicity.
 
-In Reef, we try to keep this natural flow, as much as we can, by hiding most of the JavaScript complexity, and using smalltalk closures also for JavaScript behavior.  For that, we have redefined the event behavior to match a little more with what a Smalltalk programmer can expect. Let us see the different kind of interactions.
-
+In Reef, we try to keep this natural flow, as much as we can, by hiding most of the JavaScript complexity, and using closures also for JavaScript behavior.  For that, we have redefined the event behavior to match a little more with what a Seaside programmer can expect. Let us see the different kind of interactions.
 
 
 !!!Three different kind of interactions
 
-There are three kinds of  possible interactions between a page in a client and the Seaside server:
+There are three kinds of possible interactions between a page in a client and the Seaside server:
 
-- The client application needs to access the server to do something, and then update the status of the page, but without rendering a new page because it can be too costly. As we think this kind of interaction is the hardest to manage, and the most commonly used, this is the default Reef behavior.
-- The client application needs to call server with some functionality, and then it renders a new page. This is the ''normal behavior'' of a web application, and in Reef we support it as a way to ''get back'' to normal flow, while inside a Reef flow.
+- The client application needs to call server with some functionality, and then it renders a complete new page. This is the ''normal behavior'' of a web application, and in Reef we support it as a way to ''get back'' to normal flow, while inside a Reef flow.
+
+- The client application needs to access the server to do something, and then update the status of the page, but without rendering a new page because it can be too costly. This kind of interaction is the hardest to manage, and the most commonly used, this is the default Reef behavior.
+
 - The page needs to change the DOM (for instance, to hover current selected row), without going to server at all. This is, for us, the most difficult to solve, because the DOM manipulation needs to be a JavaScript sentence.
 
 
@@ -385,10 +485,11 @@ These three different interactions are defining the ways an application can inte
 We are going to explain how Reef manages these three approaches.
 
 !!!Updating the server, then update the client
-As we said before, we think this is the most common behavior you can find in a web-application, and for that reason we are focusing in this mode. How does it work?
+
+As we said before, we think this is the most common behavior you can find in a web-application, and for that reason we are focusing in this mode. Let us see how it works.
 Well, let's suppose you have a validation in a text field that needs to be validated on blur event (once you lost focus), you have something like this:
 
-[[[
+[[[language=smalltalk
 	...
 	self add: (RETextField new
 				onBlur: [ :me | me triggerThenDo: 
@@ -397,16 +498,16 @@ Well, let's suppose you have a validation in a text field that needs to be valid
 	...
 ]]]
 
-As you can see, the flow is more or less like it would be in any usual Smalltalk application, with just one  difference: you need to tell the client that you are going to use the value just typed in this field, \sd{is it validate?} and just then we can for real interact with the client side value. Using this kind of callback is the default behavior in any Reef component, with the unique exception of the argument of ==callback:== in form elements (those who will become in a FORM element in HTML, like an INPUT, TEXTAREA, etc.).
+As you can see, the flow is more or less like it would be in any usual desktop application, with just one  difference: you need to tell the client that you are going to use the value just typed in this field, SDLM: where? and just then we can go for real interact with the client side value. Using this kind of callback is the default behavior in any Reef component, with the unique exception of the argument of ==callback:== in form elements (those who will become in a FORM element in HTML, like an INPUT, TEXTAREA, etc.).
 
-\sd{totally unclear to me }
+SDLM: Chinese? totally unclear to me
 
 
 !!!Update the server, then render a new page
 
-This functionality is useful after pressing a button, or after doing some operations that we decide needs a new page. What it does is to skip the client/server AJAX interaction and render a full new page: it works just like a common anchor or button press in plain HTML. To tell Reef that the result of a callback should be executed in another page, we use the protocol ==asReefPageCallback==. See next example:
+This functionality is useful after pressing a button, or after doing some operations that we decide needs a new page. What it does is to skip the client/server AJAX interaction and render a full new page: it works just like a common anchor or button pressed in plain HTML. To tell Reef that the result of a callback should be executed in another page, we use the message ==asReefPageCallback== sent to a callback. See next example:
 
-[[[
+[[[language=smalltalk
 	... 
 	add: (REButton new
 			label: 'Login'; 
@@ -416,15 +517,12 @@ This functionality is useful after pressing a button, or after doing some operat
 
 In this case, pressing the button acts just like pressing a regular button in Seaside.
 
-\sd{ (well... not exactly equal, but act like that in almost any case). either we explain it or we remove it}
 
 !!!Not updating the server, just the client
 
-This third case is useful to perform client side validations, or highlighting something on hover. This callback executes its contents at render time, and prepare the page with the resulting JavaScript, so it can act on client side. To tell Reef that it should execute the callback on client side, we use the protocol: ==asReefClientCallback==. See the example:
+This third case is useful to perform client side validations, or highlighting something on hover. This callback executes its contents at render time, and prepare the page with the resulting JavaScript, so it can act on client side. To tell Reef that it should execute the callback on client side, we use the message ==asReefClientCallback==. See the example:
 
-\sd{we should put the complete code}
-
-[[[
+[[[language=smalltalk
 	... 
 	self add: (REPanel new
 		class: 'panel'; 
@@ -435,23 +533,23 @@ This third case is useful to perform client side validations, or highlighting so
 ]]]
 
 As you can see, we introduced the protocol ==asReefClientCallback==, which answers a representation in JavaScript, and you can then send messages of the jQuery package.
-\sd{where? I only saw asReefClientCallback no asClient}
 
+SDLM where is the code of this application. 
 
 
 !!!Hybrids
 
 There is still one scenario to deal with: The one in which we want to do something and in some cases the opposite. For example, if we want to validate some inputs and on success render a new page, but on failure stay in the current page, and show a message. 
 
-To allow us execute different client/server interactions inside a flow, there are the protocols: ==inPage:==, ==inClient:==, both allow us to perform different actions to change the rendering logic. 
+To allow us execute different client/server interactions inside a flow, there are the message: ==inPage:==, ==inClient:==, both allow us to perform different actions to change the rendering logic. 
 
-\sd{why inPage: and not inServer: (onServer: and onClient: would be better)}
+SDLM: \sd{why inPage: and not inServer: (onServer: and onClient: would be better)}
 
 See the example:
 
-\sd{we should put the complete code}
 
-[[[
+
+[[[language=smalltalk
 	... 
 	self add: (REButton new
 			label: 'Login'; 
@@ -466,21 +564,21 @@ In this case, a new page (with aComponent contents) will be rendered if the logi
 
 !!!API
 
-Here is the list
+Here is the list of messages proposed by Reef to manage client/server interactions.
 
-- ==[ ... ]== A block in Reef is a callback who leads to an interaction between client and server, without render a new page. Exception: callbacks on form elements.
+- ==[ ... ]== A block in Reef is a callback which leads to an interaction between client and server, without render a new page. Exception: callbacks on form elements.
 
-- ==[ ... ] asReefPageCallback== Contents of block are executed, but all rendering is do it in a new page.
+- ==[ ... ] asReefPageCallback== The contents of the block is executed, but all rendering it happening in a new page. SDLM: does force a rendering and redraw the current page?
 
-- ==[ ... ] asReefClientCallback== Contents of block are executed in rendering phase, and the result must be a JQuery Stream or a String.
+- ==[ ... ] asReefClientCallback== The contents of the block is executed in rendering phase, and the result must be a JQuery Stream or a String.
 
-- ==[ :me | ... ]==
+- ==[ :me | ... ]== All blocks can receive the owner as an argument (but it is not mandatory).
 
-- ==triggerThenDo:== 	Triggers the form element (if applied to a form triggers full form).
+- ==triggerThenDo:==  Triggers the form element (When applied to a form, it triggers full form).
 
-- ==asClient== 	jQuery object representation of reef component.
+- ==asClient==	Returns the jQuery object representation of the Reef component.
 
-- ==inPage:== 	Renders the block contents in a new page.
+- ==inPage:==  Renders the block contents in a new page.
 
 - ==inClient:== 	Renders the block, in same page as we are now. It works just like ==asReefClientCallback==.
 
@@ -488,25 +586,28 @@ Here is the list
 
 Now we will show you a simple application showing in practice the different interaction. 
 
-!!Reef Defaults widgets
 
-!!!Accordion
-!!!Carousel
-
-!!!Grids
-
-!!!Calendar
-
-!!Reef Core Explained
-
-[[[
-REForm new 
-	add: (RETextInput new 
-		autocomplete: [ :text | Smalltalk allClasses select: [ :each | each name asLowercase beginsWith: text ] ];
-		yourself);
-	yourself.
-]]]
 
 
 !! Conclusion
 Reef is mega cool. 
+
+
+!! Why
+
+why when I press Press me I get a session expired and a redirec to the same place?
+
+[[[
+initializeContents
+	resultsPanel := REPanel new.
+	self add: 'Search'.
+	self add: (RETextField new
+		onKeyPress: [:me | me triggerThenDo: [self search] ];
+		callback: [:v | text := v]).
+	self add: resultsPanel.
+	
+	self add: (REAnchor new 
+					label: 'Press me!';
+					callback: [ self inform: 'Pressed!' ] asReefPageCallback ;
+					yourself)
+]]]
