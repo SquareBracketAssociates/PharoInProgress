@@ -584,11 +584,256 @@ Here is the list of messages proposed by Reef to manage client/server interactio
 
 !!Interaction in Action
 
-Now we will show you a simple application showing in practice the different interaction. 
+Now we will show you a simple application showing in practice the different interactions. 
+Let us define a simple Todo application. 
+
+!!! The domain: A todo
+
+The domain is simple and with limited interest. Here is a possible definition. 
+
+[[[language=smalltalk
+Object subclass: #WDTodo
+	instanceVariableNames: 'done description creationDate doneDate'
+	classVariableNames: ''
+	category: 'ReefTodo'
+]]]
+
+[[[language=smalltalk
+WDTodo >> creationDate
+	^ creationDate
+]]]
+[[[language=smalltalk
+WDTodo >> description
+	^ description
+]]]
+	
+[[[language=smalltalk
+WDTodo >> description: anObject
+	description := anObject
+]]]
+
+[[[language=smalltalk	
+WDTodo >> done
+	^ done
+]]]
+
+[[[language=smalltalk
+WDTodo >> toggleStatus 
+	done := done not
+]]]
+
+[[[language=smalltalk
+WDTodo >> printOn: stream 
+	stream nextPutAll: (self description ifNil: [ '' ])
+]]]
+	
+[[[language=smalltalk	
+WDTodo >> initialize 
+	super initialize.
+	self done: false.
+	creationDate := DateAndTime now
+]]]
+
+[[[language=smalltalk	
+WDTodo >> done: aBoolean
+	done := aBoolean.
+	doneDate := (aBoolean 
+		ifTrue: [ DateAndTime now ]
+		ifFalse: [ nil ])	
+]]]
+
+[[[language=smalltalk
+WDTodo >> isDone 
+	^ done
+]]]
+
+
+!!! Handling created todos
+	
+Now we just add a cheap and dirty way to keep some todos. We add an instance variable to the class to hold a collection of todos that we will add each time they are created. This is clearly the place 
+where we can plug Voyage to store the objects in a mongo or other databases.
+
+[[[language=smalltalk
+WDTodo class
+	instanceVariableNames: 'todos'
+]]]
+
+[[[language=smalltalk
+WDTodo class >> reset
+	"self initialize"
+	todos := OrderedCollection new. 
+]]]	
+
+[[[language=smalltalk
+WDTodo class >> new
+	"WDTodo new description:' yeah'"
+	^ todos add: super new 
+]]]
+
+[[[language=smalltalk
+WDTodo class >> initialize
+	"self initialize"	
+	self reset
+]]]
+
+Do not forget to execute ==WDTodo initialize==
+
+!!!! Introducing some simple queries
+We use the same API than Voyage to introduce some simple queries to be able to create a more fancy interaction and user experience. 
+
+[[[language=smalltalk
+WDTodo class >> selectMany: aBlock
+	^ todos select: aBlock
+]]]
+
+[[[language=smalltalk
+WDTodo class >> findDone
+	^ self selectMany: [ :each | each isDone ]
+]]]
+
+[[[language=smalltalk
+WDTodo class >> countNotDone
+	^ (self selectMany: [ :each | each isDone not ]) size
+]]]
+
+[[[language=smalltalk
+WDTodo class >> countDone
+	^ self findDone size
+]]]
+
+
+	
+
+!! The view part: Setting the stage 
+
+We will define first the entry point of the application and display a single todo. 
+
+We first define a container to display one single todo item.
+We use a REContainer so that we can control the refresh of its part in a better way than using a simple panel. 
+
+[[[language=smalltalk
+REContainer subclass: #WDTodoPanel
+	instanceVariableNames: 'todo label'
+	classVariableNames: ''
+	category: 'TodoMVC-Seaside-View'
+]]]
+
+[[[language=smalltalk
+WDTodoPanel >> todo: aTodo
+	^ self basicNew 
+		initializeTodo: aTodo;
+		yourself
+]]]
+	
+[[[language=smalltalk
+WDTodoPanel >> initializeTodo: aTodo 
+	todo := aTodo. 
+	self initialize
+]]]
+	
+!!!! The entry point: Todo Application
+
+We create a Seaside component named ==WDTodoApplication== that will be the entry point of the application 
+
+[[[language=smalltalk
+WAComponent subclass: #WDTodoApplication
+	instanceVariableNames: 'newTodoTextField'
+	classVariableNames: ''
+	category: 'TodoMVC-Seaside-View'
+]]]
+	
+We add a simple method to encapsulate Todo creation. In the future we may place there notifications or refresh 
+
+[[[language=smalltalk
+WDTodoApplication >> addNewTodo: aString
+	WDTodo new description: aString
+]]]
+
+Then we introduce the creation of an input text field.
+	
+[[[language=smalltalk
+WDTodoApplication >> newTodoTextField
+	^ newTodoTextField ifNil: [ newTodoTextField := self createNewTodoTextInputField ]	
+]]]
+
+	
+[[[language=smalltalk
+WDTodoApplication >> createNewTodoTextInputField
+		| input value |
+		input := RETextField new.
+		input 
+			id: 'new-todo';
+			placeHolder: 'What needs to be done?';
+			callback: [ :v | value := v ];
+			onEnter: ([ :me | 
+				me inClient: [ me asClient value: '' ].
+				self addNewTodo: value ] asReefTriggerThisCallback).
+		^ input		
+]]]
+	
+SDLM: why 
+me inClient: [ me asClient value: '' ].
+controls the accept behavior?
+	
+[[[language=smalltalk
+WDTodoApplication >> renderHeaderOn: html
+	html render: 'todos' asReefHeading.
+	html render: self newTodoTextField 
+]]]
+
+[[[language=smalltalk
+WDTodoApplication >> renderContentOn: html
+	html section
+		id: 'todoapp';
+		with: [ 
+			html header id: 'header'; with: [ self renderHeaderOn: html ].
+			].
+]]]
+SDLM: explain the header and id: stuff briefly
+
+
+SDLM why 
+[[[
+children
+	^ { self listComponent }
+	does not contain newTodoPanel = newTodoTextField
+]]]
 
 
 
+	
+!!! 	
+	
+[[[	
+createNewTodoTextInputField
+	| input value |
+	input := RETextField new.
+	input 
+		id: 'new-todo';
+		placeHolder: 'What needs to be done?';
+		callback: [ :v | value := v ];
+		onEnter: ([ :me | 
+			me inClient: [ me asClient value: '' ].
+			self addNewTodo: value ] asReefTriggerThisCallback).
+	^ input	
+]]]	
 
+SDLM why me inClient: [ me asClient value: '' ].
+	
+	
+[[[
+updateRoot: anHtmlRoot
+	super updateRoot: anHtmlRoot.
+
+	anHtmlRoot stylesheet url: REBootstrapLibrary / #bootstrapminCss.
+	anHtmlRoot javascript url: REBootstrapLibrary / #bootstrapminJs.
+
+	anHtmlRoot stylesheet url: WDStaticLibrary / #resetCss.
+	anHtmlRoot stylesheet url: WDStaticLibrary / #baseCss.
+	anHtmlRoot stylesheet url: WDStaticLibrary / #appCss.	
+]]]	
+	
+	
 !! Conclusion
 Reef is mega cool. 
 
