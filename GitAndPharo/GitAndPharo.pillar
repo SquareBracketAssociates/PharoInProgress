@@ -34,10 +34,38 @@ create a configuration
 
 what is it. How does it work. How does it compare to ==ConfigurationOf== classes.
 
+When I've written my ==BaselineOfXX== class, how do I execute it so Metacello loads dependencies? We can do that:
+
+[[[
+BaselineOfXX project version load
+]]]
+
+but you will get errors because Metacello can't locate the XX packages in the package-cache (this happens because a baseline does not define where to find its source code)
+
 !!Configurations
 
 - the #stable definitions
+
 - the #development definition
+  - shoud we use a gitfiletree:// url here to get read/write access? If yes, should we add a dependency to GitFileTree?
+
+Answer by Thierry Goubier:
+
+[[[
+Easy:
+
+stable version of pillar has github:// reference to Cocoon baseline.
+Development version of pillar has gitfiletree:// reference to Cocoon
+baseline.
+
+Variant:
+
+ConfigurationOfPillar in catalog browser has github:// reference to
+Cocoon. Developpers of pillar write (Metacello baseline: 'pillar';
+repository: 'gitfiletree://' ...) with a Pillar baseline referencing
+gitfiletree for Cocoon.
+]]]
+
 - writing a configuration that depends on a project hosted in git
 
 
