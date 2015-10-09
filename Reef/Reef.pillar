@@ -166,7 +166,7 @@ Putting a self inform: 'jlkljk'
 ]]]
 
 SDLM: I do not get a inform on a separate page
-When I press + I only see + and not + and - so I do not get your refresh too much story.
+When I press \+ I only see \+ and not \+ and - so I do not get your refresh too much story.
 
 
 !!! A second version with controlled refresh
@@ -773,7 +773,7 @@ WDTodoApplication >> createNewTodoTextInputField
 ]]]
 	
 SDLM: why 
-me inClient: [ me asClient value: '' ].
+me inClient: [ me asClient value: '\' ].
 controls the accept behavior?
 	
 [[[language=smalltalk
