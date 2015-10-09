@@ -1,0 +1,312 @@
+! Querier
+
+
+Querier is a library for accessing relational databases (RDBMS) in Pharo. It is focused on simplicity. Simple and effective access to related tables is one of the key features of Querier. The protocol and the overall design is heavily inspired by NotORM, a PHP library for querying databases. Querier is in fact an attempt to bring such a library to the Smalltalk/Pharo world. Querier has been developed by Michal Balda.
+
+!! Motivation
+
+What was the motivation to create this library? Currently, there are two possible approaches to accessing a relational database in Pharo:
+
+- Use a plain driver and hand-write all SQL. This gets tedious very quickly, it also makes it easy to introduce errors or possible security flaws (known as SQL injections).
+
+- Use an object-relational mapper (ORM), such as GLORP. Setting up an ORM is a lot of work, one needs to describe the structure very precisely. Often we don't need another layer between our application and the database which just introduces additional complexity. Also, ORM is considered an anti-pattern by some.
+
+Both approaches have some disadvantages which led to the creation of Querier. It is not an ORM, it directly exposes tables and rows. But it generates and executes most queries automatically. It is not a complete replacement to the SQL - complex analytical queries are still better to be written by hand – but it saves you from writing simple CRUD queries over and over again.
+
+!! Setup
+
+Querier is much easier to set up than an ORM like GLORP. All it needs are the database driver able to execute SQL and three values which identify the primary key column, foreign key columns and table names. The default values are these:
+
+[[[language=smalltalk
+Primary Key Column	id
+Foreign Key Column	{table}_id
+Table Name	{table}
+]]]
+
+It is also possible to subclass the structure to introduce exceptions to those rules. For example, a common approach for storing tree structures is to create a column such as ==parent_id== pointing to the same table.
+
+The whole setup might take as little as three lines of code:
+
+[[[
+| driver structure db |
+driver := "…".
+structure := QRRConventionalStructure new.
+db := Querier withDriver: driver structure: structure
+]]]
+
+!! Usage
+
+Querier is based on two principles:
+
+# A table is a collection of rows.
+# A row is a dictionary of values.
+
+Therefore the protocol mimics the standard Smalltalk collection protocol, although with some specific messages to allow persistence and some other SQL-specific operations.
+
+Let's consider two tables in our database, ==album== and ==song==:
+
+[[[language=smalltalk
+album
+id	Integer, Primary Key
+name	Varchar
+]]]
+
+[[[language=smalltalk
+song
+id	Integer, Primary Key
+title	Varchar
+length	Integer
+album_id	Integer, Foreign Key
+]]]
+
+First, we start by accessing a table:
+
+[[[language=smalltalk
+db table: #song
+"or use a shortcut:"
+db song
+]]]
+
+The previous expression is already a query (in fact, the simplest query possible), which selects all rows from the table:
+
+[[[
+SELECT *
+FROM song
+]]]
+
+All queries are lazy, so this query is not executed until needed. For example, it will get executed when we enumerate the result:
+
+[[[language=smalltalk
+db song do: [ :row |
+   Transcript show: row title; cr ]
+]]]
+	
+That will do the obvious and print all song titles to Transcript. It was mentioned before that a row is just a dictionary of values. To avoid sending ==at:== all the time, we may use ==doesNotUnderstand:== shortcuts to access column values, like in the previous example (==row== title instead of ==row at: #title==).
+
+Moving on to standard SQL features, here's a WHERE clause, achieved by a ==select:== like with any other collection:
+
+[[[language=smalltalk
+db song select: [ :row |
+    (row length >= 180) & (row length <= 300) ]
+]]]
+
+[[[
+SELECT *
+FROM song
+WHERE length >= 180
+AND length <= 300
+]]]
+
+The block is not treated as a true block, however. It is only evaluated once with a fake argument (the row variable) which collects all messages sent to it and immediately builds the corresponding SQL expression. It is not evaluated for each row in the table. The consequence is that it is not possible to do more advanced stuff in the block, like transforming the rows using custom code. The mechanism is explained really well in Udo Schneider's article Block Translators - parsing magic.
+
+
+ORDER BY:
+[[[language=smalltalk
+db song sorted: [ :a :b |
+    a length < b length ]
+]]]
+
+[[[
+SELECT *
+FROM song
+ORDER BY length ASC
+]]]
+
+LIMIT:
+
+[[[language=smalltalk
+(db song sorted: [ :a :b |
+    a length < b length ])
+        first: 10
+]]]
+
+[[[
+SELECT *
+FROM song
+ORDER BY length ASC
+LIMIT 10
+OFFSET:
+]]]
+
+[[[language=smalltalk
+(db song sorted: [ :a :b |
+    a length < b length ])
+        allButFirst: 10
+]]]
+
+[[[
+SELECT *
+FROM song
+ORDER BY length ASC
+OFFSET 10
+]]]
+
+A shortcut for selecting a single row:
+
+[[[language=smalltalk
+row := db song detect: [ :each |
+	each id = 123 ]
+]]]
+
+[[[	
+SELECT *
+FROM song
+WHERE id = 123
+LIMIT 1
+]]]
+
+Or an even shorter shortcut for selecting a row by its primary key value:
+
+[[[
+row := db song at: 123
+]]]
+
+[[[
+SELECT *
+FROM song
+WHERE id = 123
+LIMIT 1
+]]]
+
+The primary key column name (id in this case) is one of the three values we need to configure (see Setup).
+
+We may use aggregations, like selecting a minimum, a maximum, an average etc.:
+
+[[[
+db song average: [ :row |
+	row length ]
+
+db song average: #length
+]]]
+
+[[[
+SELECT AVG(length)
+FROM song
+]]]
+
+Enumerating the result:
+
+[[[
+db song collect: [ :row |
+	row title ]
+	
+db song do: [ :row |
+	Transcript show: row title; cr ]
+
+db song size
+]]]
+
+
+One of the key features of Querier is the simplicity of accessing related tables. For example, if we need to select all songs on a certain album, this is what we might come up with in Smalltalk, without knowing anything about SQL:
+
+db song select: [ :row |
+	row album name = 'Unknown Album' ]
+And to our surprise, this exact approach is possible in Querier and generates the following query:
+
+SELECT *
+FROM song
+LEFT JOIN album
+	ON song.album_id = album.id
+WHERE album.name = 'Unknown Album'
+Notice that a LEFT JOIN was added automatically, without us having to specify it. The column names used in the JOIN (album_id and id in this case) are the few values we need to configure (see Setup).
+
+If we ever need to select songs by a certain artist, we may add another table to the expression and the library will build another LEFT JOIN.
+
+db song select: [ :row |
+	row album artist name = 'Unknown Artist' ]
+SELECT *
+FROM song
+LEFT JOIN album
+	ON song.album_id = album.id
+LEFT JOIN artist
+	ON album.artist_id = artist.id
+WHERE artist.name = 'Unknown Artist'
+If we compare the length of the Smalltalk code and the length of the generated SQL, we will see that Querier saved us from a lot of typing. And it's a standard Smalltalk code, we don't need to pollute our code with SQL strings.
+
+We may also access a related table while already enumerating the result:
+
+db song do: [ :row |
+	Transcript show: row album name ]
+SELECT *
+FROM song
+
+SELECT *
+FROM album
+WHERE id IN (1, 2, 3, …)
+In this case, two queries are generated, since at the time an access to table album is encountered, the query selecting all songs has already been executed. Therefore it is not possible to modify it. Querier solves this by issuing another query, which will select the corresponding albums for all songs in the result. It is important to emphasize that this will not result in a query in a loop situation, the previous code will not execute a SELECT for each song separately. It will automatically take all songs and select the albums for them in a single query.
+
+What about the opposite direction? We have an album and we want to select all songs on it. If we remember our database schema we realize the only connection is that a song knows the album which it belongs to. The album does not know about its songs. But that is not a problem. We just add Collection to the name of the related table and Querier will access the related table in the opposite direction:
+
+db album do: [ :row |
+	row songCollection do: [ :song |
+		Transcript show: song name; cr ] ]
+SELECT *
+FROM album
+
+SELECT *
+FROM song
+WHERE album_id IN (1, 2, 3, …)
+Again, it's crucial that a constant number of queries (two in this case) will get executed, regardless of the number of rows (albums) in the result. Querier will fetch songs for all albums in a single query.
+
+In a typical application, we also need to issue modifications. This is also very simple to achieve in Querier. We use mutator of the same name and finally send #save to execute the UPDATE:
+
+db song do: [ :row |
+	row length: row length + 10.
+	row save ]
+SELECT * FROM song
+
+UPDATE song SET length = 325
+	WHERE id = 1
+
+UPDATE song SET length = 648
+	WHERE id = 2
+
+… and many more
+We can see that the result is not very effective. Each row will be updated in a separate query. There is a better way if we need to update multiple rows at once:
+
+db song update: [ :row |
+	row length: row length + 10 ]
+UPDATE song
+SET length = length + 10
+This is much better. Querier is even smart enough not to execute the first SELECT since it is not needed at all. We may incorporate some of the expressions we learnt while querying, such as only updating songs that are less than 180 seconds long:
+
+(db song select: [ :row |
+	row length < 180 ])
+		update: [ :row |
+			row length: row length + 10 ]
+UPDATE song
+SET length = length + 10
+WHERE length < 180
+Deleting rows is similar:
+
+(db song select: [ :row |
+	row length < 180 ])
+		removeAll
+
+db song delete: [ :row |
+	row length < 180 ]
+DELETE FROM song
+WHERE length < 180
+Both statements generate the same SQL DELETE. The former is closer to the standard collection protocol while the latter is more concise.
+
+To create a new row, send #new to the table. It returns a new row and we may use the same approach as we used when modifying existing rows.
+
+| row |
+
+row := db song new.
+row title: 'New Song'.
+row length: 316.
+row album: (db album detect: [ :album |
+album name = 'Unknown Album' ]).
+row save.
+
+Transcript show: row id
+Presentation
+
+I did a small presentation of Querier at the ESUG conference in Brescia in July 2015. The slides are a condensed showcase of the simple protocol that Querier offers.
+
+ESUG 2015: Slides (PDF)
+
+Downloads
+
+Querier is not yet finished, currently it is a working proof-of-concept for Pharo and PostgreSQL. The focus now is to polish all features and extend it to allow other RDBMS and drivers, such as Garage (the new unified set of RDBMS drivers).
