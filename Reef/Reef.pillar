@@ -756,7 +756,8 @@ WDTodoApplication >> newTodoTextField
 	^ newTodoTextField ifNil: [ newTodoTextField := self createNewTodoTextInputField ]	
 ]]]
 
-	
+The input field is an instance of ==RETextField==. 
+
 [[[language=smalltalk
 WDTodoApplication >> createNewTodoTextInputField
 		| input value |
