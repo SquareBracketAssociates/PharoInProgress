@@ -6,15 +6,16 @@ The exercises start simple and with detailled instructions on how to perform the
 
 !! Getting Started 
 
-Get an image and bring the Configuration Browser and install the stable version of MagritteContactTutorial.
+Get an image and bring the Configuration Browser and install the stable version of MagritteContactManager.
 
 In case you need to know where the code of the tutorial is saved. It is in the following repository:
 
 [[[language=smalltalk
-MCGemstoneRepository
-    location: 'http://ss3.gemstone.com/ss/MagritteMagic'
-    user: ''
-    password: ''
+MCSmalltalkhubRepository
+	owner: 'Magritte'
+	project: 'Magritte3'
+	user: ''
+	password: ''
 ]]]
 
 
@@ -24,29 +25,29 @@ If it is not, the seaside control panel from Tools menu of the world menu.
 
 !! Juggle with Descriptions
 
-Have a look at the source-code of the classes ==MAPersonModel==, ==MAAddressModel==, and ==MAPhoneModel==. In essence a person is described by different attributes such as it first name, name email, birthday... In addition it in relation with an address object and it has a list of phones. 
+Have a look at the source-code of the classes ==CMPerson==, ==CMAddress==, and ==CMPhone==. In essence a person is described by different attributes such as it first name, name email, birthday... In addition it in relation with an address object and it has a list of phones. 
 
 Here are the class definitions. Note that the class names are a bit overkill with the Model prefix. In future versions, we may drop it. 
 
 [[[language=smalltalk
-Object subclass: #MAPersonModel
+Object subclass: #CMPerson
     instanceVariableNames: 'title firstName lastName homeAddress officeAddress picture birthday phones password'
     classVariableNames: ''
-    category: 'Magritte-Tutorial'
+        category: 'Magritte-ContactManager'
 ]]]
 
 [[[language=smalltalk
-Object subclass: #MAPhoneModel
+Object subclass: #CMPhone
     instanceVariableNames: 'kind number'
     classVariableNames: ''
-    category: 'Magritte-Tutorial'
+        category: 'Magritte-ContactManager'
 ]]]
 
 [[[language=smalltalk
-Object subclass: #MAAddressModel
+Object subclass: #CMAddress
         instanceVariableNames: 'street plz place canton nationality'
         classVariableNames: ''
-        category: 'Magritte-Tutorial'
+            category: 'Magritte-ContactManager'
 ]]]
 
 All the following exercises will be built upon this simple model.
@@ -69,7 +70,7 @@ You should get an application as shown in Figure *editor*.
 Add the following instance variable and accessor. 
 
 [[[language=smalltalk
-MAPersonModel >> comment
+CMPerson >> comment
     ^ comment 
 ]]]
 
@@ -77,7 +78,7 @@ MAPersonModel >> comment
 In the ==MADescription== hierarchy, there is a class ==MAStringDescription== which is used to describe a string. You can try to use it like this:
 
 [[[language=smalltalk
-MAPersonModel >> descriptionComment
+CMPerson >> descriptionComment
     <magritteDescription>
     ^ MAStringDescription new
             accessor: #comment; 
@@ -91,7 +92,7 @@ Have a look at ==MAStringDescription== subclasses. You will see a ==MAMemoDescri
 
 Use this class as follows:
 [[[language=smalltalk
-MAPersonModel >> descriptionComment
+CMPerson >> descriptionComment
     <magritteDescription>
      ^ MAMemoDescription new
                  accessor: #comment; 
@@ -112,7 +113,7 @@ When you want to ask the user to choose one element in a list of multiple, you s
 The default choice (displayed by Magritte if no other choices have been selected) is chosen with the ==default:== message:
 
 [[[language=smalltalk
-MAPersonModel >> descriptionNationality 
+CMPerson >> descriptionNationality 
     <magritteDescription>
      ^ (MASingleOptionDescription new 
             accessor: #nationality;
@@ -140,7 +141,7 @@ Test your code in the Web browser.
 An E-Mail is basically a string. So, to start, you can just ask for a string:
 
 [[[language=smalltalk
-MAPersonModel >> descriptionEmail
+CMPerson >> descriptionEmail
     <magritteDescription>
      ^ MAStringDescription new
             accessor: #email;
@@ -152,7 +153,7 @@ MAPersonModel >> descriptionEmail
 If you open a browser on ==MADescription== class (protocol validation), you will see that we can send the message ==addCondition:labelled:== to a description
 
 [[[language=smalltalk
-MAPersonModel >> descriptionEmail
+CMPerson >> descriptionEmail
     <magritteDescription>
     ^ (MAStringDescription new
         accessor: #email;
@@ -167,7 +168,7 @@ MAPersonModel >> descriptionEmail
 
 
 !!! Exercice 4: Reusing Descriptions
-You can also reuse a description. For example, we will reuse nationality description from ==MAPersonModel== in the address ==MAAddressModel== by calling the appropriate description of the person  and changing the label to ==Country==. Make sure not to modify the original description by creating a copy. 
+You can also reuse a description. For example, we will reuse nationality description from ==CMPerson== in the address ==CMAddress== by calling the appropriate description of the person  and changing the label to ==Country==. Make sure not to modify the original description by creating a copy. 
 
 Test it in the Web browser.
 
@@ -177,16 +178,16 @@ Test it in the Web browser.
 Descriptions are created in methods. To reuse a description, you can just send the method:
 
 [[[language=smalltalk
-MAAddressModel >> descriptionCountry
+CMAddress >> descriptionCountry
     <magritteDescription>
-    ^ MAPersonModel new descriptionNationality copy
+    ^ CMPerson new descriptionNationality copy
         label: 'Country'; 
         yourself
 ]]]
 
-+The Nationality description is reused by the ==MAAddressModel==.>file://figures/addressWithCountry.png+
++The Nationality description is reused by the ==CMAddress==.>file://figures/addressWithCountry.png+
 
-Note that here we create a new person because there is no reference from ==MAAddressModel== to ==MAPersonModel==.
+Note that here we create a new person because there is no reference from ==CMAddress== to ==CMPerson==.
 
 !!! Exercise 5: Food for Thought 
 
@@ -215,7 +216,7 @@ Test the setup of your new application in the Web browser.
 WAComponent subclass: #MAPersonManager
     instanceVariableNames: ''
     classVariableNames: 'Persons'
-    category: 'Magritte-Tutorial'
+        category: 'Magritte-ContactManager'
 ]]]
 
 [[[language=smalltalk
@@ -237,7 +238,7 @@ MAPersonManager >> renderContentOn: html
 !!! Exercise 7: Adding a contact
 
 
-In the ==MAPersonManager== class, define the method ==add==, that creates a new instance of ==MAPersonModel==, calls the default Magritte editor and adds it to our collection. Note that Magritte will answer ==nil==, when the user hits the cancel button in the editor. 
+In the ==MAPersonManager== class, define the method ==add==, that creates a new instance of ==CMPerson==, calls the default Magritte editor and adds it to our collection. Note that Magritte will answer ==nil==, when the user hits the cancel button in the editor. 
 Create a link in your page that will execute the ==add== method.
 
 
@@ -248,7 +249,7 @@ A Seaside component is created from a model using the message ==asComponent==. A
 [[[language=smalltalk
 MAPersonManager >> add
     | person |
-    person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
+    person := self call: (CMPerson new asComponent addValidatedForm; yourself).
     person isNil
         ifFalse: [ self class persons add: person ]
 ]]]
@@ -378,7 +379,7 @@ Once done, render the report instead of the list.
 WAComponent subclass: #MAPersonManager
     instanceVariableNames: 'report'
     classVariableNames: 'Persons'
-    category: 'Magritte-Tutorial'
+        category: 'Magritte-ContactManager'
 ]]]
 
 [[[language=smalltalk
@@ -422,7 +423,7 @@ We change the definition of the ==add== method.
 [[[language=smalltalk
 MAPersonManager >> add 
     | person |
-    person := self call: (MAPersonModel new asComponent addValidatedForm; yourself).
+    person := self call: (CMPerson new asComponent addValidatedForm; yourself).
     person isNil 
         ifFalse: [ 
             self persons add: person.
@@ -529,34 +530,34 @@ It has only two instance-variables: one references a description-container, the 
 
 !!! Question 17: not sure that we will keep it.
 
-Add a class variable to ==MAPersonModel== called ==CustomDescription==. Initialize it with an empty instance of ==MAContainer==. Create an accessor method. Override ==magritteDescription== on the instance-side, call super and compose it with the ==CustomDescription==. So far, you should see no difference in the behaviour of the application when testing it.
+Add a class variable to ==CMPerson== called ==CustomDescription==. Initialize it with an empty instance of ==MAContainer==. Create an accessor method. Override ==magritteDescription== on the instance-side, call super and compose it with the ==CustomDescription==. So far, you should see no difference in the behaviour of the application when testing it.
 
 !!!! Solution 17.
 
 [[[language=smalltalk
-MAPersonModel class >> customDescription 
+CMPerson class >> customDescription 
 	^ CustomDescription
 	
-MAPersonModel class >> customDescription: aContainer 
+CMPerson class >> customDescription: aContainer 
 	CustomDescription := aContainer
 ]]]
 
 [[[language=smalltalk
-MAPersonModel class >> initialize
+CMPerson class >> initialize
 	super initialize.
 	self customDescription: MAContainer new
 	
-MAPersonModel >> customDescription
+CMPerson >> customDescription
 	^ self class customDescription
 ]]]
 	
 [[[language=smalltalk
-MAPersonModel >> magritteDescription
+CMPerson >> magritteDescription
 	^ super magritteDescription copy
 		addAll: self customDescription; yourself
 ]]]
 
-Execute: ==MAPersonModel initialize== 
+Execute: ==CMPerson initialize== 
 
 Note that we add a customise element shared by all the instances but we could do the same at the instance level. 
 Now when working with table it is mandatory that all the rows have the same description. 
@@ -578,9 +579,9 @@ MADescriptionEditor subclass: #MAPersonDescriptionEditor
 MAPersonManager >> modifyPersonModel
 	| description |
 	description := self call: (MAPersonDescriptionEditor new
-		magritteDescription: MAPersonModel customDescription). 
+		magritteDescription: CMPerson customDescription). 
 	description isNil
-		ifFalse: [ MAPersonModel customDescription: description ]
+		ifFalse: [ CMPerson customDescription: description ]
 ]]]
 
 
