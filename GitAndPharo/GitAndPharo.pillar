@@ -40,7 +40,16 @@ When I've written my ==BaselineOfXX== class, how do I execute it so Metacello lo
 BaselineOfXX project version load
 ]]]
 
-but you will get errors because Metacello can't locate the XX packages in the package-cache (this happens because a baseline does not define where to find its source code)
+but you will get errors because Metacello can't locate the XX packages in the package-cache (this happens because a baseline does not define where to find its source code). To test your baseline, you can write something like:
+
+[[[
+Metacello new
+     baseline: 'QualityAssistant';
+     repository: 'filetree://REPO_LOCATION_IN_DISK';
+     load
+]]]
+
+
 
 !!Configurations
 
@@ -90,6 +99,8 @@ To learn from others, you might want to have a look at these projects:
 
 - https://github.com/DamienCassou/pharo-jenkins
 - https://github.com/Uko/QualityAssistant
+- https://github.com/Uko/Renraku
+- https://github.com/Uko/Vidi
 - https://github.com/theseion/LibGit
 - https://github.com/gcotelli/RenoirSt
 
