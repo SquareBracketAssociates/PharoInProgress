@@ -112,6 +112,7 @@ Hero class >> isVoyageRoot
   ^ true
 ]]]
 
+We can create some superheroes and save them in the database.
 [[[
 Hero new
    name: 'Spiderman';
@@ -129,6 +130,7 @@ Hero new
 ]]]
 
 
+!! Checking in MongoDB
 [[[
 > show dbs
 local        0.078GB
@@ -141,6 +143,8 @@ switched to db superHeroes
 Hero
 ]]]
 
+Now we can see how a superhero is actually stored.
+Note the way the powers are saved: they are embedded inside the document that represents the superhero.
 [[[
 > db.Hero.find()[0]
 {
@@ -165,3 +169,219 @@ Hero
 	]
 }
 ]]]
+
+!! Queries
+
+Now we can perform some queries to get objects stored in the database.
+
+
+[[[
+Hero selectAll.  
+> an OrderedCollection(a Hero( Spiderman ) a Hero( Wolverine )
+]]]
+
+
+[[[
+Hero selectOne: [ :each | each name = 'Spiderman' ].
+> a Hero( Spiderman )
+]]]
+
+[[[
+Hero selectMany: [ :each | each level = #epic ]. 
+> an OrderedCollection(a Hero( Spiderman ) a Hero( Wolverine )
+]]]
+
+
+Since MongoDB is storing internally JSON the argument of a query can be 
+a dictionary as follows:
+
+[[[
+Hero selectOne: { #name -> 'Spiderman' } asDictionary.
+> a Hero( Spiderman ) 
+]]]
+
+[[[
+Hero selectMany: { #level -> #epic } asDictionary.
+> an OrderedCollection(a Hero( Spiderman ) a Hero( Wolverine )
+]]]
+
+Here is a more complex query:
+
+[[[
+Hero
+	selectMany: { #level -> #epic } asDictionary 
+	sortBy: { #name -> VOOrder ascending } 
+	limit: 10
+	offset: 0
+]]]
+
+!! Other Basic Operations
+
+Here are some simple operations. 
+
+!!! Counting
+First we show how we can count:
+
+[[[
+Hero count. 
+> 2
+]]]
+
+
+[[[
+Hero count: [ :each | each name = 'Spiderman' ] 
+> 1
+]]]
+
+!!! Removing
+
+We can remove 
+[[[
+hero := Hero selectAll anyOne. 
+hero remove.
+> a Hero
+]]]
+
+We can also remove all the objects from the class. 
+[[[
+Hero removeAll. “Beware of this!” 
+> Hero class
+]]]
+
+!! Adding a new root
+
+Now we will change our requirement and show that we want to be able to query another class of objects: the powers. Note that when you add a root, it is important that you either flush your database or perform 
+a migration by for example loading old objects are republishing them. 
+
+
+!!! When to add a new root
+There are two main points to consider when facing the questions of the necessity of adding a class as a root. 
+
+First, the obvious consideration is whether we need to query objects separately from their objects that refer to them.
+
+Second, if you need to make sure that subparts will be shared and not duplicated you should declare the subparts as root. For example if you need to be able to share a power between two super heroes and want to be sure that when you load the two superheroes you do not get two copies of the same power. 
+
+
+!!! Power as a root
+
+[[[
+Power class >> isVoyageRoot 
+	^ true
+]]]
+
+
+Now we can save the super power objects separately as follows:
+
+[[[
+Power new name: 'Fly'; save.
+Power new name: 'Super-strength'; save.
+]]]
+
+If you do not see the new collection in the database using ==show collections==
+you may face a Voyage bug and you need to reset the memory database cache in the Pharo image. 
+
+Now saving your objects and checking the mongo db again should show
+
+[[[
+> show collections
+	Hero
+	Power
+]]]
+
+Now we can save a hero and its superpowers. To fully test we flush the heroes in the database 
+executing ==Hero removeAll== and we execute the following:
+
+[[[
+| fly superStrength |
+fly := Power selectOne: [ :each | each name = 'Fly']. 
+superStrength := Power selectOne: [ :each | each name = 'Super-strength'].
+Hero new
+	name: 'Superman'; level: #epic;
+	addPower: fly; 
+	addPower: superStrength; 
+	save.
+]]]
+
+Note that while we saved the powers independently from the hero, this is not mandatory
+since saving a hero will automatically save its powers. 
+
+Now when we query the database we can see that an hero has references to another collection of Powers. 
+
+
+[[[
+> db.Hero.find()[0]
+{
+	"_id" : ObjectId("d8474983421aa909b4000008"),
+	"#version" : NumberLong("3874503784"),
+	"#instanceOf" : "Hero",
+	"level" : "epic",
+	"name" : "Superman",
+	"powers" : [
+		{
+			"#collection" : "Power",
+			"#instanceOf" : "Power",
+			"__id" : ObjectId("d84745dd421aa909b4000005")
+		},
+		{
+			"#collection" : "Power",
+			"#instanceOf" : "Power",
+			"__id" : ObjectId("d84745dd421aa909b4000006")
+		}
+	]
+}
+]]]
+
+!!! About relations
+Voyage supports cyclic references between root objects but it does not support cyclic references to embedded objects. We will see that in the following section. 
+
+!!! Extending the Hero class
+We will now extend the class Hero with equipments. This example will show that the root collection declaration is static: when a superclass is defined as root, the collection in the mongo db will contain instances of both the class and its subclasses. 
+If we want to have a collection per subclass we have to define each of them as root. 
+
+[[[
+Object subclass: #Hero
+   instanceVariableNames: 'name level powers equipment' 
+   classVariableNames: ''
+   package: 'SuperHeroes'
+]]]
+
+[[[
+Hero >> equipment
+   ^ equipment ifNil: [ equipment := Set new ]
+   
+Hero >> addEquipment: anEquipment 
+   self equipment add: anEquipment
+]]]
+
+Since we change the class structure we should reset the local cache of the database doing ==VORepository current reset==
+
+
+Now we define the class Equipment as a new root. 
+
+
+
+[[[
+Object subclass: #Equipment 
+	instanceVariableNames: '' 
+	classVariableNames: '' 
+	package: ‘SuperHeroes'
+]]]
+
+[[[
+Equipment class >> isVoyageRoot 
+	^ true
+]]]
+
+[[[
+Equipment subclass: #Weapon
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'SuperHeroes'
+]]]
+
+[[[
+Equipment subclass: #Armor
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'SuperHeroes'
+]]]	
