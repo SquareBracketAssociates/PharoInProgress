@@ -462,3 +462,5 @@ Note that an equipment could contain an equipment. To express this we do not hav
 
 !! Conclusion
 
+This little tutorial shows how easy it is to store objects in a Mongo database.
+It complements the space of possible solutions such as using Fuel to serialize object, using the in memory sandStone approach or the more traditional relation database mapping with Garage.
