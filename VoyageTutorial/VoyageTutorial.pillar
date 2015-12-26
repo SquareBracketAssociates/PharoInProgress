@@ -359,7 +359,6 @@ Since we change the class structure we should reset the local cache of the datab
 Now we define the class Equipment as a new root. 
 
 
-
 [[[
 Object subclass: #Equipment 
 	instanceVariableNames: '' 
@@ -372,6 +371,7 @@ Equipment class >> isVoyageRoot
 	^ true
 ]]]
 
+And we define two subclasses for ==Weapon== and ==Armor==
 [[[
 Equipment subclass: #Weapon
 	instanceVariableNames: ''
@@ -385,3 +385,80 @@ Equipment subclass: #Armor
 	classVariableNames: ''
 	category: 'SuperHeroes'
 ]]]	
+
+Now saving a new hero with equipment will also save its equipment as a separate object. 
+
+[[[
+Hero new
+	name: 'Iron-Man'; 
+	level: #epic; 
+	addEquipment: Armor new; 
+	save.
+]]]
+
+We can see how the objects are saved in the database
+
+[[[
+> db.Hero.find()[1]
+{
+	"_id" : ObjectId("d8475734421aa909b4000001"),
+	"#instanceOf" : "Hero",
+	"#version" : NumberLong("2898020230"),
+	"equipment" : [
+		{
+			"#instanceOf" : "Armor"
+		}
+	],
+	"level" : "epic",
+	"name" : "Iron-Man",
+	"powers" : null
+}
+]]]
+
+!!! Equipment can also have power
+
+[[[
+Object subclass: #Equipment 
+	instanceVariableNames: 'powers' 
+	classVariableNames: '' 
+	package: 'SuperPowers'
+]]]
+
+[[[	
+Equipment >> powers
+	^ powers ifNil: [ powers := Set new ]
+	
+Equipment >> addPower: aPower 
+	self powers add: aPower
+]]]
+
+Since we change the class structure we should reset the local cache of the database doing ==VORepository current reset==
+
+[[[
+| hero fly superStrength |
+hero := Hero selectOne: [ :each | each name = 'Iron-Man' ].
+fly := Power selectOne: [ :each | each name = 'Fly' ].
+superStrength := Power selectOne: [ :each | each name = 'Super-strength' ].
+hero addEquipment: (Armor new
+        addPower: fly;
+        addPower: superStrength;
+        yourself);
+save.
+]]]
+
+We see in the database that the Equipment collection contains Armor objects. 
+
+[[[
+> db.Equipment.find()[0]
+{
+	"_id" : ObjectId("d8475777421aa909b4000003"),
+	"#instanceOf" : "Armor",
+	"#version" : NumberLong("4204064627")
+}
+]]]
+
+Note that an equipment could contain an equipment. To express this we do not have anything to handle cyclic references since the class ==Equipment== is a collection root.
+
+
+!! Conclusion
+
