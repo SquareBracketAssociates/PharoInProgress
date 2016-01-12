@@ -1,4 +1,4 @@
-! Quick and dirty guide for NativeBoost-ASMJIT users
+! UnifiedFFI
 
 As you know, in Pharo 5.0 we removed the previous FFI standard implementation. This was made because different reasons: 
 
@@ -388,7 +388,7 @@ An ==ExternalAddress== can be:
 
 ==ExternalData== represents an ==ExternalAddress== with an C type associated. For example, 
 
-Both =ExternalAddress== and ==ExternalData== can be used as arguments when declaring functions with pointers as parameters, 
+Both ==ExternalAddress== and ==ExternalData== can be used as arguments when declaring functions with pointers as parameters, 
 for example:
 
 [[[
@@ -429,7 +429,8 @@ AthensCairoCanvas class>>asExternalTypeOn: generator
 		^ FFIExternalObjectType objectClass: self
 ]]]
 
-@@note if you want to add the resource to an automatic free mechanism, you need to call ==registerAsExternalResource== (in case of children from FFIExternalObject) or implement similar mechanism. 
+@@note if you want to add the resource to an automatic free mechanism (to make GC frees also the external object), you need 
+to call ==registerAsExternalResource== (in case of children from FFIExternalObject) or implement similar mechanism. 
 
 @@note FFIExternalObject replaces NBExternalObject
 
