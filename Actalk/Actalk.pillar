@@ -25,14 +25,11 @@ ATMinimalLearningObject >>	doesNotUnderstand: aMessage
 ]]]	
 
 [[[	
-ATMinimalLearningObject >>	addFromObjectSelector: aSelector
+ATMinimalLearningObject >> addFromObjectSelector: aSelector
 
-	| method | 
-	method := OpalCompiler new 
-					class: self class;
-					source: (Object sourceCodeAt: aSelector);
-					compile.								
-	self class addSelector: aSelector withMethod: method.
+	self class 
+			compile: (Object >> aSelector) sourceCode 
+			classified: 'copied from Object'
 ]]]
 
 !! Actor 
