@@ -1,0 +1,124 @@
+!Basys network
+
+Basys implements abstract layer for networks which required bidirectional communication between client and server.
+Basys manages connections such way that sending and receiving data can be performed independently and simultaneously.
+
+Each Basys connection runs own incoming data loop which processed received data asynchronously. Every received data is processed in separate thread.
+
+Communication between client and server are equivalent in both directions. Only difference: server accepts connection from client and can’t establish new one by itself.
+
+!!Network peers
++file://figures/networkAsPeers.jpg+
+
+Basys models network as connected peers.
+Each peer has own BasysNetwork instance. It is main class in Basys and should be subclasses by concrete network implementations.
++file://figures/networkStructure.jpg+
+
+BasysNetwork has BasysLocalPeer instance which represents current local peer. It purpose is provide some kind of id to be identified between other network peers.
+
+Network remotePeers is collection of BasysRemotePeer instances which represent currently connected remote peers.
+
++file://figures/peersWithConectionPool.jpg+
+
+Peers interact with each others by connection pools.
+
+Any established connection on client is added to peer which represents server. And any established connection to server is added to peer which represents client.
+
+To interact with remote side peer retrieves free connection from pool or establish new if it can. Then retrieved connection is passed to given action block:
+[[[
+peer execute: [:connection | connection sendDataPacket: dataObject ].
+    "or short version"
+peer sendDataPacket: dataObject
+]]]
+
+There are two kind of remote peers: BasysActiveRemotePeer and BasysPassiveRemotePeer.
+
++file://figures/typeOfPeers.jpg+
+
+Active peers are created by client for given address.
+[[[
+peer := network remotePeerAt: (TCPAddress localAt: 40433)
+]]]
+They establish connection by demand when no one exists in pool or all are busy:
+
+Passive peers are created by BasysServer for incoming connections. Server should be started on network:
+[[[
+network startServerOn: 40433
+]]]
+To perform requests passive peer are waiting for free connections when all are busy or nothing exists.
+
+!!Peers identification
+Basys performs identification procedure for all established connections.
+It should guarantees that all client connections are belongs to same peer instance on server and otherwise.
+[[[
+BasysActivePeer>>establishNewConnection
+    connection := network establishNewConnectionTo: address.
+    connection acceptIncomingData.
+    [receivedRemotePeerId := network identifyLocalPeerOn: connection.
+    self assignId: receivedRemotePeerId receivedFrom: connection] on: Error do: [:err |
+		connection close.
+		err pass].
+    ^connection
+]]]
+Protocol of peer identification is responsibility of concrete network implementation.
+
+!!!On server side
+For every new connection BasysServer asks network for new passive peer and sends incoming connection to it. Then client initiates identification procedure for this connection. It should take care of three cases:
+-server should detect that new connection belongs to existed peer. In that case connection should be migrated to existed peer and anonymous peer should be removed
+-server should detect that new peer is connected. Then it should assign to it right id which was received from connected client peer.
+-at the end client should receive peer id of connected server.
+
+For first case passive peer has convenient method:
+[[[
+	BasysPassivePeer>>beIdentifiedAs: peerId
+		| registeredPeer |
+		registeredPeer := network remotePeerWithId: peerId ifAbsent: [
+			id := peerId. ^self ].
+
+		self == registeredPeer ifTrue: [ self error: 'Should not happen' ].
+
+		registeredPeer importConnectionsFrom: connectionPool.
+		network removeRemotePeer: self.
+		^registeredPeer
+]]]
+!!!On client side
+Client establish new connection to server. Then it initiates identification procedure. At the end it receives server peer id. There are two cases here:
+-received peer id belongs to existed passive peer (if client is server itself and it already accepted connections from server)
+-there is no existed peers with received id
+In first case established connection will be migrated to existed peer. Existed peer will become active. And original peer will be removed.
+
+In last case received id will be assigned to original peer
+[[[
+BasysActivePeer>>assignId: peerId receivedFrom: aBasysConnection
+		| registeredPeer |
+		id ifNotNil: [
+			id = peerId ifFalse: [ self error: 'Peer should not change id when it was already identified' ].
+			^self].
+		registeredPeer := network remotePeerWithId: peerId ifAbsent: [^id := peerId ].
+
+		registeredPeer addNewConnection: aBasysConnection.
+		registeredPeer becomeActiveToReplaceSamePeer: self
+]]]
+
+!!Basys implementors
+
+Basys implementors should subclass BasysNetwork and answer five questions:
+-What is network data?
+-What to do with data?
+[[[
+process: dataObject receivedFrom: senderPeer
+]]]
+-How to send data?
+[[[
+sendDataPacket: dataObject by: aSocket
+]]]
+-How to receive data?
+[[[
+receiveIncomingDataPacketFrom: senderPeer by: aSocket
+]]]
+-How to identify peers?
+[[[
+identifyLocalPeerOn: aBasysConnection
+]]]
+
+Seamless is implemented this operations to create transparent network of distributed objects
