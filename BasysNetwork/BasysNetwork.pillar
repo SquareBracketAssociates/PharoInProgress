@@ -52,13 +52,13 @@ Basys performs identification procedure for all established connections.
 It should guarantees that all client connections are belongs to same peer instance on server and otherwise.
 [[[
 BasysActivePeer>>establishNewConnection
-    connection := network establishNewConnectionTo: address.
-    connection acceptIncomingData.
-    [receivedRemotePeerId := network identifyLocalPeerOn: connection.
-    self assignId: receivedRemotePeerId receivedFrom: connection] on: Error do: [:err |
-		connection close.
-		err pass].
-    ^connection
+  connection := network establishNewConnectionTo: address.
+  connection acceptIncomingData.
+  [receivedRemotePeerId := network identifyLocalPeerOn: connection.
+  self assignId: receivedRemotePeerId receivedFrom: connection] on: Error do: [:err |
+	connection close.
+	err pass].
+  ^connection
 ]]]
 Protocol of peer identification is responsibility of concrete network implementation.
 
@@ -70,16 +70,16 @@ For every new connection BasysServer asks network for new passive peer and sends
 
 For first case passive peer has convenient method:
 [[[
-	BasysPassivePeer>>beIdentifiedAs: peerId
-		| registeredPeer |
-		registeredPeer := network remotePeerWithId: peerId ifAbsent: [
-			id := peerId. ^self ].
+BasysPassivePeer>>beIdentifiedAs: peerId
+  | registeredPeer |
+	registeredPeer := network remotePeerWithId: peerId ifAbsent: [
+		id := peerId. ^self ].
 
-		self == registeredPeer ifTrue: [ self error: 'Should not happen' ].
+	self == registeredPeer ifTrue: [ self error: 'Should not happen' ].
 
-		registeredPeer importConnectionsFrom: connectionPool.
-		network removeRemotePeer: self.
-		^registeredPeer
+	registeredPeer importConnectionsFrom: connectionPool.
+	network removeRemotePeer: self.
+	^registeredPeer
 ]]]
 !!!On client side
 Client establish new connection to server. Then it initiates identification procedure. At the end it receives server peer id. There are two cases here:
@@ -90,14 +90,14 @@ In first case established connection will be migrated to existed peer. Existed p
 In last case received id will be assigned to original peer
 [[[
 BasysActivePeer>>assignId: peerId receivedFrom: aBasysConnection
-		| registeredPeer |
-		id ifNotNil: [
-			id = peerId ifFalse: [ self error: 'Peer should not change id when it was already identified' ].
-			^self].
-		registeredPeer := network remotePeerWithId: peerId ifAbsent: [^id := peerId ].
+	| registeredPeer |
+	id ifNotNil: [
+		id = peerId ifFalse: [ self error: 'Peer should not change id when it was already identified' ].
+		^self].
+	registeredPeer := network remotePeerWithId: peerId ifAbsent: [^id := peerId ].
 
-		registeredPeer addNewConnection: aBasysConnection.
-		registeredPeer becomeActiveToReplaceSamePeer: self
+  registeredPeer addNewConnection: aBasysConnection.
+	registeredPeer becomeActiveToReplaceSamePeer: self
 ]]]
 
 !!Basys implementors
