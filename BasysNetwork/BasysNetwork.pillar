@@ -121,4 +121,4 @@ receiveIncomingDataPacketFrom: senderPeer by: aSocket
 identifyLocalPeerOn: aBasysConnection
 ]]]
 
-Seamless is implemented this operations to create transparent network of distributed objects
+Seamless implements this operations to create transparent network of distributed objects
