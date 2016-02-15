@@ -9,19 +9,19 @@ Communication between client and server are equivalent in both directions. There
 
 
 !!Network peers
-+file://figures/networkAsPeers.jpg+
++A network is a graph of peers.>file://figures/networkAsPeers.jpg|width=50|label=fig:networkAsPeers+
 
-Basys models a network as connected peers. Each peer has own ==BasysNetwork== instance. It is main class of Basys 
-and should be subclassed by concrete network implementations.
+Basys models a network as connected peers (as shown by Figure *@fig:networkAsPeers*). 
+Each peer has (sd: is represented by?) its own ==BasysNetwork== instance. It is main class of Basys and should be subclassed by concrete network implementations.
 
-+file://figures/networkStructure.jpg+
++A peer has a local and remote peers.>file://figures/networkStructure.jpg|width=60|label=fig:networkStructure+
 
-==BasysNetwork== has ==BasysLocalPeer== (sd:what is has?) instance which represents current local peer. Its purpose is provide 
-some kind of id to be identified between other network peers.
+A ==BasysNetwork== instance has ==BasysLocalPeer== (sd:what is has?) instance which represents current local peer. Its purpose is to provide 
+some id to be identified between other network peers.
 
-Network remotePeers (sd:is it an instance of BasysNetwork that has an instance varibale that is remotePeers?) is collection of ==BasysRemotePeer== instances which represent currently connected remote peers.
+Network remotePeers (sd:is it an instance of BasysNetwork that has an instance varibale that is remotePeers?) is collection of ==BasysRemotePeer== instances which represent currently connected remote peers (as shown in Figure *@fig:peerswithpool*).
 
-+file://figures/peersWithConnectionPool.jpg+
++file://figures/peersWithConnectionPool.jpg|width=60|label=fig:peerswithpool+
 
 Peers interact with each others using connection pools.
 
