@@ -11,8 +11,8 @@ Communication between client and server are equivalent in both directions. There
 !!Network peers
 +file://figures/networkAsPeers.jpg+
 
-Basys models a network as connected peers. Each peer has own ==BasysNetwork== instance. It is main class in Basys 
-and should be subclasses by concrete network implementations.
+Basys models a network as connected peers. Each peer has own ==BasysNetwork== instance. It is main class of Basys 
+and should be subclassed by concrete network implementations.
 
 +file://figures/networkStructure.jpg+
 
@@ -21,7 +21,7 @@ some kind of id to be identified between other network peers.
 
 Network remotePeers (sd:is it an instance of BasysNetwork that has an instance varibale that is remotePeers?) is collection of ==BasysRemotePeer== instances which represent currently connected remote peers.
 
-+file://figures/peersWithConectionPool.jpg+
++file://figures/peersWithConnectionPool.jpg+
 
 Peers interact with each others using connection pools.
 
@@ -38,7 +38,7 @@ peer sendDataPacket: dataObject
 
 There are two kinds of remote peers: active (==BasysActiveRemotePeer==) and passive (==BasysPassiveRemotePeer==).
 
-+file://figures/typeOfPeers.jpg+
++file://figures/typesOfPeers.jpg+
 
 !!!!! Active peers.
 Active peers are created by client for a given address using the message ==remotePeerAt:== as follows: 
@@ -81,7 +81,7 @@ Protocol of peer identification is the responsibility of concrete network implem
 !!!On server side
 
 For every new connection, a BasysServer asks network for new passive peer and sends incoming connection to it. Then a client initiates identification procedure for this connection. It should take care of three cases:
--A server should detect that new connection belongs to existed peer. In that case connection should be migrated to existed peer and anonymous peer should be removed.
+-A server should detect that new connection belongs to existed (sd: existing?) peer. In that case connection should be migrated to existed (sd: existing?) peer and anonymous peer should be removed.
 -A server should detect that new peer is connected. Then it should assign to it a correct id which was received from connected client peer.
 -At the end, a client should receive peer an id from the connected server.
 
@@ -121,13 +121,15 @@ BasysActivePeer >> assignId: peerId receivedFrom: aBasysConnection
 ]]]
 
 !!Basys implementors
+Each application that wants to take advantage of Basys should specialize five hooks. 
+Basys implementors should subclass the class ==BasysNetwork== and answer the following five questions:
 
-Basys implementors should subclass BasysNetwork and answer five questions:
 -What is network data?
 -What to do with data?
 [[[
 process: dataObject receivedFrom: senderPeer
 ]]]
+
 -How to send data?
 [[[
 sendDataPacket: dataObject by: aSocket
@@ -141,4 +143,4 @@ receiveIncomingDataPacketFrom: senderPeer by: aSocket
 identifyLocalPeerOn: aBasysConnection
 ]]]
 
-Seamless implements this operations to create transparent network of distributed objects
+Seamless implements these operations to create transparent network of distributed objects.
