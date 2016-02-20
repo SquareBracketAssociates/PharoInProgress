@@ -1,4 +1,13 @@
+
 ! Spec: a framework for describing user interfaces
+
+
+This version is old and now it is moved in the Spec separate and autonomous tutorial
+
+
+
+
+
 
 This document presents the Spec UI builder framework. ''Spec'' has been originally developed by B. Van Ryseghem based on an idea of S. Ducasse. It is now maintained by the community and the Pharo core team.
 Spec is based on the idea that UI building should support UI logic reuse. Spec is influenced by VisualWorks and Dolphin MVP in the sense that it recognizes the need for a Presenter or ApplicationModel class, in Spec called ComposableModel that manages the logic and the link between widgets and domain objects. Spec, following the tradition, uses ''value holders'', simple objects raising announcements when their values, often domain objects, change. 
