@@ -1,5 +1,7 @@
 ! Dynamic Spec: Parties, a dynamic example
 
+Migrated to the Spec booklet.
+
 In an address book we find addresses of both people and organizations. 
 The generalization of both is called a party ('Analysis Patterns', Martin Fowler). 
 In this example we'll make an address book where we can add both persons and companies.
