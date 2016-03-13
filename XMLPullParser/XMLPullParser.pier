@@ -213,7 +213,47 @@ Methods ==textIf:== and ==textIfAny== are conditional versions of the previous t
 Methods ==textIf:else:== and ==textIfAnyElse:== operate similarly to the previous two methods but they allow you to supply a block (or any ==value== responder) to provide a value if the tag doesn't match. Note that a matching tag/name that is empty will still provide an empty string as you would expect from XML.
 
 
+!!! Another Example
 
+
+[[[
+| parser doc |
+doc := '<?xml version="1.0" encoding="iso-8859-1"?>
+<FILMS>
+  <FILM annee="1958">
+    <TITRE>Vertigo</TITRE>
+    <GENRE>Drame</GENRE>
+    <PAYS>USA</PAYS>
+    <MES idref="3"/>
+    <ROLES>
+      <ROLE>
+        <PRENOM>James</PRENOM>
+        <NOM>Stewart</NOM>
+        <INTITULE>John Ferguson</INTITULE>
+      </ROLE>
+      <ROLE>
+        <PRENOM>Kim</PRENOM>
+        <NOM>Novak</NOM>
+        <INTITULE>Madeleine Elster</INTITULE>
+      </ROLE>
+    </ROLES>
+    <RESUME>Scottie Ferguson, ancien inspecteur de police, est sujet
+au vertige depuis qu''il a vu mourir son
+ collegue. Elster, son ami, le charge de surveiller sa femme, Madeleine, ayant des tendances
+ suicidaires. Amoureux de la jeune femme Scottie ne remarque pas le piege qui se trame autour
+ de lui et dont il va etre la victime... </RESUME>
+  </FILM>
+<FILMS>'.
+parser := XMLPullParser parse: doc.
+[ parser isEndDocument ] whileFalse: [
+    parser
+        if: 'FILM'
+        peek: [ : found |
+            Transcript show: found name , ' -> ' , found attributes asString; cr.
+            parser next.
+            Transcript show: parser tagName ].
+    parser next ]
+]]]
 
 
 
