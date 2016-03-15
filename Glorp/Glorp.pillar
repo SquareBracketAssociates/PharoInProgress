@@ -1,0 +1,189 @@
+! Object-Relational Persistence with Glorp
+
+!! Introduction
+
+Working in a live object environment like Pharo is great, you can freely create your domain objects and relate or compose them as you like. Sometimes those objects can be stored in a way that preserves the original design  but sometimes you have to store your objects in a Relational Database Management System (aka ''RDBMS'') which requires you to flatten your objects into related tables managed by the RDBMS.
+
+Such process of mapping object to tables is called ''Object-Relational Mapping'' (''ORM'' for short), and like it or not, it imposes certain constraints in the design of you object model to support its persistence in tables, some models are easier to map into tables than others, the difficulty lies in what is known as ''*Object-Relational Impedance Mismatch>https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch*''.
+
+To work with relational databases Pharo provides a battle-tested ORM created at CampSmalltalk a decade ago and maintained since then, its name is Glorp for ''Generic Lightweight Object-Relational Persistence''. It is usually called both GLORP (all caps, as an accronym), or Glorp (as a proper name).
+
+Glorp is an fully featured ORM which provides you with a handful of features to reduce the ''impedance'' as much as possible; among those features you'll find it saves you from writing SQL queries by hand, managing  transactions that rollback the changes to the objects in you image or commit them to the database, writing simple and complex queries using plain Smalltalk syntax, and other features we will cover in this introduction chapter and in chapter of advanced topics.
+
+
+!! Installation
+
+!!! Database server
+Before installing Glorp you should already have installed the RDBMS of your choice in your machine or a reacheable server, it could be *PostgreSQL>http://postgresql.org*, *MySQL>http://dev.mysql.com/*, *SQLite>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts section Glorp we will refer to this RDBMS as the ''Platform''.
+
+!!! Database drivers
+Along with your working installation of your RDBMS of choice you should have installed in your image the drivers required to connect to the database server.
+- Native drivers (written in Pharo, no external dependencies)
+--  PostgreSQL
+--  MySQL
+
+- UDBC
+--  PostgreSQL
+--  MySQL
+--  SQLite (UFFI)
+--  ODBC (UFFI, Windows only)
+--  OpenDBX (UFFI)
+
+
+!!! Glorp Packages
+
+Glorp comes in a few packages you can load using a conventional ''Metacello'' definition. One package is the ==Glorp-Core==, there is a ==Glorp-Tests==
+
+[[[
+Metacello new
+    project: 'Glorp';
+    load
+
+]]]
+
+!!! Running the tests
+
+Having loaded the Database drivers and the Glorp packages, it is recommended to run the unit tests of Glorp, to ensure everything was loaded correctly and it is working properly.
+
+!! Fundamentals
+
+Disclaimer:
+Altough GLORP doesn't require you to be a SQL Jedi, it is necessary you understand simple concepts of Relational Databases like Tables, Primary Keys (PKs), Foreign Keys (FKs), indexes, column datatypes; and the lingua franca of most, if not all, relational databases: SQL (for ''Structured Query Language'').
+
+In this section we will describe the core concepts of the Glorp framework and the interaction between them. You can skip it if you already know the concepts or if you want to go straight to the tutorial examples.
+
+!!! Concepts
+
+As said before, one of the benefits of using Glorp is it saves you from writing the SQL statements required to perform ''data manipulation'' queries like ==SELECT==, ==INSERT==, ==UPDATE==, ==DELETE== and also ''data definition'' queries like ==CREATE TABLE==, ==CREATE CONSTRAINT==, including the option to perform ''sub-queries'' (also know as ==SUB SELECT==) and aggregate functions like ==COUNT==, ==GROUP BY==, without leaving the confort of your Pharo syntax.
+
+To achieve the above mentioned features Glorp models all the involved concepts (like tables, columns, classes, etc.) as first class objects, and then relates instances of those objects into the key of any Glorp-based system, the ==DescriptorSystem==.
+
+
+!!!! Platform
+In Glorp terminology a Platform is the RDBMS platform. The abstract class ==Platform== and it defines the abstract methods to deal with differences between different platforms, like different data types for classes like Date, test the support of certain features, and so on.
+
+!!!! Login
+The ==Login== class is an abstraction for the connection parameters used to connect to the database server, like the ''Plaform'' used, hostname, port, username, password, database name and other connection parameters.
+
+!!!! Database Accessor
+Glorp is programmed to be agnostic of the Smalltalk dialect and database driver, to achieve that instead of talking directly to the database driver it uses an adapter object that acts as an intermediary, each database driver requires its own subclass of ==DatabaseAccessor==. For instance there is the ==UDBCGlorpAccessor== used to access the database via the ''UDBC'' (Unified Database Connectivity) drivers.
+
+The accessor will require a ==Login== that will use to establish a connection to the database server specified in the login, using also the platform specified in it.
+
+@Session
+!!!! Session
+Everything starts with the creation of a Session
+
+
+!!!!Descriptor System
+The core of a Glorp system is its Descriptor System represented by subclasses of ==DescriptorSystem==, it holds all the Glorp metadata, like the Tables, Descriptors and Class Models. Each Glorp *Session>@Session* will have a Descriptor System associated with it.
+
+By using a separate artifact (in this case, a class) to define all the metadata of your system you can decouple your business models from its persistence information. The separation of concerns is a good practice, and helps with the maintenance of your code.
+
+Also, having an orthogonal description of your domain objects  allows you to have more than one descriptor for the same business domain class, this is an important difference with patterns like ''ActiveRecord'' where the persistence metadata is defined in the business domain class, and you can't reuse the same class for two different systems using different persistence configurations.
+
+!! A simple example
+
+To put some of the concepts described before into practice, we will create a ==Person== class and store it into a ==PERSON== database table, everything from whitin the Pharo environment.
+
+!!! Our example class
+
+[[[
+Object subclass: #Person
+	instanceVariableNames: 'name age'
+	classVariableNames: ''
+	package: 'Glorp-Examples'
+]]]
+
+
+Person instance methods
+[[[
+Person>>#name: aString
+  name := aString
+
+Person>>#age: anInteger
+    age := anInteger
+
+Person>>#name
+    ^name
+
+Person>>#age
+    ^age
+]]]
+
+
+As you can see the above created class and methods, doesn't have anything
+related with its persistence and doesn't require you to inherit from a
+particular class.
+
+All the definitions and mappings are defined in a ==DescriptorSystem==,
+and we will create one by subclassing it.
+
+[[[
+DescriptorSystem subclass: #SimpleExampleDescriptorSystem
+	instanceVariableNames: ''
+	classVariableNames: ''
+	package: 'Glorp-Examples'
+]]]
+
+We said before that Glorp has a whole metamodel that involves describing the
+mapped class, the table(s) where it is going to be mapped and the mapping
+itself. To define each one of those, Glorp follows a convention in
+the method naming, we will mention the conventions below.
+
+!!!!! Class model
+We will start by describing the class ==Person==, and the way to
+do it is by defining a method with the pattern ==classModelFor''YourClass'':==.
+
+[[[
+SimpleExampleDescriptorSystem>>#classModelForPerson: aClassModel
+  aClassModel newAttributeNamed: #name.
+  aClassModel newAttributeNamed: #age.
+]]]
+
+!!!!! Table
+This class will be stored in a single table (which is the usual case), and we
+will provide the description of the table in a similar way as with the class
+model, in this case by following the ==tableFor''YOURTABLE''== convention.
+Please notice the upper case of the table name.
+
+[[[
+SimpleExampleDescriptorSystem>>#tableForPERSON: aTable
+  (aTable createFieldNamed: 'name' type: (platform varChar: 100)) bePrimaryKey.
+  aTable createFieldNamed: 'age' type: platform integer.
+]]]
+
+!!!!! Descriptor (aka ''Mapping'')
+Once we have the class model and the table object, we will define the mappings
+between the class attributes and the table fields.
+In this simple example we will use a ==DirectMapping==, which is a class of
+mapping that takes the value in the column and assigns it to the attribute,
+and vice versa.
+
+[[[
+SimpleExampleDescriptorSystem>>#descriptorForPerson: aDescriptor
+  | table |
+  table := self tableNamed: 'PERSON'.
+  aDescriptor table: table.
+  (aDescriptor newMapping: DirectMapping)
+    from: #name
+    to: (table fieldNamed: 'name').
+  (aDescriptor newMapping: DirectMapping)
+    from: #age
+    to: (table fieldNamed: 'age')
+]]]
+
+In the above method we can see how the the descriptor ''links'' the class
+attribute to the field name.
+
+Altough verbose and maybe not visible in this simple example, here lies the
+power of the Glorp orthogonal description system, you describe everything
+and then link all the parts the way you want without modifying your doimain
+object.
+
+!!! Creating the tables
+
+Assuming we haven't created the database tables externally, Glorp's metamodel
+allows you to perform DDL (''Data Definition Language'') commands such as
+==CREATE TABLE== or ==CREATE CONSTRAINT== (among others) using plain
+Smalltalk objects.
