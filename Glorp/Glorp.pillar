@@ -52,63 +52,59 @@ Altough GLORP doesn't require you to be a SQL Jedi, it is necessary you understa
 
 In this section we will describe the core concepts of the Glorp framework and the interaction between them. You can skip it if you already know the concepts or if you want to go straight to the tutorial examples.
 
-!!! Concepts
+!!! Some concepts
 
 As said before, one of the benefits of using Glorp is it saves you from writing the SQL statements required to perform ''data manipulation'' queries like ==SELECT==, ==INSERT==, ==UPDATE==, ==DELETE== and also ''data definition'' queries like ==CREATE TABLE==, ==CREATE CONSTRAINT==, including the option to perform ''sub-queries'' (also know as ==SUB SELECT==) and aggregate functions like ==COUNT==, ==GROUP BY==, without leaving the confort of your Pharo syntax.
 
-To achieve the above mentioned features Glorp models all the involved concepts (like tables, columns, classes, etc.) as first class objects, and then relates instances of those objects into the key of any Glorp-based system, the ==DescriptorSystem==.
-
-
-!!!! Platform
-In Glorp terminology a Platform is the RDBMS platform. The abstract class ==Platform== and it defines the abstract methods to deal with differences between different platforms, like different data types for classes like Date, test the support of certain features, and so on.
-
-!!!! Login
-The ==Login== class is an abstraction for the connection parameters used to connect to the database server, like the ''Plaform'' used, hostname, port, username, password, database name and other connection parameters.
-
-!!!! Database Accessor
-Glorp is programmed to be agnostic of the Smalltalk dialect and database driver, to achieve that instead of talking directly to the database driver it uses an adapter object that acts as an intermediary, each database driver requires its own subclass of ==DatabaseAccessor==. For instance there is the ==UDBCGlorpAccessor== used to access the database via the ''UDBC'' (Unified Database Connectivity) drivers.
-
-The accessor will require a ==Login== that will use to establish a connection to the database server specified in the login, using also the platform specified in it.
-
-@Session
-!!!! Session
-Everything starts with the creation of a Session
-
-
 !!!!Descriptor System
-The core of a Glorp system is its Descriptor System represented by subclasses of ==DescriptorSystem==, it holds all the Glorp metadata, like the Tables, Descriptors and Class Models. Each Glorp *Session>@Session* will have a Descriptor System associated with it.
+To achieve the above mentioned features Glorp models all the involved concepts
+(like tables, columns, classes, etc.) as first class objects, and then relates
+instances of those objects in the ==DescriptorSystem==.
+It is the core of a Glorp system, it holds all the Glorp metadata,
+like the Tables, Descriptors and Class Models.
 
-By using a separate artifact (in this case, a class) to define all the metadata of your system you can decouple your business models from its persistence information. The separation of concerns is a good practice, and helps with the maintenance of your code.
+By using a separate artifact (in this case, a class) to define all
+the metadata of your system you can decouple your business models
+from its persistence information.
+This separation of concerns is a good practice,
+and helps with the maintenance of your code.
 
-Also, having an orthogonal description of your domain objects  allows you to have more than one descriptor for the same business domain class, this is an important difference with patterns like ''ActiveRecord'' where the persistence metadata is defined in the business domain class, and you can't reuse the same class for two different systems using different persistence configurations.
+Also, having an orthogonal description of your domain objects allows you
+to have more than one descriptor for the same business domain class,
+this is an important difference with patterns like ''ActiveRecord''
+where the persistence metadata is defined in the business domain class,
+and you can't reuse the same class for two different
+systems using different persistence configurations.
 
 !! A simple example
 
-To put some of the concepts described before into practice, we will create a ==Person== class and store it into a ==PERSON== database table, everything from whitin the Pharo environment.
+To put some of the concepts described before into practice,
+we will create a ==Person== class and store it into a ==PERSON== database table,
+ everything from whitin the Pharo environment.
 
 !!! Our example class
 
+!!!! Class definition
 [[[
 Object subclass: #Person
-	instanceVariableNames: 'name age'
+	instanceVariableNames: 'id name birthDate'
 	classVariableNames: ''
-	package: 'Glorp-Examples'
+	package: 'Glorp-Book'
 ]]]
 
-
-Person instance methods
+!!!!Instance methods
 [[[
 Person>>#name: aString
   name := aString
 
-Person>>#age: anInteger
-    age := anInteger
+  Person>>#name
+      ^name
 
-Person>>#name
-    ^name
+Person>>#birthDate: aDate
+    birthDate := aDate
 
-Person>>#age
-    ^age
+Person>>#birthDate
+    ^birthDate
 ]]]
 
 
@@ -120,10 +116,10 @@ All the definitions and mappings are defined in a ==DescriptorSystem==,
 and we will create one by subclassing it.
 
 [[[
-DescriptorSystem subclass: #SimpleExampleDescriptorSystem
+DescriptorSystem subclass: #GlorpBookDescriptorSystem
 	instanceVariableNames: ''
 	classVariableNames: ''
-	package: 'Glorp-Examples'
+	package: 'Glorp-Book'
 ]]]
 
 We said before that Glorp has a whole metamodel that involves describing the
@@ -136,9 +132,10 @@ We will start by describing the class ==Person==, and the way to
 do it is by defining a method with the pattern ==classModelFor''YourClass'':==.
 
 [[[
-SimpleExampleDescriptorSystem>>#classModelForPerson: aClassModel
+GlorpBookDescriptorSystem>>#classModelForPerson: aClassModel
+  aClassModel newAttributeNamed: #id.
   aClassModel newAttributeNamed: #name.
-  aClassModel newAttributeNamed: #age.
+  aClassModel newAttributeNamed: #birthDate.
 ]]]
 
 !!!!! Table
@@ -148,9 +145,10 @@ model, in this case by following the ==tableFor''YOURTABLE''== convention.
 Please notice the upper case of the table name.
 
 [[[
-SimpleExampleDescriptorSystem>>#tableForPERSON: aTable
-  (aTable createFieldNamed: 'name' type: (platform varChar: 100)) bePrimaryKey.
-  aTable createFieldNamed: 'age' type: platform integer.
+GlorpBookDescriptorSystem>>#tableForPERSON: aTable
+ 	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
+	aTable createFieldNamed: 'name' type: (platform varChar: 100).
+  aTable createFieldNamed: 'birthDate' type: platform date.
 ]]]
 
 !!!!! Descriptor (aka ''Mapping'')
@@ -161,16 +159,19 @@ mapping that takes the value in the column and assigns it to the attribute,
 and vice versa.
 
 [[[
-SimpleExampleDescriptorSystem>>#descriptorForPerson: aDescriptor
+GlorpBookDescriptorSystem>>#descriptorForPerson: aDescriptor
   | table |
   table := self tableNamed: 'PERSON'.
   aDescriptor table: table.
   (aDescriptor newMapping: DirectMapping)
+    from: #id
+    to: (table fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
     from: #name
     to: (table fieldNamed: 'name').
   (aDescriptor newMapping: DirectMapping)
-    from: #age
-    to: (table fieldNamed: 'age')
+    from: #birthDate
+    to: (table fieldNamed: 'birthDate')
 ]]]
 
 In the above method we can see how the the descriptor ''links'' the class
@@ -186,4 +187,112 @@ object.
 Assuming we haven't created the database tables externally, Glorp's metamodel
 allows you to perform DDL (''Data Definition Language'') commands such as
 ==CREATE TABLE== or ==CREATE CONSTRAINT== (among others) using plain
-Smalltalk objects.
+Smalltalk objects, and it even can determine when to run those.
+
+But in order to that we must first connect to the database,
+and we will explain how to it in the following pages.
+
+We're using a PostgreSQL server running in the same host
+ as our Pharo image. We will then create the Login object and a
+ ==DatabaseAccessor== for it to interact with the database.
+
+!!!! Database Accessor
+Glorp is programmed to be agnostic of the Smalltalk dialect and
+ database driver, to achieve that instead of talking directly to the
+ driver it uses an adapter object that acts as an intermediary between
+ Glorp and the underlying driver, each database driver requires its
+ own subclass of ==DatabaseAccessor==.
+
+We will be using the recommended accessor, which is the ''UDBC'' accessor
+ that is compatible with all the drivers supported by
+ the ''Unified Database Connectivity'' library.
+
+To define it as the default driver we must evaluate once:
+
+[[[
+"Run this once"
+UDBCGlorpAccessor beDefaultGlorpDriver
+]]]
+
+!!!! The Login
+All the information neccesary to connect to the database is defined in the
+==Login== object, it is an abstraction for the connection parameters
+used to connect to the database server, like the ''Plaform'' used,
+hostname, port, username, password, database name and other parameters.
+
+[[[
+login := Login new
+          database: PostgreSQLPlatform new;
+          username: 'postgres';
+          password: 'secret';
+          connectString: 'postgresv2://localhost/glorpbook'.
+
+]]]
+
+The accessor will require a ==Login== that will use to establish a connection
+to the database server specified in the login,
+using also the platform specified in it.
+
+[[[
+accessor := PharoDatabaseAccessor forLogin: login.
+accessor login.
+]]]
+
+If everything went fine, then evaluating ==accessor isLoggedIn== should answer
+''true''. Another way to test it is performing a basic query like the following
+==(accessor basicExecuteSQLString: 'SELECT 3+4') contents first first== should
+return ''7'' as the result; and yes, the ==contents first first== is dirty,
+but it is not mean to be used this way, we're doing it just to be sure.
+
+Now we're connected to the database we can start interacting with it using
+Glorp's objects, and to do that we will require an object that ''orchestrates''
+the all the other objects, the ==GlorpSession==. The easiest way to get a
+full blown session is to ask the ==DescriptionSystem== passing the a ==Login==
+instance as argument.
+
+[[[
+session := GlorpBookDescriptorSystem sessionForLogin: login.
+]]]
+
+!!!!! How the parts play together
+
+We'll look into the implementation of ==#sessionForLogin:== to understand
+better how each part interacts with each other.
+Our ==GlorpBookDescriptorSystem== inherits this implementation.
+
+[[[
+DescriptorSystem class>>#sessionForLogin: aGlorpLogin
+	| system session |
+	system := self forPlatform: aGlorpLogin database.
+	session := GlorpSession new.
+	session accessor: (DatabaseAccessor forLogin: aGlorpLogin).
+	session system: system.
+	^session
+]]]
+
+First we get a ''system'' instantiating the receiver (in our case
+  ==GlorpBookDescriptorSystem==) passing the platform as argument.
+  The platform in the ''system'' is important because it will be used to
+  generate ''SQL'' code specific for it, using particular syntax and data types.
+
+Then we instantiate a ==GlorpSession== and store it in the ''session'' object.
+This ''session'' object is assigned a ==DatabaseAccessor==, it will use such
+accessor to communicate to the database, hence the name, but to know what to
+send to the ''db'' it needs all the metadata defined in the ''system'' object
+defined before.
+
+!!!!!A note about the ''Platform''
+In Glorp terminology a Platform is the RDBMS platform.
+The abstract class ==Platform==  defines the abstract methods to deal
+ with differences of suported data types, test the support of certain features,
+ and so on.
+
+!!!! Ready to DDL
+
+Now we have our working ''session'' object, we can perform our ''DDL'' queries
+extracting the data from the ''system'' and sending commands to
+the ''accessor''.
+
+So we just evaluate ==session createTables== and ''vóilà'', it will send the
+required commands to the database to create our tables,
+sequences, constraints and so on.
