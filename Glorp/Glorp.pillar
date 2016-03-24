@@ -134,7 +134,8 @@ do it is by defining a method with the pattern ==classModelFor''YourClass'':==.
 [[[
 GlorpBookDescriptorSystem>>#classModelForPerson: aClassModel
   aClassModel newAttributeNamed: #id.
-  aClassModel newAttributeNamed: #name.
+  aClassModel newAttributeNamed: #fistName.
+  aClassModel newAttributeNamed: #lastName.
   aClassModel newAttributeNamed: #birthDate.
 ]]]
 
@@ -147,7 +148,8 @@ Please notice the upper case of the table name.
 [[[
 GlorpBookDescriptorSystem>>#tableForPERSON: aTable
  	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
-	aTable createFieldNamed: 'name' type: (platform varChar: 100).
+	aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
+  aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
   aTable createFieldNamed: 'birthDate' type: platform date.
 ]]]
 
@@ -167,8 +169,11 @@ GlorpBookDescriptorSystem>>#descriptorForPerson: aDescriptor
     from: #id
     to: (table fieldNamed: 'id').
   (aDescriptor newMapping: DirectMapping)
-    from: #name
-    to: (table fieldNamed: 'name').
+    from: #firstName
+    to: (table fieldNamed: 'firstName').
+  (aDescriptor newMapping: DirectMapping)
+      from: #lastName
+      to: (table fieldNamed: 'lastName').
   (aDescriptor newMapping: DirectMapping)
     from: #birthDate
     to: (table fieldNamed: 'birthDate')
@@ -225,7 +230,7 @@ login := Login new
           database: PostgreSQLPlatform new;
           username: 'postgres';
           password: 'secret';
-          connectString: 'postgresv2://localhost/glorpbook'.
+          connectString: 'localhost_glorpbook'.
 
 ]]]
 
@@ -252,6 +257,7 @@ instance as argument.
 
 [[[
 session := GlorpBookDescriptorSystem sessionForLogin: login.
+session login.
 ]]]
 
 !!!!! How the parts play together
@@ -291,8 +297,204 @@ The abstract class ==Platform==  defines the abstract methods to deal
 
 Now we have our working ''session'' object, we can perform our ''DDL'' queries
 extracting the data from the ''system'' and sending commands to
-the ''accessor''.
+the ''accessor''. So we just evaluate the following:
 
-So we just evaluate ==session createTables== and ''vóilà'', it will send the
-required commands to the database to create our tables,
+[[[
+session createTables
+]]]
+
+And ''vóilà'', it will send the required commands to the database to create our tables,
 sequences, constraints and so on.
+
+!!! Persisting some instances
+
+It is time to put to work all the classes and schema we just created. To do it
+we will create and persist a few instances of our example class ==Person==, and
+then read some of them back. But before doing it, we'll explain a little bit
+how Glorp decides what and when to ''INSERT'', ''UPDATE'' or ''DELETE'' an object.
+
+!!!! Transactions and ''Unit of Work''
+If you worked with RDBMS's before, you know you can use transactions that
+detachs you from immediate write to the database files, and enable you to
+rollback your changes if it is necessary, or do a batch of changes and commit
+them all at once.
+
+Glorp provides you with ''automatic'' handling of such database transactions,
+but also adds another concept, the ''Unit of work'' (aka ''UOW'' or ''UnitOfWork'').
+This ''UnitOfWork'' will keep track of all the persisted objects, enabling
+you to commit or rollback changes ""at the object level"" while also maitaining
+the database transaction in sync with it.
+
+!!!! Saving the new instances
+
+[[[caption=Saving example instances of Person|language=smalltalk
+session inUnitOfWorkDo: [
+  {
+    (Person new firstName: 'John'; lastName: 'Locke'; birthDate: '1704-08-29' asDate).
+    (Person new firstName: 'John'; lastName: 'Malkovich'; birthDate: '1953-12-09' asDate).
+    (Person new firstName: 'George'; lastName: 'Lucas'; birthDate: '1944-05-14' asDate)
+  } do: [:each | session register: each]
+].
+]]]
+
+As you can see, we didn't say if the instance needs to be inserted or updated,
+nor we specify an ''id'' for each instance. The framework will determine that
+by ''registering'' the instance in the all-mighty ''session''.
+
+!!!! Reading instances
+
+We can now read back some of the persisted instances, for that we, again, use
+the session object, sending it the message ==#read:== and the class as argument.
+This will return a collection of results.
+
+[[[caption=Read all instances of Person|language=smalltalk
+session read: Person
+]]]
+
+Of course you don't always read all the instances from the database but
+want to filter the results. For that you can pass a block that will act as
+a filter.
+
+[[[caption=Read all instances of Person matching a criteria|language=smalltalk
+session read: Person where: [:each | each firstName = 'John'].
+]]]
+
+This might lead you to think you can pass any block to filter the results
+as you can do with ==#select:== in a regular Collection, but that is not possible.
+Glorp uses blocks as a very clever way to build expressions that
+are later converted to SQL by the framework, you can do basic filtering
+using this feature, but keep in mind it doesn't work as a regular block.
+
+Besides the use of regular operators like =====, ==>===, etc
+One of examples of the mentioned above is the use of ''special'' selectors
+that get translated to their counterparts SQL operators.
+For instance the ==#similarTo:== selector gets converted to SQL's ==LIKE==
+operator. With this we can retrieve all the Persons named ''John''.
+
+[[[caption=Use an operator that gets ''translated''|language=smalltalk
+session read: Person where: [:each | each lastName similarTo: 'Malk%'].
+]]]
+
+Another convenient way to retrieve a single instance instead of a Collection
+is to use the ==#readOneOf:== or ==#readOneOf:where:== message in an analogous
+way to ==#read:== and ==#read:where:==.
+
+!!!! Update of instances
+
+We can use this case to read one instance and modify it. But to do so, we will
+do it in the context of a UnitOfWork.
+
+[[[caption=Updating an object read within a UnitOfWork
+session inUnitOfWorkDo: [
+  | person |
+  person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+  person birthDate: Date today.
+].
+]]]
+
+If you read back the 'John Locke' from the database, you'll find that the date
+was correctly updated, and it didn't require you to send ==#register:== to the
+session object, as we did while populating the table. This is so because when
+you're working inside a Unit of Work all the objects you read are automatically
+registered by the session, saving you from explicitly ''registering'' them (
+  which is safe to do anyway, but it is not required).
+
+!!! Deletion of objects
+So far we covered Creation, Read, and Update, we're only missing the Deletion of
+objects. Which is as easy as it gets, just send ==#delete:== to the session
+object with the object you want to delete as argument.
+
+[[[caption=Deleting an object inside of a UnitOfWork
+session inUnitOfWorkDo: [
+  | person |
+  person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+  session delete: person
+].
+]]]
+
+Another way to delete objects is passing a condition block.
+
+[[[caption=Delete using a where clause
+session inUnitOfWorkDo: [
+  session delete: Person where: [:each | each lastName = 'Locke'].
+].
+]]]
+
+You can delete an object without being inside of a UnitOfWork, this will
+cause the object to be deleted right away, without giving you the option
+to rollback such action... unless you handle the transaction manually.
+
+!!! Rolling back changes
+*Atomic>https://en.wikipedia.org/wiki/Atomicity_%28database_systems%29*
+ modifications to the database are important, and to achieve
+that you need transactions that let you rollback changes if something fails.
+The Unit of Work handles the errors and other unexpected terminations of
+the block, so if something fails it not only rollbacks any changes at the
+database level if necessary, but also, and more importantly I would say,
+it reverts the changes in your objects.
+
+[[[caption=Updating an object read within a UnitOfWork
+session inUnitOfWorkDo: [
+	person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+	person lastName: 'Wayne'.
+	Error signal: 'This error will abort the Unit Of Work.'
+].
+]]]
+
+!!! Managing the transaction manually
+The ==#inUnitOfWorkDo:== is a convenient way to isolate a block of execution
+within the context of a transaction at both object and database levels, however
+it has some limitations, like not being able to handle ''nested'' UnitOfWorks
+or transactions, everything happens in the context of the outer context transaction
+in which it was evaluated.
+
+However, if for some reason you need to handle the start/end/rollback of the
+unit of work manually, you can do so by using the following methods:
+
+-==#beginUnitOfWork==
+-==#commitUnitOfWork==
+-==#rollbackUnitOfWork==
+-==#commitUnitOfWorkAndContinue==
+
+The first three have self descriptive selectors, and can be using like this:
+
+[[[caption=Manual handling of the transaction
+person := session readOneOf: Person where: [:each | each firstName = 'George'].
+session beginUnitOfWork.
+session delete: person.
+session rollbackUnitOfWork.
+session beginUnitOfWork.
+person lastName: 'Lukas'.
+session register: person.
+session commitUnitOfWork.
+]]]
+
+In the case of ==#commitUnitOfWorkAndContinue== it might need some explanation,
+but the concept is simple: It commits the current unit of work, and then
+creates a new one migrating all the objects registered in the commited unit of
+work to the newly created, and still open, unit of work. If this paragraph
+confuses you, looking at its implementation might explain it better.
+
+It is useful for cases like batch loads or updates,
+were you want to commit changes every ''n'' instances or similar.
+
+[[[caption=Commiting and continuing the Unit Of Work
+session beginUnitOfWork.
+10 to: 99 do: [ :index |
+   session register: (
+		Person new
+			firstName: 'Sample';
+			lastName: index printString).
+	(index \\ 10) isZero ifTrue: [
+		session commitUnitOfWorkAndContinue
+	].
+].
+session commitUnitOfWork.
+]]]
+
+We can cleanup the sample instances by running:
+[[[caption=Delete using a where clause
+session inUnitOfWorkDo: [
+  session delete: Person where: [:each | each firstName = 'Sample'].
+].
+]]]
