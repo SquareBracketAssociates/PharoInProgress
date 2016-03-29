@@ -498,3 +498,70 @@ session inUnitOfWorkDo: [
   session delete: Person where: [:each | each firstName = 'Sample'].
 ].
 ]]]
+
+
+!! Concepts
+In our previous example we created a simple class that mapped ''1:1'' with a
+table using simple data types, but Glorp provides many more features than
+an ''ActiveRecord'' like mapping, it lets you fine tune the persistence of
+your classes. We will go over the different configurations of class models,
+table data types and constraints and mappings of all sorts.
+
+!!! Class Models
+The class model, by means of the implementations of ==#classModelFor...:==,
+defines the attributes of your domain objects, and how they compose.
+The argument of that method is an instance ==GlorpClassModel== configured for
+your domain class, and it contains an a collection of all the attributes of
+your class.
+
+The simplest way to add an attribute is using a series of convenience methods,
+described below:
+
+;==#newAttributeNamed: #email==
+:Used to define simple scalar/literal values such as Numbers, Strings, Dates, etc.
+;==#newAttributeNamed: #address type: Address==
+:Used to define 1:1 (one to one) relations with other objects of your domain model.
+;==#newAttributeNamed: #invoices collectionOf: Invoice==
+:Used to define 1:n (one to many) and n:m (many to many) relations of your
+class model with other models.
+
+;==#newAttributeNamed: #invoices collection: collectionClass of: Invoice==
+:Similar as the one above for 1:n and n:m relations, but you can define
+what kind of Collection is going to be used.
+
+;==#newAttributeNamed: #counters dictionaryFrom: keyClass to: valueClass==
+:Used to define an attribute that is a Dictionary where the key is ==keyClass==
+and its values are instances of ==valueClass==.
+
+!!! Attribute properties
+The above described methods return instances of ==GlorpAttributeModel==, which
+share common properties that you can configure.
+
+;==#useDirectAccess: aBoolean==
+:Let you define whether the access to the attribute described by the symbol
+of your domain model will be performed by directly accessing the
+instance variable (slot) instead of using a standard message send.
+
+;==#beForPseudoVariable==
+:Useful for cases where you want to describe an attribute that won't be read
+nor written, but still described. E.g. our Person example has a ==#birthDate==
+attribute, an ==#age== attribute is a good candidate to be for a pseudo variable.
+
+[[[caption=Example class model for our Person class
+GlorpBookDescriptorSystem>>#classModelForPerson: aClassModel
+  (aClassModel newAttributeNamed: #id) useDirectAccess: true.
+  aClassModel newAttributeNamed: #fistName.
+  aClassModel newAttributeNamed: #lastName.
+  aClassModel newAttributeNamed: #birthDate.
+  (aClassModel newAttributeNamed: #age) beForPseudoVariable.
+  aClassModel newAttributeNamed: #email.
+  aClassModel newAttributeNamed: #address type: Address.
+  aClassModel newAttributeNamed: #invoices collectionOf: Invoice.
+  aClassModel newAttributeNamed: #counters from: String to: Integer.
+]]]
+
+!!! Table Models
+
+!!! Mappings
+
+!! Extending our basic example
