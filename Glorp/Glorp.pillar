@@ -145,7 +145,7 @@ will provide the description of the table in a similar way as with the class
 model, in this case by following the ==tableFor''YOURTABLE''== convention.
 Please notice the upper case of the table name.
 
-[[[
+[[[caption=Table model for PERSON table
 GlorpBookDescriptorSystem>>#tableForPERSON: aTable
  	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
@@ -508,11 +508,11 @@ your classes. We will go over the different configurations of class models,
 table data types and constraints and mappings of all sorts.
 
 !!! Class Models
-The class model, by means of the implementations of ==#classModelFor...:==,
-defines the attributes of your domain objects, and how they compose.
-The argument of that method is an instance ==GlorpClassModel== configured for
-your domain class, and it contains an a collection of all the attributes of
-your class.
+The class model defines the attributes of your domain objects, and how they compose.
+Each of your persisted objects need to have a an instance of ==GlorpClassModel==
+in the descriptor system containing an a collection of all the attributes of
+your class, attributes that by convention are added by means of
+implementing ==#classModelForYourClass:==,
 
 The simplest way to add an attribute is using a series of convenience methods,
 described below:
@@ -522,13 +522,10 @@ described below:
 ;==#newAttributeNamed: #address type: Address==
 :Used to define 1:1 (one to one) relations with other objects of your domain model.
 ;==#newAttributeNamed: #invoices collectionOf: Invoice==
-:Used to define 1:n (one to many) and n:m (many to many) relations of your
-class model with other models.
-
+:Used to define 1:n (one to many) and n:m (many to many) relations of your class model with other models.
 ;==#newAttributeNamed: #invoices collection: collectionClass of: Invoice==
 :Similar as the one above for 1:n and n:m relations, but you can define
 what kind of Collection is going to be used.
-
 ;==#newAttributeNamed: #counters dictionaryFrom: keyClass to: valueClass==
 :Used to define an attribute that is a Dictionary where the key is ==keyClass==
 and its values are instances of ==valueClass==.
@@ -561,6 +558,66 @@ GlorpBookDescriptorSystem>>#classModelForPerson: aClassModel
 ]]]
 
 !!! Table Models
+Glorp also models your database objects, such as tables, constraints, indexes,
+etc., with this model it will be able to determine how to serialize to SQL
+the objects, how to perform joins to retrieve 1:1 or 1:n relations, and so on.
+
+The descriptor system follows a convention to define the tables,
+it uses the ==#tableForTABLENAME:== selector to configure ==TABLENAME==, the
+argument of this method is an instance of ==DatabaseTable==, and this
+method is responsible for describing your table in the relational
+database, including field names and their data types, contraints (primary keys
+and/or foreign keys), etc.
+
+!!!! Adding fields to the table
+Let's bring back our example from the beginning:
+[[[caption=Table model for PERSON table
+GlorpBookDescriptorSystem>>#tableForPERSON: aTable
+ 	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
+	aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
+  aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
+  aTable createFieldNamed: 'birthDate' type: platform date.
+]]]
+
+As you can see, you can add a field by sending ==#createFieldNamed:type:== to
+the table object. The first argument of the method is name of field
+(aka ''column'') in your table, the second one is the datatype.
+For the datatype we're not specifying any particular implementation of the type
+but instead we send a message to the ''platform'' object, and in Glorp jargon
+the platform is the RDBMS we'll be using.
+
+Doing it this way enables our
+table model to be RDBMS agnostic, and, for instance,
+it will work with SQLite or PostgreSQL (or any other platform).
+E.g. if our platform is PostgreSQL then ==platform varchar== will return
+==VARCHAR==, but if instead our platform is SQLite then it will return ==TEXT==
+because SQLite only supports ==TEXT== as datatype for character based fiedls.
+
+Going back to ==#createFieldNamed:type:==, it will return an instance of
+==DatabaseField==, which has properties of its own, such as if the field is
+''nullable'', ''unique'', its default value, and some convenience methods such
+as ==#bePrimaryKey== which will create a ''PK'' (primary key) on the table
+for this field.
+
+!!!!!Commonly used datatypes in alphabetic order
+||selector||''SQL-92'' datatype||Pharo class||description
+|{ blob |{ BLOB |{ ByteArray |{ Binary Large Objects, used to store binary data
+|{ boolean |{ BOOLEAN |{ Boolean |{ Boolean values such as ==true==, ==false==, 1, 0, etc.
+|{ date |{ DATE |{ Date |{ Used to store dates, without time information.
+|{ decimal |{ NUMERIC |{ ScaledDecimal |{ Arbitrary precision numbers, recommended for storing monetary amounts and other quantities where exactness is required.
+|{ double |{ DOUBLE |{ Float |{ Double precision floating point
+|{ float |{ REAL |{ Float |{ Simple precision floating point
+|{ integer |{ INTEGER |{ Integer |{ Number with no decimal information
+|{ serial |{ SERIAL |{ Integer |{ Integer that autoincrements on the database side
+|{ time |{ TIME |{ Time |{ Storing hours
+|{ timestamp |{ TIMESTAMP |{ DateAndTime |{ Date and time information in UTC
+|{ varchar |{ VARCHAR |{ String |{ Variable lenght but limited sequence of characters
+
+You can find more datatypes by browsing the ''types'' method category of
+==DatabasePlatform== or any of its subclasses, not all databases support all
+datatypes, and some platforms have their own datatype. If you decide to use
+a datatype that's only supported by a particular RDBMS you will lose the
+benefits of being platform agnostic, so it is a tradeoff.
 
 !!! Mappings
 
