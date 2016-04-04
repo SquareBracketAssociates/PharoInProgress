@@ -524,34 +524,25 @@ described below:
 ;==#newAttributeNamed: #invoices collectionOf: Invoice==
 :Used to define 1:n (one to many) and n:m (many to many) relations of your class model with other models.
 ;==#newAttributeNamed: #invoices collection: collectionClass of: Invoice==
-:Similar as the one above for 1:n and n:m relations, but you can define
-what kind of Collection is going to be used.
+:Similar as the one above for 1:n and n:m relations, but you can define what kind of Collection is going to be used.
 ;==#newAttributeNamed: #counters dictionaryFrom: keyClass to: valueClass==
-:Used to define an attribute that is a Dictionary where the key is ==keyClass==
-and its values are instances of ==valueClass==.
+:Used to define an attribute that is a Dictionary where the key is ==keyClass== and its values are instances of ==valueClass==.
 
 !!! Attribute properties
-The above described methods return instances of ==GlorpAttributeModel==, which
-share common properties that you can configure.
+The above described methods return instances of ==GlorpAttributeModel==, which share common properties that you can configure.
 
 ;==#useDirectAccess: aBoolean==
-:Let you define whether the access to the attribute described by the symbol
-of your domain model will be performed by directly accessing the
-instance variable (slot) instead of using a standard message send.
-
+:Let you define whether the access to the attribute described by the symbol of your domain model will be performed by directly accessing the instance variable (slot) instead of using a standard message send.
 ;==#beForPseudoVariable==
-:Useful for cases where you want to describe an attribute that won't be read
-nor written, but still described. E.g. our Person example has a ==#birthDate==
-attribute, an ==#age== attribute is a good candidate to be for a pseudo variable.
+:Useful for cases where you want to describe an attribute that won't be read nor written, but still described to be used on queries.
 
 [[[caption=Example class model for our Person class
 GlorpBookDescriptorSystem>>#classModelForPerson: aClassModel
   (aClassModel newAttributeNamed: #id) useDirectAccess: true.
-  aClassModel newAttributeNamed: #fistName.
+  aClassModel newAttributeNamed: #firstName.
   aClassModel newAttributeNamed: #lastName.
   aClassModel newAttributeNamed: #birthDate.
-  (aClassModel newAttributeNamed: #age) beForPseudoVariable.
-  aClassModel newAttributeNamed: #email.
+    aClassModel newAttributeNamed: #email.
   aClassModel newAttributeNamed: #address type: Address.
   aClassModel newAttributeNamed: #invoices collectionOf: Invoice.
   aClassModel newAttributeNamed: #counters from: String to: Integer.
@@ -600,18 +591,19 @@ as ==#bePrimaryKey== which will create a ''PK'' (primary key) on the table
 for this field.
 
 !!!!!Commonly used datatypes in alphabetic order
-||selector||''SQL-92'' datatype||Pharo class||description
-|{ blob |{ BLOB |{ ByteArray |{ Binary Large Objects, used to store binary data
-|{ boolean |{ BOOLEAN |{ Boolean |{ Boolean values such as ==true==, ==false==, 1, 0, etc.
-|{ date |{ DATE |{ Date |{ Used to store dates, without time information.
-|{ decimal |{ NUMERIC |{ ScaledDecimal |{ Arbitrary precision numbers, recommended for storing monetary amounts and other quantities where exactness is required.
-|{ double |{ DOUBLE |{ Float |{ Double precision floating point
-|{ float |{ REAL |{ Float |{ Simple precision floating point
-|{ integer |{ INTEGER |{ Integer |{ Number with no decimal information
-|{ serial |{ SERIAL |{ Integer |{ Integer that autoincrements on the database side
-|{ time |{ TIME |{ Time |{ Storing hours
-|{ timestamp |{ TIMESTAMP |{ DateAndTime |{ Date and time information in UTC
-|{ varchar |{ VARCHAR |{ String |{ Variable lenght but limited sequence of characters
+
+||selector||''SQL-92'' datatype||Pharo class
+|{ blob |{ BLOB |{ ByteArray
+|{ boolean |{ BOOLEAN |{ Boolean
+|{ date |{ DATE |{ Date
+|{ decimal |{ NUMERIC |{ ScaledDecimal
+|{ double |{ DOUBLE |{ Float
+|{ float |{ REAL |{ Float
+|{ integer |{ INTEGER |{ Integer
+|{ serial |{ SERIAL |{ Integer
+|{ time |{ TIME |{ Time
+|{ timestamp |{ TIMESTAMP |{ DateAndTime
+|{ varchar |{ VARCHAR |{ String
 
 You can find more datatypes by browsing the ''types'' method category of
 ==DatabasePlatform== or any of its subclasses, not all databases support all
@@ -619,6 +611,138 @@ datatypes, and some platforms have their own datatype. If you decide to use
 a datatype that's only supported by a particular RDBMS you will lose the
 benefits of being platform agnostic, so it is a tradeoff.
 
-!!! Mappings
+!!! Mappings (aka ''Descriptor'')
+Once we have the Class Model describing our business objects and the
+Table Models describing the tables where they will be stored, we need to
+describe how they are going to work together; to achieve that Glorp uses
+an instance of ==Descriptor== that contains the mappings between the attributes
+of the class model and the fields of the tables involved.
+
+As expected, there is a convention to define Descriptors and, you guessed right,
+it is ==#descriptorFor''YourClass'':== that will receive as an argument a
+instance of ==Descriptor== on which you will configure the mappings.
+
+[[[caption=Example descriptor for our Person class
+GlorpBookDescriptorSystem>>#descriptorForPerson: aDescriptor
+  | table |
+  table := self tableNamed: 'PERSON'.
+  (aDescriptor newMapping: DirectMapping) from: #id to: (table fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping) from: #firstName to: (table fieldNamed: 'firstname').
+  "snip..."
+  (aDescriptor newMapping: OneToOneMapping) attributeName: #address.
+  (aDescriptor newMapping: ToManyMapping) attributeName: #invoices.
+]]]
+
+As you can see, the usual practice is to get a reference to the tables involved
+(one in this example, could be more), and then add ''mappings'' to
+==aDescriptor== by sending it the message ==#newMapping:== with an instance of
+the class of mapping we want to use.
+
+There are many mappings that Glorp provides, but the most used ones are:
+
+!!!! Direct mapping
+To map a number, a string, a date or any other ''value'' like object
+you use an instance of ==DirectMapping==, specifying which attribute from
+your class model you want to map to a field of a table.
+
+Although many times they will be the same symbol, the argument you pass to
+the ==from:== parameter is not the symbol of the selector
+but instead the name of attribute you have defined in your ==classModelFor...:==
+method.
+
+!!!! 1:1 Relationships
+When you're trying to map a single reference from one object to another,
+you use the class ==OneToOneMapping== and specify the name of the attribute
+that this is instance is mapping. If everything is as simple as this you don't
+have to specify further instructions and Glorp will determine how to retrieve
+the instances based on the information provided in the ClassModel, foreign keys,
+etc. If you need further instructions you can always define them, more on that later.
+
+!!!! 1:N Relationships
+If you are trying to map a collection that belong to a ''parent/owner'' object
+like the invoices of a Person or the items of such invoice to the invoice itself,
+then you have to use the ==OneToManyMapping== class.
+It is commonly used when you have the rows of the tables at the ''N side'' of
+the relation have a field that ''points back'' to the the ''1 side''.
+In our example, the invoices have a Foreign Key pointing back to the persons table.
+
+!!!! N:M Relationships
+The Many to Many relationships is similar to the previous one, but in this case
+the other side of the relation might ''belong'' to more than one owner.
+For instance, if you have Person and Tag, a Person might have many Tags,
+but these tags in turn belong to other instances of Person.
+In this case you use the ==ManyToManyMapping== and also have to specify
+the ''atributeName''.
+
+From your the Pharo point of view, you will continue to see a regular collection
+but when storing its elements it will require a third table to do it, called
+a ''link table'', Glorp has a convention to name such link tables, and it is
+based on composing the names of both sides of the relations.
+Following our Person to Tag relation, the table name Glorp will expect is
+==TAG_ON_PERSON==, and this must also have its definition in the descriptor system,
+so in this case there must be a ==#tableForTAG_ON_PERSON:== method.
+
+!!!! Common properties of relationships mappings
+All ==OneToOneMapping==, ==OneToManyMapping== and ==ManyToManyMapping== are
+convenience subclasses of ==RelationshipMapping==, and as such they share
+common properties that can be modified.
+
+For instance, the only difference between ==OneToManyMapping== and
+==ManyToManyMapping== is that the later is initialized to use a link table,
+but you can have a ==OneToManyMapping== that uses a link table if you prefer,
+you simple send ==#useLinkTable== to it.
+
+All ==RelationshipMapping== instances can specify the class they reference
+by sending ==#referenceClass:== with the desired class as argument. This is
+used a lot, and is a convenience method that ends up modifying the attribute
+in the ClassModel. So you can specify it at either place you find more
+convenient.
+
+Other attribute common to all ==RelationshipMapping== subclasses is that
+you can specify how it is suppose to join with other tables, it is,
+its ==Join== object. More on this on the advanced section.
+
+Another attribute is the exclusivity of relationships, enabled by sending
+==#beExclusive== to the mapping. This handy method makes that once the ''parent''
+(or ''left'') side of the relation is deleted from the database, Glorp will
+manually delete the ''child'' (or ''right'') side of it.
+In our Person/Address example, if the relation was exclusive, then deleting
+a Person would cause Glorp to delete its address as well.
+
+One caveat of this convenience, is that it doesn't play along with database
+foreign key actions like ==ON DELETE CASCADE==, basically because one will
+happen without the other knowing it, and Glorp will try to delete an
+''exclusive'' object that was already removed from the database
+by the ''CASCADE'' and because of that it will fail.
+
+In the case of ''to many'' mappings you can specify the collection type
+of the mapping, for instance, you can send ==collectionType: Set== to your
+mapping and have it initialized to a Set instead of the default ==OrderedCollection==.
+
+And by last, but not least, you can specify whether to proxy or not such relation.
+By sending ==#shouldProxy:== either ==true== or ==false==, Glorp will
+place proxies or immediately build an instance from the database.
+If you don't specify this, it will proxy by default.
+
+!!!!! A word about Proxies
+To avoid reading the whole object graph every time you read an object that
+has any kind of relationship mapping, Glorp places a Proxy object instead
+of reading it from the database.
+This saves a lot of roundtrips to the database, bandwidth and CPU&memory
+in the image building objects that you might not use ever.
+
+However, there are cases when you know that certain objects reference
+other objects that you know that always will be used, if that is
+the case you can avoid the proxying, and instead force the immediate
+materialization.
+
+Once Glorp turns a proxy into one of your domain objects, it will store
+your object in the Session Cache (more on this later), so future references
+to the same object won't cause an additional read from the database, and instead
+use the instance in the cache.
+
+And also, Proxies are tricky animals, so beware when debugging something
+that involves them. Sometimes they can fool the development tools, making
+them believe they're something they're not!
 
 !! Extending our basic example
