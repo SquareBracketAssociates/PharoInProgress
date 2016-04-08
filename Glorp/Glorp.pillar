@@ -87,18 +87,24 @@ we will create a ==Person== class and store it into a ==PERSON== database table,
 !!!! Class definition
 [[[
 Object subclass: #Person
-	instanceVariableNames: 'id name birthDate'
+	instanceVariableNames: 'id firstName lastName birthDate'
 	classVariableNames: ''
 	package: 'Glorp-Book'
 ]]]
 
 !!!!Instance methods
 [[[
-Person>>#name: aString
-  name := aString
+Person>>#firstName: aString
+  firstName := aString
 
-  Person>>#name
-      ^name
+Person>>#firstName
+  ^firstName
+
+Person>>#lastName: aString
+  lastName := aString
+
+Person>>#lastName
+  ^lastName
 
 Person>>#birthDate: aDate
     birthDate := aDate
@@ -746,3 +752,55 @@ that involves them. Sometimes they can fool the development tools, making
 them believe they're something they're not!
 
 !! Extending our basic example
+Now we explained in more detail the main parts of Glorp's descriptor system,
+we're ready to extend our basic example, we're going to create a minimal
+invoicing model to include the concepts just learnt.
+
+To do so we will create the following classes ==Person== (already created),
+==Address==, ==Tag==, ==Invoice==, ==InvoiceItem==. We will omit the listing
+of accessor like methods, but you shuld create them.
+
+[[[caption=Class definitions
+Object subclass: #Person
+	instanceVariableNames: 'id firstName lastName birthDate addresses invoices tags'
+	classVariableNames: ''
+	package: 'Glorp-Book'.
+
+Object subclass: #Address
+	instanceVariableNames: 'id street number city zip'
+	classVariableNames: ''
+	package: 'Glorp-Book'.
+
+Object subclass: #Tag
+  	instanceVariableNames: 'name'
+  	classVariableNames: ''
+  	package: 'Glorp-Book'.
+
+Object subclass: #Invoice
+  	instanceVariableNames: 'issueDate person address items'
+  	classVariableNames: ''
+  	package: 'Glorp-Book'.
+
+Object subclass: #InvoiceItem
+  	instanceVariableNames: 'invoice description price'
+  	classVariableNames: ''
+  	package: 'Glorp-Book'.
+]]]
+
+Aside from the accessors, when you're dealing with collections
+(to-many relations) that are going to persisted, it is recommended to
+initialize all the instance variables that will reference such collections.
+Otherwise it could cause some failures, and also having a ''complete''
+instance is a good practice too.
+
+[[[caption=Initialization methods
+Person>>#initialize
+  super initialize.
+  addresses := OrderedCollection new.
+  invoices := OrderedCollection new.
+  tags := OrderedCollection new.
+
+Invoice>>#initialize
+    super initialize.
+    items := OrderedCollection new.
+]]]
