@@ -1,7 +1,13 @@
 ! Object-Relational Persistence with Glorp
 
 
-!! Introduction
+This document written by E. Maringolo decribes the Glorp object-relational mapper. 
+
+Reading it you will learn how to map your objects to relational database using an object-relational mapper named Glorp.
+This document will revisit the relational database concepts. It will then 
+
+
+!! What is Glorp
 
 Working in a live object environment such Pharo is great. You can freely create your domain objects and link or compose them as you like. Sometimes those objects can be stored in a way that preserves the original design  but sometimes you have to store your objects in a Relational Database Management System (a.k.a. ''RDBMS'') which requires you to flatten your object graph into related tables managed by the RDBMS.
 
@@ -15,7 +21,7 @@ Glorp is an fully featured ORM which provides you with a handful of features to 
 !! Installation
 
 !!! Database server
-Before installing Glorp you should already have installed the RDBMS of your choice in your machine or a reacheable server, it could be *PostgreSQL>http://postgresql.org*, *MySQL>http://dev.mysql.com/*, *SQLite>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts section Glorp we will refer to this RDBMS as the ''Platform''.
+Before installing Glorp you should already have installed the RDBMS of your choice in your machine or a reacheable server, it could be *PostgreSQL (http://postgresql.org)>http://postgresql.org*, *MySQL (http://dev.mysql.com/)>http://dev.mysql.com/*, *SQLite (http://sqlite.org)>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts Section Glorp we will refer to this RDBMS as the ''Platform''.
 
 !!! Database drivers
 Along with your working installation of your RDBMS of choice you should have installed in your image the drivers required to connect to the database server.
@@ -30,19 +36,19 @@ Along with your working installation of your RDBMS of choice you should have ins
 --  ODBC (UFFI, Windows only)
 --  OpenDBX (UFFI)
 
+@@todo What is UDBC?
 
 !!! Glorp Packages
 
-Glorp comes in a few packages you can load using a conventional ''Metacello'' definition. One package is the ==Glorp-Core==, there is a ==Glorp-Tests==
+Glorp comes in a few packages you can load using a conventional ''Metacello'' expression. One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package. 
 
 [[[
 Metacello new
     project: 'Glorp';
     load
-
 ]]]
 
-!!! Running the tests
+!!! Running the Tests
 
 Having loaded the Database drivers and the Glorp packages, it is recommended to
 run the unit tests of Glorp, to ensure everything was loaded correctly and it
@@ -51,17 +57,17 @@ is working properly.
 !! Fundamentals
 
 Disclaimer:
-Altough GLORP doesn't require you to be a SQL Jedi, it is necessary you
+Although GLORP doesn't require you to be a SQL Jedi, it is necessary you
 understand simple concepts of Relational Databases like Tables,
 Primary Keys (PKs), Foreign Keys (FKs), indexes, column datatypes;
- and the lingua franca of most, if not all, relational databases:
- SQL (for ''Structured Query Language'').
+and the lingua franca of most, if not all, relational databases:
+SQL (for ''Structured Query Language'').
 
 In this section we will describe the core concepts of the Glorp framework
- and the interaction between them. You can skip it if you already know
- the concepts or if you want to go straight to the tutorial examples.
+and the interaction between them. You can skip it if you already know
+the concepts or if you want to go straight to the tutorial examples.
 
-!!! Some concepts
+!!! Some Concepts
 
 As said before, one of the benefits of using Glorp is it saves you from
  writing the SQL statements required to perform ''data manipulation''
@@ -91,7 +97,7 @@ where the persistence metadata is defined in the business domain class,
 and you can't reuse the same class for two different
 systems using different persistence configurations.
 
-!! A simple example
+!! A Simple Example
 
 To put some of the concepts described before into practice,
 we will create a ==Person== class and store it into a ==PERSON== database table,
