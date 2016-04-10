@@ -937,24 +937,29 @@ GlorpBookDescriptorSystem >> classModelForInvoiceItem: aClassModel
 
 !!!! Table Declarations
 
+Then we should declare the tables that represent our domain. 
 
-[[[caption=Table models
+[[[caption=Table models for Person
 GlorpBookDescriptorSystem >> tableForPERSON: aTable
  	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
     aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
     aTable createFieldNamed: 'email' type: (platform varchar: 200).
+]]]
 
+[[[
 GlorpBookDescriptorSystem >> tableForADDRESS: aTable
  	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'street' type: (platform varChar: 100).
     aTable createFieldNamed: 'zip' type: platform integer.
+]]]
 
+[[[
 GlorpBookDescriptorSystem >> tableForINVOICE: aTable
     | personField addressField |
     (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
     aTable createFieldNamed: 'issueDate' type: platform date.
-	personField := aTable createFieldNamed: 'person_id' type: platform integer.
+    personField := aTable createFieldNamed: 'person_id' type: platform integer.
     addressField := aTable createFieldNamed: 'address_id' type: platform integer.
     aTable
         addForeignKeyFrom: personField
@@ -962,18 +967,26 @@ GlorpBookDescriptorSystem >> tableForINVOICE: aTable
     aTable
         addForeignKeyFrom: addressField
         to: ((self tableNamed: 'ADDRESS') fieldNamed: 'id').
+]]]
 
+@@todo add an explanation about addForeignKeyFrom:to:
+
+
+[[[
 GlorpBookDescriptorSystem >> tableForINVOICEITEM: aTable
     | invoiceField |
     (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
     invoiceField := aTable createFieldNamed: 'invoice_id' type: platform serial.
     aTable createFieldNamed: 'description' type: (platform varchar: 150).
-	aTable createFieldNamed: 'price' type: platform decimal.
+    aTable createFieldNamed: 'price' type: platform decimal.
     aTable createFieldNamed: 'position' type: platform integer.
     aTable
         addForeignKeyFrom: invoiceField
         to: ((self tableNamed: 'INVOICE') fieldNamed: 'id').
+]]]
 
+
+[[[
 GlorpBookDescriptorSystem >> tableForPERSON_ON_ADDRESS: aTable
     | personField addressField |
 	personField := aTable createFieldNamed: 'person_id' type: platform integer.
@@ -993,10 +1006,79 @@ GlorpBookDescriptorSystem >> tableForPERSON_ON_ADDRESS: aTable
 As you can see in the last method, we created a table model for the table
 ==PERSON_ON_ADDRESS==, this table will be used as a link table. Also you can
 notice we not only created fields in the tables, but also created ''Foreign
-Key'' constraints, for that we needed to obtain the referenced table
-to get the referenced field.
+Key'' constraints. For that we needed to obtain the referenced table
+to get the referenced field. 
+
+@@todo  For that we needed to obtain the referenced table to get the referenced field? for example?
 
 !!! Mapping Declarations
+
+The mapping for the class and table address is simple since there is a direct mapping between the class model (the domain model) and the table. 
+
+[[[caption=Class descriptors
+GlorpBookDescriptorSystem >> descriptorForAddress: aDescriptor
+    | table |
+    table := self tableNamed: 'ADDRESS'.
+    aDescriptor table: table.
+    (aDescriptor newMapping: DirectMapping)
+        from: #id
+        to: (table fieldNamed: 'id').
+    (aDescriptor newMapping: DirectMapping)
+        from: #street
+        to: (table fieldNamed: 'street').
+    (aDescriptor newMapping: DirectMapping)
+            from: #city
+            to: (table fieldNamed: 'zip').
+]]]
+
+The mapping for invoice item is slightly different since an item can ...
+@@todo explain (aDescriptor newMapping: OneToOneMapping) attributeName: #invoice.
+[[[
+GlorpBookDescriptorSystem >> descriptorForInvoiceItem: aDescriptor
+    | table |
+    table := self tableNamed: 'INVOICEITEM'.
+    aDescriptor table: table.
+    (aDescriptor newMapping: DirectMapping)
+        from: #id
+        to: (table fieldNamed: 'id').
+    (aDescriptor newMapping: DirectMapping)
+        from: #description
+        to: (table fieldNamed: 'description').
+    (aDescriptor newMapping: DirectMapping)
+        from: #price
+        to: (table fieldNamed: 'price').
+    (aDescriptor newMapping: OneToOneMapping)
+            attributeName: #invoice.
+]]]
+
+
+
+The mapping for invoice is a bit more elaborated. 
+@@todo explain writeTheOrderField; orderBy: [:each | (each getTable: 'INVOICEITEM') getField: 'position'].
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForInvoice: aDescriptor
+    | table |
+    table := self tableNamed: 'INVOICE'.
+    aDescriptor table: table.
+    (aDescriptor newMapping: DirectMapping)
+        from: #id
+        to: (table fieldNamed: 'id').
+    (aDescriptor newMapping: DirectMapping)
+        from: #issueDate
+        to: (table fieldNamed: 'issueDate').
+    (aDescriptor newMapping: OneToOneMapping)
+            attributeName: #person.
+    (aDescriptor newMapping: OneToOneMapping)
+            attributeName: #address.
+    (aDescriptor newMapping: ToManyMapping)
+        attributeName: #items;
+		writeTheOrderField;
+        orderBy: [:each | (each getTable: 'INVOICEITEM') getField: 'position'].
+]]]
+
+
+The mapping for the class Person is more elaborated and worth some explanation.
 
 [[[caption=Class descriptors
 GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
@@ -1028,53 +1110,8 @@ GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
 		join: (Join
 				from: (table fieldNamed: 'id')
 				to: (linkTable fieldNamed: 'person_id')).
-
-GlorpBookDescriptorSystem >> descriptorForAddress: aDescriptor
-    | table |
-    table := self tableNamed: 'ADDRESS'.
-    aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
-    (aDescriptor newMapping: DirectMapping)
-        from: #street
-        to: (table fieldNamed: 'street').
-    (aDescriptor newMapping: DirectMapping)
-            from: #city
-            to: (table fieldNamed: 'zip').
-
-GlorpBookDescriptorSystem >> descriptorForInvoice: aDescriptor
-    | table |
-    table := self tableNamed: 'INVOICE'.
-    aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
-    (aDescriptor newMapping: DirectMapping)
-        from: #issueDate
-        to: (table fieldNamed: 'issueDate').
-    (aDescriptor newMapping: OneToOneMapping)
-            attributeName: #person.
-    (aDescriptor newMapping: OneToOneMapping)
-            attributeName: #address.
-    (aDescriptor newMapping: ToManyMapping)
-        attributeName: #items;
-		writeTheOrderField;
-        orderBy: [:each | (each getTable: 'INVOICEITEM') getField: 'position'].
-
-GlorpBookDescriptorSystem >> descriptorForInvoiceItem: aDescriptor
-    | table |
-    table := self tableNamed: 'INVOICEITEM'.
-    aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
-    (aDescriptor newMapping: DirectMapping)
-        from: #description
-        to: (table fieldNamed: 'description').
-    (aDescriptor newMapping: DirectMapping)
-        from: #price
-        to: (table fieldNamed: 'price').
-    (aDescriptor newMapping: OneToOneMapping)
-            attributeName: #invoice.
 ]]]
+
+@@todo we should explain the JOIN and 
+
+
