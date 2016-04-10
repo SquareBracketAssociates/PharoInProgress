@@ -624,6 +624,7 @@ and/or foreign keys), etc.
 
 !!!! Adding Fields to the Table
 Let's bring back our example from the beginning:
+
 [[[caption=Table model for PERSON table
 GlorpBookDescriptorSystem >> tableForPERSON: aTable
  	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
@@ -743,8 +744,8 @@ Following our Person to Tag relation, the table name Glorp will expect is
 ==TAG_ON_PERSON==, and this must also have its definition in the descriptor system,
 so in this case there must be a ==tableForTAG_ON_PERSON:== method.
 
-!!!! Common properties of relationships mappings
-Here!Stef
+!!! Common Properties of Relationship Mappings
+
 All ==OneToOneMapping==, ==OneToManyMapping== and ==ManyToManyMapping== are
 convenience subclasses of ==RelationshipMapping==, and as such they share
 common properties that can be modified.
@@ -752,46 +753,59 @@ common properties that can be modified.
 For instance, the only difference between ==OneToManyMapping== and
 ==ManyToManyMapping== is that the later is initialized to use a link table,
 but you can have a ==OneToManyMapping== that uses a link table if you prefer,
-you simple send ==#useLinkTable== to it.
+you simple send ==useLinkTable== to it.
 
+
+!!!!Reference Classes. 
 All ==RelationshipMapping== instances can specify the class they reference
-by sending ==#referenceClass:== with the desired class as argument. This is
+by sending ==referenceClass:== with the desired class as argument. This is
 used a lot, and is a convenience method that ends up modifying the attribute
 in the ClassModel. So you can specify it at either place you find more
 convenient.
+
+@@todo ClassModel? or class model
+@@todo abour referenceClass: I wonder why there is only one referenceClass? because a relationship is between two classes. 
 
 Other attribute common to all ==RelationshipMapping== subclasses is that
 you can specify how it is suppose to join with other tables, it is,
 its ==Join== object. More on this on the advanced section.
 
+@@todo Indeed this is the first time we hear about Join. 
+
+!!!!Exclusivity.
 Another attribute is the exclusivity of relationships, enabled by sending
-==#beExclusive== to the mapping. This handy method makes that once the ''parent''
+==beExclusive== to the mapping. This handy method makes that once the ''parent''
 (or ''left'') side of the relation is deleted from the database, Glorp will
 manually delete the ''child'' (or ''right'') side of it.
 In our Person/Address example, if the relation was exclusive, then deleting
 a Person would cause Glorp to delete its address as well.
 
-One caveat of this convenience, is that it doesn't play along with database
+@@todo So far we do not have a person address just a Person. 
+
+One caveat of this convenience approach, is that it doesn't play along with database
 foreign key actions like ==ON DELETE CASCADE==, basically because one will
 happen without the other knowing it, and Glorp will try to delete an
 ''exclusive'' object that was already removed from the database
 by the ''CASCADE'' and because of that it will fail.
 
+!!!! Collection Type.
 In the case of ''to many'' mappings you can specify the collection type
 of the mapping, for instance, you can send ==collectionType: Set== to your
 mapping and have it initialized to a Set instead of the default ==OrderedCollection==.
 
+
+!!!! Proxy.
 And by last, but not least, you can specify whether to proxy or not such relation.
-By sending ==#shouldProxy:== either ==true== or ==false==, Glorp will
+By sending ==shouldProxy:== either ==true== or ==false==, Glorp will
 place proxies or immediately build an instance from the database.
 If you don't specify this, it will proxy by default.
 
-!!!!! A Word about Proxies
+!!!!! A Word about Proxies.
 To avoid reading the whole object graph every time you read an object that
 has any kind of relationship mapping, Glorp places a Proxy object instead
 of reading it from the database.
-This saves a lot of roundtrips to the database, bandwidth and CPU&memory
-in the image building objects that you might not use ever.
+This saves a lot of roundtrips to the database, bandwidth and CPU/memory
+in the image building objects that you may not ever use.
 
 However, there are cases when you know that certain objects reference
 other objects that you know that always will be used, if that is
@@ -808,39 +822,54 @@ that involves them. Sometimes they can fool the development tools, making
 them believe they're something they're not!
 
 !! Extending our Basic Example
-Now we explained in more detail the main parts of Glorp's descriptor system,
+Now that we explained in more detail the main parts of Glorp's descriptor system,
 we're ready to extend our basic example, we're going to create a minimal
 invoicing model to include the concepts just learnt.
 
+!!! Domain Classes
+
 To do so we will create the following classes ==Person==,
 ==Address==, ==Invoice==, ==InvoiceItem==, all inheriting from
-==GlorpBookObject==, as a convenience to inherit the ''id'' attribute.
-We will omit the listing of accessor like methods, but you shuld create them.
+==GlorpBookObject==, as a convenience to factor the ''id'' attribute.
+
+@@todo we should add somewhere in the concept section, 
+
+We will omit the listing of accessor methods, but you should create them.
 Regarding the ''id'' attribute, Glorp doesn't require you to use it as
-the primary key of your objects, you can use as many attributes as you want,
+the primary key of your objects. You can use as many attributes as you want,
 but for the sake of simplicity we will use it as a ''surrogate key''.
 
-[[[caption=Class definitions
+@@todo I have no idea about what is surrogate key. 
+
+[[[caption=Hierarchy Root of Book Classes.
 Object subclass: #GlorpBookObject
 	instanceVariableNames: 'id'
 	classVariableNames: ''
 	package: 'Glorp-Book'.
+]]]
 
+[[[caption=Person Class.
 GlorpBookObject subclass: #Person
 	instanceVariableNames: 'firstName lastName birthDate addresses invoices tags'
 	classVariableNames: ''
 	package: 'Glorp-Book'.
+]]]
 
+[[[caption=Address Class.
 GlorpBookObject subclass: #Address
 	instanceVariableNames: 'street number city zip'
 	classVariableNames: ''
 	package: 'Glorp-Book'.
+]]]
 
+[[[caption=Invoice Class.
 GlorpBookObject subclass: #Invoice
     	instanceVariableNames: 'issueDate person address items'
     	classVariableNames: ''
     	package: 'Glorp-Book'.
+]]]
 
+[[[caption=Invoice Item Class.
 GlorpBookObject subclass: #InvoiceItem
     	instanceVariableNames: 'invoice description price'
     	classVariableNames: ''
@@ -858,16 +887,20 @@ Person >> initialize
     super initialize.
     addresses := OrderedCollection new.
     invoices := OrderedCollection new.
-
-Invoice >> initialize
-        super initialize.
-        items := OrderedCollection new.
 ]]]
 
-Let's create extend our ==GlorpBookDescriptorSystem== to describe the new
+[[[caption=Initialization methods
+Invoice >> initialize
+    super initialize.
+    items := OrderedCollection new.
+]]]
+
+
+!!! Class Model Declarations
+Let's create our ==GlorpBookDescriptorSystem== to describe the new
 domain model.
 
-[[[caption=Class models
+[[[caption=Class Model Declarations
 GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
     (aClassModel newAttributeNamed: #id) useDirectAccess: true.
     aClassModel newAttributeNamed: #firstName.
@@ -875,25 +908,35 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
     aClassModel newAttributeNamed: #email.
     aClassModel newAttributeNamed: #addresses collectionOf: Address.
     aClassModel newAttributeNamed: #invoices collectionOf: Invoice.
+]]]
 
+[[[
 GlorpBookDescriptorSystem >> classModelForAddress: aClassModel
     (aClassModel newAttributeNamed: #id) useDirectAccess: true.
     aClassModel newAttributeNamed: #street.
     aClassModel newAttributeNamed: #zip
+]]]
 
+[[[
 GlorpBookDescriptorSystem >> classModelForInvoice: aClassModel
     (aClassModel newAttributeNamed: #id) useDirectAccess: true.
     aClassModel newAttributeNamed: #issueDate.
     aClassModel newAttributeNamed: #person type: Person.
     aClassModel newAttributeNamed: #address type: Address.
     aClassModel newAttributeNamed: #items collectionOf: InvoiceItem
+]]]
 
+[[[
 GlorpBookDescriptorSystem >> classModelForInvoiceItem: aClassModel
     (aClassModel newAttributeNamed: #id) useDirectAccess: true.
     aClassModel newAttributeNamed: #invoice type: Invoice.
     aClassModel newAttributeNamed: #description.
     aClassModel newAttributeNamed: #price
 ]]]
+
+
+!!!! Table Declarations
+
 
 [[[caption=Table models
 GlorpBookDescriptorSystem >> tableForPERSON: aTable
@@ -952,6 +995,8 @@ As you can see in the last method, we created a table model for the table
 notice we not only created fields in the tables, but also created ''Foreign
 Key'' constraints, for that we needed to obtain the referenced table
 to get the referenced field.
+
+!!! Mapping Declarations
 
 [[[caption=Class descriptors
 GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
