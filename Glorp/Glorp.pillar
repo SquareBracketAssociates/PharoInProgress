@@ -1108,3 +1108,49 @@ of the described or referenced class, but you can make that Join explicit,
 you just have to create a ==Join== object with the source field and the
 referenced field as arguments. In this case the join is pretty straightforward
 and between two fields, but it could be between as many fields as you want.
+
+
+!!! Sample data
+
+We will create some sample data for our example, and for the Perons we will
+save three instances named after famous Smalltalkers, with random addresses,
+so don't mail them.
+
+[[[
+session inUnitOfWorkDo: [
+	| lastnames firstnames |
+	{ 'Dan'. 'Alan'. 'Adele' } with: {'Ingalls'. 'Kay'. 'Goldberg'} do:
+    [:firstName :lastName |
+		| person |
+		person := (Person new firstName: firstName; lastName: lastName).
+		person addresses add: (
+			Address new
+				street: (1 to: 1000) atRandom printString, ' Random Avenue';
+				zip: (1000 to: 9000 by: 100) atRandom;
+				yourself).
+		session register: person
+	]
+].
+]]]
+
+Now we created the sample Persons, let's add an extra address for Alan.
+
+[[[caption=Adding Alan's VPRI institute address
+session inUnitOfWorkDo: [
+	| alan |
+	alan := session readOneOf: Person where: [ :each | each firstName = 'Alan' ].
+	alan addresses
+		add: (Address new
+					street: '1025 Westwood Blv, 2nd Floor, Los Angeles, CA';
+					zip: 90024;
+					yourself)
+].
+]]]
+
+If we read the instance again, we can inspect its addresses to find
+it has two of them:
+[[[caption=Inspect the result of the following
+(session readOneOf: Person where: [ :each | each firstName = 'Alan' ]) addresses.
+]]]
+
+We can now procceed to create an invoice for Alan.
