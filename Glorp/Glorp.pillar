@@ -1063,7 +1063,7 @@ GlorpBookDescriptorSystem >> descriptorForInvoiceItem: aDescriptor
         from: #price
         to: (table fieldNamed: 'price').
     (aDescriptor newMapping: OneToOneMapping)
-            attributeName: #invoice.
+        attributeName: #invoice.
 ]]]
 
 
@@ -1237,3 +1237,68 @@ at the database side would be more efficient, since we would only retrieve
 the total instead. But how to do such query?
 
 !!! The Query object
+So far we've been querying objects by means of sending ==read:== or
+==read:where:== to the session object, but if you want to perform
+a particular query, like limiting the number of results, running an aggregate
+function like ==SUM()==, ==AVG()==, ordering the rows at the server side,
+performing subqueries and many other features then the session object
+can't provide you with an API for that.
+
+Everyime you sent a ==read:== message to the session, the session created a
+simple ==Query== object to read the class passed as parameter, but you can
+instantiate a Query object independently, configure it to fit your needs and
+execute it in the session. Enter the ==Query== object.
+
+[[[
+(session read: Invoice) executeIn: session
+]]]
+
+Let's say we want to know the sum of all the prices of our InvoiceItems,
+we can do that by using the ==retrieve:== method and using an aggregate function
+like ==sum==.
+
+[[[
+((SimpleQuery read: InvoiceItem)
+  readsOneObject: true;
+  retrieve: [:each | each price sum ]) executeIn: session.
+]]]
+
+The retrieve method configures the query to return only the retrieved attributes
+of the read object, they query will return a collection with the objects
+retrieved instead of a collection of instances of the read class.
+
+If we know the beforehand that our query will return an single row with a single
+field, it is, a single object, then we can configure the query to return such
+object directly by setting ==readsOneObject:== to true.
+
+If you retrieve more than one object then the query will return a collection
+of collections, in the form of ''#(#(...) #(...) ...)''.
+
+[[[
+((SimpleQuery read: Person)
+  retrieve: [:each | each firstName ];
+  retrieve: [:each | each lastName]) executeIn: session.
+]]]
+
+!!! Attributes of queries
+The Query object models an SQL ==SELECT== statement, and like that statement
+it can include a ==WHERE==, ===ORDER BY==, ==GROUP BY==, ==HAVING==, etc.
+
+!!!! ''WHERE'' expression
+You can always include a ''where'' expression as you did when reading
+through the session object, but you can also instantiate a Query inside
+of a ''where'' expression to perform a sub-query.
+[[[
+((SimpleQuery read: Invoice)
+  where: [:each | each ]
+]]]
+
+
+
+
+
+
+
+
+
+((SimpleQuery read: Invoice) retrieve: [:each | each countStar ] ) executeIn: session
