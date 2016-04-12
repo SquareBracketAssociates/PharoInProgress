@@ -1147,10 +1147,93 @@ session inUnitOfWorkDo: [
 ].
 ]]]
 
-If we read the instance again, we can inspect its addresses to find
-it has two of them:
+As you can see, we didn't have to register the newly created address because
+the Person was read inside of a UnitOfWork; so if we read the instance again
+and inspect its addresses we will find the new instance is there.
+
 [[[caption=Inspect the result of the following
 (session readOneOf: Person where: [ :each | each firstName = 'Alan' ]) addresses.
 ]]]
 
-We can now procceed to create an invoice for Alan.
+Before continuing and to make code simpler and more readable we'll
+create a few convenience methods:
+
+[[[caption=Constructor method for the InvoiceItem
+InvoiceItem class >> description: aString price: aNumber
+	^ self new
+		description: aString;
+		price: aNumber;
+		yourself
+]]]
+[[[caption=To minimize external manipulation of a private collection
+Invoice >> addItem: anInvoiceItem
+  anInvoiceItem invoice: self.
+  self items add: anInvoiceItem
+]]]
+
+[[[caption=Returns the added up price of its items
+Invoice >> totalPrice
+	^ self items sum: #price
+]]]
+
+We can now procceed to create an few instances of Invoice, let's create
+one Invoice for each person in the database with two items describing
+donations to the *Pharo Consortium>http://consortium.pharo.org* and
+*Association>http://association.pharo.org* with randomized amounts
+(whitin certain range) for each one.
+
+[[[caption=Creating random amount donations
+session inUnitOfWorkDo: [
+	(session read: Person) do: [:person |
+		| invoice |
+		invoice := Invoice new
+					issueDate: Date today;
+					person: person;
+					address: person addresses atRandom.
+		invoice
+			addItem: (InvoiceItem
+          description: 'Pharo Consortium donation'
+          price: (1000s to: 4000s by: 1000s) atRandom);
+			addItem: (InvoiceItem
+          description: 'Pharo Association donation'
+          price: (20s to: 100s by: 10s) atRandom);
+			yourself.
+		session register: invoice.
+	]
+].
+]]].
+
+As usual, you can read the Invoices by doing ==session read: Invoice==, let's
+print how much each Person donated.
+
+[[[
+(session read: Invoice) do: [:each |
+  Transcript
+    show: each person firstName, ' ', each person lastName;
+    show: ': ', each totalPrice printString;
+    cr.
+]
+]]]
+
+When we presented the ReferenceMappings we mentioned how Glorp puts proxies
+in the place of a referenced object to avoid performing unnecesary roundtrips
+to the database.
+In the example above, assuming all caches are empty, Glorp will perform one
+query to retrieve all the Invoices and then one extra query to retrieve
+the data to instantiate each Person. So if you retrieve Invoices for three
+different persons, Glorp will perform four queries, it is four roundtrips,
+to the database. Keep that in mind while we continue with other examples.
+
+[[[caption=Calculating the total amount donated
+(session read: Invoice) sum: #totalPrice
+]]]
+
+The #sum: above will retrieve all the rows from the tables,
+instantiate an equivalent quantity of Invoice and then go over all
+the invoices' items to sum them. In our example, we only have a few instances
+but what if we had a million of them? Instantiating everything at the Pharo
+side wouldn't be convenient for such a simple sum. Performing an SQL ==SUM()==
+at the database side would be more efficient, since we would only retrieve
+the total instead. But how to do such query?
+
+!!! The Query object
