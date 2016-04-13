@@ -1286,19 +1286,140 @@ it can include a ==WHERE==, ===ORDER BY==, ==GROUP BY==, ==HAVING==, etc.
 
 !!!! ''WHERE'' expression
 You can always include a ''where'' expression as you did when reading
-through the session object, but you can also instantiate a Query inside
-of a ''where'' expression to perform a sub-query.
+through the session object, inside the ''where'' expression you can filter by
+attributes of referenced objects.
+
 [[[
 ((SimpleQuery read: Invoice)
-  where: [:each | each ]
+  where: [:each | each person lastName = 'Goldberg' ]) executeIn: session
 ]]]
 
+Or even by interacting with a referenced collection, i.e. retrieving
+only Invoices containing items with a price above 2000.
 
+[[[
+((SimpleQuery read: Invoice)
+  where: [:invoice |
+		invoice items anySatisfy: [ :item |
+			item price > 2000 ]]) executeIn: session.
+]]]
 
+!!!! ''ORDER BY'' expression
+The ==ORDER BY== expression in a Query object is set by sending ==orderBy:== to
+the query object as many times, as fields you want to include in your ordering
+criteria.
+[[[
+((SimpleQuery read: InvoiceItem)
+	orderBy: [:each | each price descending];
+	orderBy: [:each | each invoice person lastName]) executeIn: session.
+]]]
 
+!!!! ''GROUP BY'' expression
+As shown in previous code samples you can also perform SQL's ''aggregate''
+queries like ==SUM()==, ==COUNT()==, etc.; if you want to perform those
+aggregate functions grouped by certain expression, then the ==groupBy:==
+option comes to the rescue.
 
+[[[
+((SimpleQuery read: InvoiceItem)
+	retrieve: [ :each | each invoice person firstName, '-',  each invoice person lastName];
+	retrieve: [ :each | each price sum ];
+	groupBy: [ :each | each invoice person firstName, '-', each invoice person lastName]
+	) executeIn: session.
+]]]
 
+In the above example you can see we're retrieving two fields concatenated,
+and grouped by the same concatenated value. Remember that when doing a
+an aggregate function, all the non-aggregated fields retrieved must be included
+in the ''GROUP BY''. Notice here we're also grouping by a field in other table,
+Glorp resolves all the ''JOINs'' for you.
 
+[[[caption=Retrieving the average donation
+((SimpleQuery read: InvoiceItem)
+	retrieve: [ :each | each description];
+	retrieve: [ :each | each price average ];
+	groupBy: [ :each | each description]) executeIn: session.
+]]]
 
+Although the ''GROUP BY'' expression is used extensively in production systems,
+it only works for retrieving fields of the query and not full-fledged instances
+of your objects described in your DescriptorSystem.
 
-((SimpleQuery read: Invoice) retrieve: [:each | each countStar ] ) executeIn: session
+!!!! ''LIMIT'' and ''OFSSET'' expressions
+You can also limit the number of rows returned by your Query, this is useful
+if you know your query will return one single row/object or if only want to
+retrieve a certain number of rows. The ''LIMIT'' expression varies between
+different databases, Glorp will make sure it generates the right SQL code
+for the plaform you're using.
+
+When the ''LIMIT'' expression is used in combination with the ''OFFSET''
+expression it lets you implement simple pagination queries.
+
+[[[
+((SimpleQuery read: InvoiceItem)
+	limit: 3;
+	offset: 3) executeIn: session.
+]]]
+
+!!!! Fetching referenced objects
+We mentioned before that when you're querying the Invoices Glorp will
+place a Proxy object for each reference (e.g. Person) it doesn't have in
+the session cache, and then once the Proxy is hit by a message send it will
+materialize it by retrieving its contents by performing a database Query,
+imagine this scenario for at least 1000 Invoices that references a different
+Person each, that would be 1001 queries and their involved I/O impact.
+
+In a regular SQL query you would solve that by doing a regular ''JOIN'' with
+the related table; when reading first class Objects with Glorp it makes it
+almost as easy as doing a ''JOIN'' in SQL.
+
+[[[
+((SimpleQuery read: Invoice)
+	alsoFetch: [:each | each person ];
+  alsoFetch: [:each | each address]) executeIn: session.
+]]]
+
+You can specify as many ==alsoFetch:== references as you want, and Glorp
+will knit all together by using ''JOIN'' expressions created from the ''Join''
+objects defined when configuring the reference mappings of the Class Descriptor.
+
+If nothing else is added to the ==alsoFetch:== expression block it will perform
+==INNER JOIN== to knit the relations; but if you're ''also fetching'' a
+reference that might be nil then the whole object/row would be excluded
+from the result. For instance, if an Invoice doesn't have an Address, then
+with the above example that invoice would be left out by the JOIN.
+
+You can save that by doing an ==OUTER JOIN== on the field you're fetching
+by simply adding ==asOuterJoin== to the field.
+
+[[[caption=Retrieving all at once with an OUTER JOIN
+((SimpleQuery read: Invoice)
+	alsoFetch: [:each | each person ];
+  alsoFetch: [:each | each address asOuterJoin]) executeIn: session.
+]]]
+
+The ==alsoFetch:== is a powerful feature, and can be used in combination with
+all the above described Query attributes (except for ''GROUP BY'').
+
+!!!! Ensuring fresh data
+Everytime you read an object inside a Glorp session, it will save it in the
+session cache keyed by an object representing the Primary Key in your database,
+in our example each ClassDescriptor will have a cache keyed by the ==id== field,
+which happens to be our PK in the tables.
+
+This is great because, as any proper cache would, it avoids going
+outside of your image to retrieve something from the database,
+saving you from the extra roundtrips. However, when the objects are modified
+concurrently during the lifetime of your session, then you could end up with
+an old version of it, and even if you perform a new Query to the database
+Glorp will try to use the same object it had in the session Cache.
+
+As you might expect by now, Glorp provides a way to override this and force
+the update of the Cache with the newly read data. Just simply set
+==shouldRefresh: true==, and this will tell Glorp to ignore any attempt
+to read from the Cache and instead always use what is new.
+
+[[[
+((SimpleQuery read: Invoice)
+  shouldRefresh: true) executeIn: session.
+]]]
