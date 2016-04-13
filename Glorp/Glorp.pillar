@@ -1125,10 +1125,10 @@ session inUnitOfWorkDo: [
 		person := (Person new firstName: firstName; lastName: lastName).
 		person addresses add: (
 			Address new
-				street: (1 to: 1000) atRandom printString, ' Random Avenue';
-				zip: (1000 to: 9000 by: 100) atRandom;
-				yourself).
-		session register: person
+        street: (1 to: 1000) atRandom printString, ' Random Avenue';
+        zip: (1000 to: 9000 by: 100) atRandom;
+        yourself).
+    session register: person
 	]
 ].
 ]]]
@@ -1140,10 +1140,10 @@ session inUnitOfWorkDo: [
 	| alan |
 	alan := session readOneOf: Person where: [ :each | each firstName = 'Alan' ].
 	alan addresses
-		add: (Address new
-					street: '1025 Westwood Blv, 2nd Floor, Los Angeles, CA';
-					zip: 90024;
-					yourself)
+    add: (Address new
+		  street: '1025 Westwood Blv, 2nd Floor, Los Angeles, CA';
+		  zip: 90024;
+			yourself)
 ].
 ]]]
 
@@ -1160,11 +1160,12 @@ create a few convenience methods:
 
 [[[caption=Constructor method for the InvoiceItem
 InvoiceItem class >> description: aString price: aNumber
-	^ self new
-		description: aString;
-		price: aNumber;
-		yourself
+	^self new
+    description: aString;
+    price: aNumber;
+    yourself
 ]]]
+
 [[[caption=To minimize external manipulation of a private collection
 Invoice >> addItem: anInvoiceItem
   anInvoiceItem invoice: self.
@@ -1184,24 +1185,24 @@ donations to the *Pharo Consortium>http://consortium.pharo.org* and
 
 [[[caption=Creating random amount donations
 session inUnitOfWorkDo: [
-	(session read: Person) do: [:person |
-		| invoice |
-		invoice := Invoice new
-					issueDate: Date today;
-					person: person;
-					address: person addresses atRandom.
+  (session read: Person) do: [:person |
+    | invoice |
+    invoice := Invoice new
+      issueDate: Date today;
+      person: person;
+      address: person addresses atRandom.
 		invoice
 			addItem: (InvoiceItem
-          description: 'Pharo Consortium donation'
-          price: (1000s to: 4000s by: 1000s) atRandom);
+        description: 'Pharo Consortium donation'
+        price: (1000s to: 4000s by: 1000s) atRandom);
 			addItem: (InvoiceItem
-          description: 'Pharo Association donation'
-          price: (20s to: 100s by: 10s) atRandom);
+        description: 'Pharo Association donation'
+        price: (20s to: 100s by: 10s) atRandom);
 			yourself.
 		session register: invoice.
 	]
 ].
-]]].
+]]]
 
 As usual, you can read the Invoices by doing ==session read: Invoice==, let's
 print how much each Person donated.
@@ -1336,9 +1337,9 @@ Glorp resolves all the ''JOINs'' for you.
 
 [[[caption=Retrieving the average donation
 ((SimpleQuery read: InvoiceItem)
-	retrieve: [ :each | each description];
-	retrieve: [ :each | each price average ];
-	groupBy: [ :each | each description]) executeIn: session.
+  retrieve: [ :each | each description];
+  retrieve: [ :each | each price average ];
+  groupBy: [ :each | each description]) executeIn: session.
 ]]]
 
 Although the ''GROUP BY'' expression is used extensively in production systems,
@@ -1357,8 +1358,8 @@ expression it lets you implement simple pagination queries.
 
 [[[
 ((SimpleQuery read: InvoiceItem)
-	limit: 3;
-	offset: 3) executeIn: session.
+  limit: 3;
+  offset: 3) executeIn: session.
 ]]]
 
 !!!! Fetching referenced objects
@@ -1375,7 +1376,7 @@ almost as easy as doing a ''JOIN'' in SQL.
 
 [[[
 ((SimpleQuery read: Invoice)
-	alsoFetch: [:each | each person ];
+  alsoFetch: [:each | each person ];
   alsoFetch: [:each | each address]) executeIn: session.
 ]]]
 
@@ -1394,7 +1395,7 @@ by simply adding ==asOuterJoin== to the field.
 
 [[[caption=Retrieving all at once with an OUTER JOIN
 ((SimpleQuery read: Invoice)
-	alsoFetch: [:each | each person ];
+  alsoFetch: [:each | each person ];
   alsoFetch: [:each | each address asOuterJoin]) executeIn: session.
 ]]]
 
@@ -1420,6 +1421,5 @@ the update of the Cache with the newly read data. Just simply set
 to read from the Cache and instead always use what is new.
 
 [[[
-((SimpleQuery read: Invoice)
-  shouldRefresh: true) executeIn: session.
+((SimpleQuery read: Invoice) shouldRefresh: true) executeIn: session.
 ]]]
