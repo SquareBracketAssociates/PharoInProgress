@@ -1423,3 +1423,23 @@ to read from the Cache and instead always use what is new.
 [[[
 ((SimpleQuery read: Invoice) shouldRefresh: true) executeIn: session.
 ]]]
+
+!!!!Set operations
+In addition to statements that affect the result set of the query,
+you can perform
+*set operations>https://en.wikipedia.org/wiki/Set_operations_%28SQL%29*
+like ==UNION ALL==, ==INTERSECT== and ==EXCLUDE== (aka ''subtract'')
+between your query and other queries.
+
+[[[
+((SimpleQuery read: InvoiceItem) except:
+  (SimpleQuery read: InvoiceItem where: [:each | each price < 1000])
+  ) executeIn: session.
+]]]
+
+|| SQL SET OPERATOR || Query selector ||
+| ==UNION ALL== | ==union:== |
+| ==INTERSECT== | ==intersect:== |
+| ==EXCLUDE== | ==minus:== |
+
+!! Advanced topics
