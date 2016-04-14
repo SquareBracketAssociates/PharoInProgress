@@ -1506,21 +1506,31 @@ GlorpBookDescriptorSystem >> classModelForRightChild: aClassModel
 GlorpBookDescriptorSystem >> tableForLEFTCHILDTABLE: aTable
   (aTable createFieldNamed: 'left_value' type: (platform varChar: 50)).
   (aTable createFieldNamed: 'top' type: (platform varChar: 50)).
-  (aTable createFieldNamed: 'id' type: (platform serial) bePrimaryKey.
+  (aTable createFieldNamed: 'id' type: (self sequenceTypeNamed: 'parent_seq'))
+    bePrimaryKey.
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> tableForRIGHTCHILDTABLE: aTable
   (aTable createFieldNamed: 'right_value' type: (platform varChar: 50)).
   (aTable createFieldNamed: 'top' type: (platform varChar: 50)).
-  (aTable createFieldNamed: 'id' type: (platform serial) bePrimaryKey.
+  (aTable createFieldNamed: 'id' type: (self sequenceTypeNamed: 'parent_seq'))
+    bePrimaryKey.
 ]]]
 
-So far we created the Class Models for two classes, and a Table Model for each
-one of them, but nothing involving inheritance.
+We introduced ==sequenceTypeNamed:==, that we didn't use before. When using
+==sequence== or ==serial== datatypes, Glorp will create a database sequence
+for each table if required, but because we're using a type resolver
+with inheritance, it is necessary that all the children classes that use
+a ==serial== datatype share the same sequence. The method ==sequenceTypeNamed:==
+will lookup in the Descriptor System for an existing sequence with that name,
+and if no one was registered before it will instantiate a new one with that name
+and register it for later use.
 
-Notice we don't have to create a Class Model for the ==Parent== class,
-although we will have to create a Class Descriptor for it.
+So far we created the Class Models for two classes, and a Table Model for each
+one of them, but nothing involving inheritance. Notice we don't have to create a
+Class Model for the ==Parent== class, although we will have to create a
+Class Descriptor for it.
 
 [[[
 GlorpBookDescriptorSystem >> descriptorForParent: aDescriptor
@@ -1593,17 +1603,21 @@ and ==RightChild== you'll notice we're registering the Descriptor in the
 Type Resolver of the ==Parent== class; both child classes, unless overriden,
 will continue having their default resolver.
 
-The typeResolverForParent method returns the actual resolver, which is used by GLORP to
-determine which tables to examine for polymorphic queries. With the above setup the following
-query will return all Parent, LeftChild and RightChild objects with left as the value of the instance
-variable top.
+[[[caption=Some sample instances
+session inUnitOfWorkDo: [
+	session register: (LeftChild new top: 'Left top'; left: 'I am a left child').
+	session register: (RightChild new top: 'Right top'; right: 'I am a right child').
+].
+]]]
 
-[[[caption=With the setup above, we can write queries like this
-session read: Parent where: [:each | each top = 'left']
+With the setup above, we can write queries like the following
+
+[[[caption=Querying the Parent class
+(session read: Parent) "-> an OrderedCollection(a RightChild a LeftChild)"
 ]]]
 
 [[[caption=We can still write queries directly on the subclasses
-session read: LeftChild where: [:each | each top = 'left']
+(session read: LeftChild)
 ]]]
 
 There is one restriction on polymorphic queries when using
@@ -1616,3 +1630,102 @@ for use. As a result the following request will raise an exception.
 ]]]
 
 !!!! One table for all classes
+In this method of organizing the tables there is one table that holds the data
+for all objects in the hierarchy. In this example the one table is called
+==ALL_DATA==. We will include an ==object_type== column used to store the type
+of the object in the row.  This allows GLORP to create an instance of the
+correct class when it reads a row in the table. Note
+that regardless of what type of object is in a row, one column,
+either ==left_value== or ==right_value==, will be ==null==.
+While this method does waste space in the database, performing a polymorphic
+query will be faster as there is only one table to access.
+
+
+We start by describing the new Type Resolver for the ==Parent== class.
+
+[[[
+  GlorpBookDescriptorSystem >> typeResolverForParent
+    ^FilteredTypeResolver forRootClass: Parent
+]]]
+
+The class definitions remain the same as in the Table for each Concrete
+Class example. The descriptor changes a bit.
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForParent: aDescriptor
+  | table |
+  table := self tableNamed: 'ALL_DATA'.
+  aDescriptor table: table.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id to: (table fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #top to: (table fieldNamed: 'top').
+  (self typeResolverFor: Parent)
+    register: aDescriptor abstract: true
+]]]
+
+We use a different resolver, need to supply values for ==object_type==
+column and need more information for the ==Parent== class.
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForLeftChild: aDescriptor
+  | leftTable |
+  leftTable := self tableNamed: 'ALL_DATA'.
+  aDescriptor table: leftTable.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id to: (leftTable fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #top to: (leftTable fieldNamed: 'top').
+  (aDescriptor newMapping: DirectMapping)
+    from: #left to: (leftTable fieldNamed: 'left_value').
+  (self typeResolverFor: Parent)
+    register: aDescriptor
+    keyedBy: 'L'
+    field: (leftTable fieldNamed: 'object_type').
+]]]
+
+Note how to indicate the value of the ==object_type== column for
+==LeftChild== objects with the resolver.
+The argument for the ==keyedBy:== parameter
+is the String =='L'== but it could be any String of your preference,
+like the class name. Keep in mind that the shorter the key, the less
+storage space it will take, and also less bandwidth used.
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForRightChild: aDescriptor
+  | rightTable |
+  rightTable := self tableNamed: 'ALL_DATA'.
+  aDescriptor table: rightTable.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id to: (rightTable fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #top to: (rightTable fieldNamed: 'top').
+  (aDescriptor newMapping: DirectMapping)
+    from: #right to: (rightTable fieldNamed: 'right_value').
+  (self typeResolverFor: Parent)
+    register: aDescriptor
+    keyedBy: 'R'
+    field: (rightTable fieldNamed: 'object_type').
+]]]
+
+Even though Parent is still an abstract class Glorp requires us to given
+the mappings for the Parent instance variables. If Parent were not abstract
+we would have to provide a key value for the column ==object_type==.
+
+[[[
+GlorpBookDescriptorSystem >> tableForALL_DATA: aTable
+  (aTable createFieldNamed: 'top' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'left_value' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'right_value' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'object_type' type: (platform varChar: 2)).
+  (aTable createFieldNamed: 'id' type: (platform sequence)) bePrimaryKey.
+]]]
+
+
+!!!! About inheritance with Type Resolvers
+Although in our example with the class ==Parent== was the superclass of both
+==LeftChild== and ==RightChild==, in Glorp terms it is not required that
+child Descriptors share a common class ancestor, as far as they have the same
+class attributes as the parent Descriptor.
+
+!! Under the hood
