@@ -1443,3 +1443,176 @@ between your query and other queries.
 | ==EXCLUDE== | ==minus:== |
 
 !! Advanced topics
+!!! Inheritance and Polymorphic Queries
+If the class ==Parent== has two subclasses named ==LeftChild== and
+==RightChild==, a polymorphic query is one were we can query on the
+==Parent== class and as a result get instances of ==Parent==, ==LeftChild==
+and ==RightChild==.
+
+There are three common ways to support polymorphic queries with a
+relational database:
+- A table for each class (abstract or not)
+- A table for each concrete class
+- One table for all classes
+
+Glorp currently supports the the two latest options.
+
+!!!! A table for each concrete class
+In this method each concrete class has its own table.
+That table holds all the instance variables for the class.
+For an example of this method we will make the Parent class an abstract class.
+So we need two tables, which we will call ==LEFTCHILDTABLE== and
+==RIGHTCHILDTABLE==.
+
+The class definitions are straightforward.
+[[[
+GlorpBookObject subclass: #Parent
+	instanceVariableNames: 'top'
+	classVariableNames: ''
+	package: 'Glorp-Book'
+]]]
+
+[[[
+Parent subclass: #LeftChild
+	instanceVariableNames: 'left'
+	classVariableNames: ''
+	package: 'Glorp-Book'
+]]]
+
+[[[
+Parent subclass: #LeftChild
+	instanceVariableNames: 'right'
+	classVariableNames: ''
+	package: 'Glorp-Book'
+]]]
+
+We'll extend our previous Descriptor System to include the newly created
+classes.
+
+[[[caption=Class model for LeftChild
+GlorpBookDescriptorSystem >> classModelForLeftChild: aClassModel
+  aClassModel newAttributeNamed: #left.
+  aClassModel newAttributeNamed: #top.
+  aClassModel newAttributeNamed: #id.
+]]]
+[[[caption=Class model for RightChild
+GlorpBookDescriptorSystem >> classModelForRightChild: aClassModel
+  aClassModel newAttributeNamed: #right.
+  aClassModel newAttributeNamed: #top.
+  aClassModel newAttributeNamed: #id
+]]]
+
+[[[caption=Creating the tables
+GlorpBookDescriptorSystem >> tableForLEFTCHILDTABLE: aTable
+  (aTable createFieldNamed: 'left_value' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'top' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'id' type: (platform serial) bePrimaryKey.
+]]]
+
+[[[
+GlorpBookDescriptorSystem >> tableForRIGHTCHILDTABLE: aTable
+  (aTable createFieldNamed: 'right_value' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'top' type: (platform varChar: 50)).
+  (aTable createFieldNamed: 'id' type: (platform serial) bePrimaryKey.
+]]]
+
+So far we created the Class Models for two classes, and a Table Model for each
+one of them, but nothing involving inheritance.
+
+Notice we don't have to create a Class Model for the ==Parent== class,
+although we will have to create a Class Descriptor for it.
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForParent: aDescriptor
+  (self typeResolverFor: Parent) register: aDescriptor abstract: true.
+]]]
+
+As you can see, we introduced a concept in the Class Descriptor that
+we never used, explicitly, before: the Type Resolver
+(or ''resolver'' for short).
+
+Every Class Descriptor has a ''resolver'' that helps it determine which
+class to instantiate, if Glorp doesn't find one explicitly defined it will
+create an ==IdentityTypeResolver== for your class.
+
+You can define the resolver for your class by implementing a method
+named ==typeResolverFor''YourClass''== that returns an instance of TypeResolver.
+We will create one for our class ==Parent==
+
+[[[
+GlorpBookDescriptorSystem >> typeResolverForParent
+  ^HorizontalTypeResolver forRootClass: Parent
+]]]
+
+There are different classes of resolvers:
+;IdentityTypeResolver
+:No inheritance
+;HorizontalTypeResolver
+:Each Class is persisted in a separate table
+;FilteredTypeResolver
+:All Classes are persisted in the same table
+
+We chosen the ==HorizontalTypeResolver== because we're storing our instances
+in separate tables. ==IdentityTypeResolver== doesn't need further explanation,
+and we will cover ==FilteredTypeResolver== later.
+
+Each of the class descriptor methods register a resolver.
+The method typeResolverFor: results
+in a call to typeResolverForParent.
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForLeftChild: aDescriptor
+  | leftTable |
+  leftTable := self tableNamed: 'LEFTCHILDTABLE'.
+  aDescriptor table: leftTable.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id to: (leftTable fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #top to: (leftTable fieldNamed: 'top').
+  (aDescriptor newMapping: DirectMapping)
+    from: #left to: (leftTable fieldNamed: 'left_value').
+  (self typeResolverFor: Parent) register: aDescriptor.
+]]]
+
+[[[
+GlorpBookDescriptorSystem >> descriptorForRightChild: aDescriptor
+  | rightTable |
+  rightTable := self tableNamed: 'RIGHTCHILDTABLE'.
+  aDescriptor table: rightTable.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id to: (rightTable fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #top to: (rightTable fieldNamed: 'top').
+  (aDescriptor newMapping: DirectMapping)
+    from: #right to: (rightTable fieldNamed: 'right_value').
+  (self typeResolverFor: Parent) register: aDescriptor.
+]]]
+
+If you look at the last line in the definition of Descriptors for ==LeftChild==
+and ==RightChild== you'll notice we're registering the Descriptor in the
+Type Resolver of the ==Parent== class; both child classes, unless overriden,
+will continue having their default resolver.
+
+The typeResolverForParent method returns the actual resolver, which is used by GLORP to
+determine which tables to examine for polymorphic queries. With the above setup the following
+query will return all Parent, LeftChild and RightChild objects with left as the value of the instance
+variable top.
+
+[[[caption=With the setup above, we can write queries like this
+session read: Parent where: [:each | each top = 'left']
+]]]
+
+[[[caption=We can still write queries directly on the subclasses
+session read: LeftChild where: [:each | each top = 'left']
+]]]
+
+There is one restriction on polymorphic queries when using
+==HorizontalTypeResolver== (a table for each Concrete Class) which is one can
+not use ==orderBy:==. The query makes multiple requests to the database as it
+has to read both tables, so we cannot have the database order the results
+for use. As a result the following request will raise an exception.
+[[[caption=Horizontal resolvers can't order
+((Query read: Parent) orderBy: #top) executeIn: session
+]]]
+
+!!!! One table for all classes
