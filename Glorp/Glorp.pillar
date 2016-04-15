@@ -1729,3 +1729,46 @@ child Descriptors share a common class ancestor, as far as they have the same
 class attributes as the parent Descriptor.
 
 !! Under the hood
+!!! How Glorp expressions work
+At this point you might have noticed that we use blocks in many places
+to specify the ''where'' expression, ''retrieve'' a particular field, ''order''
+the results, and many other things. Altough we use blocks for the convenience
+and readability they provide, once assigned to a Glorp object like
+==SimpleQuery== it will convert the block to a ''Glorp expression'', depending
+on the context it will any of the subclasses of ==GlorpExpression==.
+
+[[[caption=A simple expression
+query where: [:each | each attribute > 100]
+]]]
+
+To convert the block to an expression, it passes a ==MessageArchiver== as the
+first argument of the block, the ''message archiver''
+will intercept all the message sends vía ==doesNotUnderstand:==,
+and will return another archiver, so the next message send is handled by the
+new archiver and so on. With this strategy it will construct a tree
+of instances ==GlorpExpression==.
+
+Using ''each'' as the block argument name can be misleading, but it is used
+by convention, but it has more sense in the context of a filtering expression
+than in a ==retrieve:== or ==groupBy:==.
+
+Because it uses ==doesNotUnderstand:== as a way to build the expression tree,
+it is possible that some selectors will be highlighted by Pharo as not
+implemented, in particular salectors that are used to instantiate
+==FunctionExpression=='s.
+
+!!!! About special selectors
+When writing blocks that involve more than one condition, we don't use
+==and:== nor ==or:== selectors, and instead we use ==AND:== and ==OR:==
+respectively. The same applies for ==isNil== and ==notNil==. This is so
+because the compiler optimizes certain message sends, including the ones
+mentioned before.
+
+[[[caption=Special selectors
+query where: [:each |
+ each attributeOne > 100 OR: [
+  each attributeTwo notNIL AND: [
+    each attributeThree isNIL ] ] ]
+]]]
+
+!!! Function expressions
