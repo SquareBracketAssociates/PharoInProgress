@@ -400,6 +400,27 @@ Any should got someMessage twice. "will fail because mock2 received #someMessage
 mock2 someMessage.
 Any should got someMessage twice. "will not fail because both mocks received #someMessage twice"
 ]]]
+!!!Verify message send result
+There are two ways how to verify result of occurred message:
+
+First you can continue "should got" expression with "which should" clause to validate actual returned value:
+[[[
+	rect := 0@0 corner: 2@3.
+	rect stub.
+
+	rect area.
+
+	rect should got area which should equal: 6.
+	rect should got width which should beKindOf: Number
+]]]
+And you can validate sender message of any object:
+[[[
+	mock := Mock new.
+
+	result := mock someMessage.
+
+	result should beReturnedFrom: [ mock someMessage ].
+]]]
 !!!Verify group of message sends
 There is way to verify group of message sends at once:
 [[[
