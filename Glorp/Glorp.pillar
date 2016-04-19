@@ -1771,4 +1771,55 @@ query where: [:each |
     each attributeThree isNIL ] ] ]
 ]]]
 
-!!! Function expressions
+!!!! Function expressions
+The special selectors mentioned before are nothing but a particular case of a
+==FunctionExpression==, but as those there are many others, consider the
+following Glorp query:
+
+[[[
+SimpleQuery read: Person where: [:each |
+  each lastName asUppercase similarTo: 'GOLD%' ]
+]]]
+
+You can see there that we send the ==asUppercase== message to the lastName
+''attribute'' and then ==similarTo:== to that result.
+The previous query will produce something like this:
+
+[[[language=sql
+SELECT * FROM Person WHERE UPPER(lastName) LIKE 'GOLD%'
+]]]
+
+It is very likely that the ==similarTo:== selector will be highlighted
+as missing or not implemented in the current image. This is so because
+the ==MessageArchiver==  will resolve the symbol to an instance of one
+of the subclasses of ==FunctionExpression==. It achieves it by rebuilding
+the ''archiver'' as it consumes the selectors, you can find how it does by
+looking for the implementors of ==rebuildOn:startingFrom:withOuterScopeBase:==.
+
+In the middle of those implementors you'll find senders to
+==getFunction:arguments:==, this in turn will query the ''platform''
+for the list of functions available, which will end up creating
+the list of default functions by sending ==createBasicFunctionsFor:==
+in to the ==FunctionExpression class==.
+
+If you ever need to add functions not supported by default, you can extend
+the functions in ==FunctionExpression class >> createBasicFunctionsFor:==
+or by adding them to your current platform. Also you can read there the list
+of available symbol functions and their default mapping to SQL functions.
+
+!! Appendix A: Basic Relational Databases Concepts
+!!! Tables
+!!!! Columns
+!!!! constraints
+!!!!! Primary Key
+!!!!! Foreign Keys
+!!!! Indexes
+!!! Relations
+!!!! Joins
+!!!!! INNER JOINs
+!!!!! OUTER JOINs
+!!! SQL
+!!!! SELECT
+!!!! INSERT
+!!!! UPDATE
+!!!! DELETE
