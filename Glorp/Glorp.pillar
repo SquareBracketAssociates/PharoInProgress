@@ -1,17 +1,17 @@
 ! Object-Relational Persistence with Glorp
 
-This document decribes the Glorp object-relational mapper. By reading it, you will learn how to map your objects to relational database. This document will revisit the relational database concepts. Then its tutorial will present step by step how to use Glorp and its advanced concepts.
-We thank the author of the previous Glorp tutorials R. Withney and N. Pratt to have granted us the right to use some of their material. This document has been written by E. Maringolo and edited by S. Ducasse.
+This document decribes the Glorp object-relational mapper. By reading it, you will learn how to map your objects to a relational database. This document first revisits relational database concepts. Then it presents step by step how to use Glorp and its advanced concepts in a tutorial.
+We thank the authors of the previous Glorp tutorials R. Withney and N. Pratt for having granted us the right to use some of their material. This document has been written by E. Maringolo and edited by S. Ducasse.
 
 !! What is Glorp
 
-Working in a live object environment such Pharo is great. You can freely create your domain objects and link or compose them as you like. Sometimes those objects can be stored in a way that preserves the original design    but sometimes you have to store your objects in a Relational Database Management System (a.k.a. ''RDBMS'') which requires you to flatten your object graph into related tables managed by the RDBMS.
+Working in a live object environment such as Pharo is great. You can freely create your domain objects and link or compose them as you like. Sometimes those objects can be stored in a way that preserves the original design    but in other cases you have to store your objects in a Relational Database Management System (a.k.a. ''RDBMS''). This requires you to flatten your object graph into relational tables managed by the RDBMS.
 
-Such process of mapping object to tables is called ''Object-Relational Mapping'' (''ORM''), and like it or not, it imposes certain constraints in the design of you object model to support its persistence in tables. Some models are easier to map into tables than others, the difficulty lies in what is known as ''*Object-Relational Impedance Mismatch>https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch*''.
+This process of mapping object to tables is called ''Object-Relational Mapping'' (''ORM''), and like it or not, it imposes certain constraints in the design of your object model to support persisting it in tables. Some models are easier to map onto tables than others, the difficulty lies in what is known as the ''*Object-Relational Impedance Mismatch>https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch*''.
 
-To work with relational databases, Pharo provides a battle-tested ORM created at CampSmalltalk a decade ago and maintained since then, its name is Glorp for ''Generic Lightweight Object-Relational Persistence''. It is usually called both GLORP (all caps, as an accronym), or Glorp (as a proper name).
+To work with relational databases, Pharo provides a battle-tested ORM created at CampSmalltalk a decade ago and maintained since then. Its name is Glorp for ''Generic Lightweight Object-Relational Persistence''. It is usually called both GLORP (all caps, as an accronym), or Glorp (as a proper name).
 
-Glorp is an fully featured ORM which provides you with a handful of features to reduce the ''impedance'' as much as possible. Among those features you'll find it saves you from writing SQL queries by hand, managing    transactions that rollback the changes to the objects in you image or commit them to the database, writing simple and complex queries using plain Smalltalk syntax, and other features that we will cover in this introduction chapter and in chapter of advanced topics.
+Glorp is a full-featured ORM which provides you with a number of features to reduce the ''impedance'' as much as possible. Amongst those features you'll find some saving you from writing SQL queries by hand, managing    transactions that rollback the changes to the objects in your image or commit them to the database, writing simple and complex queries using plain Smalltalk syntax, and other features that we will cover in this introduction chapter and in the advanced topics chapter.
 
 
 !! Installation
