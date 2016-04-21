@@ -17,7 +17,7 @@ Glorp is an fully featured ORM which provides you with a handful of features to 
 !! Installation
 
 !!! Database server
-Before installing Glorp you should already have installed the RDBMS of your choice in your machine or a reacheable server, it could be *PostgreSQL (http://postgresql.org)>http://postgresql.org*, *MySQL (http://dev.mysql.com/)>http://dev.mysql.com/*, *SQLite (http://sqlite.org)>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts Section Glorp we will refer to this RDBMS as the ''Platform''.
+Before installing Glorp you should already have installed the RDBMS of your choice on your machine or a reacheable server, it could be *PostgreSQL (http://postgresql.org)>http://postgresql.org*, *MySQL (http://dev.mysql.com/)>http://dev.mysql.com/*, *SQLite (http://sqlite.org)>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts Section Glorp we will refer to this RDBMS as the ''Platform''.
 
 !!! Database Drivers
 Along with your working installation of your RDBMS of choice you should have installed in your image the drivers required to connect to the database server.
@@ -53,9 +53,9 @@ run the unit tests of Glorp, to ensure everything was loaded correctly and it
 is working properly.
 
 !! Person: Our First Example Class
-To put some of the concepts described before into practicewe will create
+To put some of the concepts described before into practice we will create
 a ==Person== class and store it into a ==PERSON== database table,
-everything from within the Pharo environment.
+all from within the Pharo environment.
 
 !!! Class definition
 [[[caption=Defining our example class
@@ -91,30 +91,30 @@ Person >> initialize
 ]]]
 
 !!! Defining a DescriptorSystem
-As you can see the above created class and methods, doesn't have anything
-related with its persistence and doesn't require you to inherit from a
+As you can see the above created class and methods, don't have anything
+related to persistence and don't require you to inherit from a
 particular class.
 
-Glorp models all the involved concepts (such tables, columns, classes, etc.)
+Glorp models all the involved concepts (such as tables, columns, classes, etc.)
 as first class objects, and then links
 instances of those objects in the ==DescriptorSystem==.
 It is the core of a Glorp system, it holds all the Glorp metadata,
-such the Tables, Descriptors and Class Models.
+such as the Tables, Descriptors and Class Models.
 
 By using a separate artifact (in this case, a class) to define all
-the metadata of your system you can decouple your business models
-from its persistence information.
+the metadata of your system, you can decouple your business models
+from tgheir persistence information.
 This separation of concerns is a good practice,
-and helps with the maintenance of your code.
+and helps with the maintainability of your code.
 
 Also, having an orthogonal description of your domain objects allows you
-to have more than one descriptor for the same business domain class,
-this is an important difference with patterns such as ''ActiveRecord''
+to have more than one descriptor for the same business domain class.
+This is an important difference with patterns such as ''ActiveRecord''
 where the persistence metadata is defined in the business domain class,
 and you can't reuse the same class for two different
 systems using different persistence configurations.
 
-All the definitions and mappings are defined in a sublclass of
+All the definitions and mappings are defined in a subclass of
 ==DescriptorSystem==, and for that we will create our own subclass.
 
 [[[caption=Our descriptor system class
@@ -127,7 +127,7 @@ DescriptorSystem subclass: #GlorpBookDescriptorSystem
 We said before that Glorp has a whole metamodel that involves describing the
 mapped class, the table(s) where it is going to be mapped and the mapping
 itself. To define each one of those, Glorp follows a convention in
-the method naming, we will mention the conventions below.
+the method naming. We will mention the conventions below.
 
 !!!! Class Model
 We start by describing the class ==Person==, and the way to
@@ -143,8 +143,8 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
 
 Note that a class model is a Glorp representation of your domain class. Glorp uses it to
 store metadata about your domain objects. The descriptor system provides hooks to let you define
-such class model. ==classModelForPerson:== is one of such hooks. Based on the name convention enonced
-before, Glorp associates automatically one class model and to your domain class.
+such a class model. ==classModelForPerson:== is one of these hooks. Based on the name convention described
+before, Glorp automatically associates this class model to your domain class.
 
 !!!! Table Model
 The class ==Person== will be stored in a single table (which is the usual case), and we
@@ -161,7 +161,7 @@ GlorpBookDescriptorSystem >> tableForPERSON: aTable
 ]]]
 
 The ''serial'' datatype, explained in detail below, is an autoincrementing
-integer datatype, everytime you save a new instance Glorp will obtain a
+integer datatype. Every time you save a new instance Glorp will obtain a
 new integer and assign it to your instance.
 
 !!!! Descriptor (aka ''Mapping'').
