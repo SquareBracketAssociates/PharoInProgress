@@ -305,6 +305,7 @@ instance for ''aGlorpLogin'', it will return an instance of the
 database accessor configured as default.
 
 !!!!! A note about the ''Platform''.
+
 In Glorp terminology a Platform is the RDBMS (for ''Relational Database
 Management System'') platform. The abstract class ==Platform== defines the
 abstract methods to deal with differences of supported data types,
@@ -488,14 +489,14 @@ unit of work manually, you can do so by using the following messages:
 The first three have self descriptive selectors, and can be using like this:
 
 [[[caption=Manual handling of the transaction
-person := session readOneOf: Person where: [:each | each firstName = 'George'].
-session beginUnitOfWork.
-session delete: person.
-session rollbackUnitOfWork.
-session beginUnitOfWork.
-person lastName: 'Lukas'.
-session register: person.
-session commitUnitOfWork.
+  person := session readOneOf: Person where: [:each | each firstName = 'George'].
+  session beginUnitOfWork.
+  session delete: person.
+  session rollbackUnitOfWork.
+  session beginUnitOfWork.
+  person lastName: 'Lukas'.
+  session register: person.
+  session commitUnitOfWork.
 ]]]
 
 In the case of the message ==commitUnitOfWorkAndContinue== it needs some explanation,
@@ -508,17 +509,17 @@ It is useful for cases like batch loads or updates,
 where you want to commit changes every ''n'' instances or similar.
 
 [[[caption=Commiting and continuing the Unit Of Work
-session beginUnitOfWork.
-10 to: 99 do: [ :index |
-     session register: (
-		Person new
-			firstName: 'Sample';
-			lastName: index printString).
-	(index \\ 10) isZero ifTrue: [
-		session commitUnitOfWorkAndContinue
-	].
-].
-session commitUnitOfWork.
+  session beginUnitOfWork.
+  10 to: 99 do: [ :index |
+    session register: (
+    Person new
+      firstName: 'Sample';
+      lastName: index printString).
+    (index \\ 10) isZero ifTrue: [
+		  session commitUnitOfWorkAndContinue
+    ].
+  ].
+  session commitUnitOfWork.
 ]]]
 
 We can cleanup the sample instances by running:
@@ -538,11 +539,12 @@ your classes. We will go over the different configurations of class models,
 table data types and constraints and mappings of all sorts.
 
 !!! Class Models
-A class model defines the attributes of your domain objects, and how they compose.
-Each of your persisted objects need to have an instance of ==GlorpClassModel==
-in the descriptor system containing a collection of all the attributes of
-your class, attributes that by convention are added by means of
-implementing ==classModelForYourClass:==,
+
+A class model defines the attributes of your domain objects, and how they
+compose. Each of your persisted objects need to have an instance of
+==GlorpClassModel== in the descriptor system containing a collection of all the
+attributes of your class, attributes that by convention are added by means of
+implementing ==classModelForYourClass:==.
 
 The simplest way to add an attribute is using a series of convenience methods,
 described below:
@@ -559,7 +561,9 @@ described below:
 :Used to define an attribute that is a Dictionary where the key is ==keyClass== and its values are instances of ==valueClass==.
 
 !!! Attribute Properties
-The above described methods return instances of ==GlorpAttributeModel==, which share common properties that you can configure.
+
+The above described methods return instances of ==GlorpAttributeModel==, which
+share common properties that you can configure.
 
 ;==useDirectAccess: aBoolean==
 :Let you define whether the access to the attribute described by the symbol of your domain model will be performed by directly accessing the instance variable (slot) instead of using a standard message send.
@@ -579,6 +583,7 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
 ]]]
 
 !!! Table Models
+
 Glorp also models your database objects, such as tables, constraints, indexes,
 etc.. With this model it will be able to determine how to serialize to SQL
 the objects, how to perform joins to retrieve 1:1 or 1:n relations, and so on.
@@ -591,6 +596,7 @@ database, including field names and their data types, contraints (primary keys
 and/or foreign keys), etc.
 
 !!!! Adding Fields to the Table
+
 Let's bring back our example from the beginning:
 
 [[[caption=Table model for PERSON table
