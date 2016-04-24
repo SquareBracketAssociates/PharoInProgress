@@ -203,16 +203,16 @@ object.
 Assuming we haven't created the database tables externally, Glorp's metamodel
 allows you to perform DDL (''Data Definition Language'') commands such as
 ==CREATE TABLE== or ==CREATE CONSTRAINT== (among others) using plain
-Pharo objects, and it even can determine when to run those.
+Pharo objects, and it can even determine when to run those.
 
-To do that we must first connect to the database, and we will explain how to it in the following pages.
-We're using a PostgreSQL server running in the same host as our Pharo image. We will then create the Login object and a  ==DatabaseAccessor== for it to interact with the database.
+To do that we must first connect to the database. We will explain how to so in the following sections.
+We will be using a PostgreSQL server running on the same host as our Pharo image. We will then create the Login object and a  ==DatabaseAccessor== for it to interact with the database.
 
 !!! Database Accessor
 Glorp is programmed to be agnostic of the Smalltalk dialect and
-database driver, to achieve that instead of talking directly to the
+database driver. To achieve that instead of talking directly to the
 driver it uses an adapter object that acts as an intermediary between
-Glorp and the underlying driver, each database driver requires its
+Glorp and the underlying driver. Each database driver requires its
 own subclass of ==DatabaseAccessor==.
 
 We use the recommended accessor, which is the ''UDBC'' accessor
@@ -234,7 +234,7 @@ UDBCGlorpAccessor beDefaultGlorpDriver
 
 !!! The Login
 All the information necessary to connect to the database is defined in an instance of the
-==Login== class, it is an abstraction for the connection parameters
+==Login== class. It is an abstraction for the connection parameters
 used to connect to the database server, like the ''Plaform'' used,
 hostname, port, username, password, database name and other parameters.
 
@@ -246,8 +246,10 @@ login := Login new
         connectString: 'localhost_glorpbook'.
 ]]]
 
-The accessor will require a ==Login== that will use to establish a connection
-to the database server specified in the login, using also the platform specified in it.
+The accessor requires a ==Login== to establish a connection
+to the database server specified in the login, using the platform specified.
+
+@todo StephanEggermont: Talk about safely connecting without storing passwords in the image 
 
 [[[
 accessor := UDBCDatabaseAccessor forLogin: login.
@@ -259,14 +261,14 @@ If everything goes fine, then evaluating ==accessor isLoggedIn== should answer
 ''true''. Another way to test it is performing a basic query like the following
 ==(accessor basicExecuteSQLString: 'SELECT 3+4') contents first first== should
 return ''7'' as the result; and yes, the ==contents first first== is dirty,
-but it is not mean to be used this way, we're doing it just to be sure.
+but it is not mean to be used this way, we're doing it just to quickly verify that everything is working.
 
 !!! Session
 
 Once we're able to connect to the database we can start interacting with it using
 Glorp's objects. We will do that using an object that ''orchestrates''
  all the other objects, the ==GlorpSession==. The easiest way to get a
-full blown session is to ask the ==DescriptionSystem== passing the a ==Login==
+session is to ask the ==DescriptionSystem== passing the a ==Login==
 instance as argument.
 
 [[[caption=Accessing a session.
@@ -277,7 +279,7 @@ session login.
 !!! How the Parts Play Together
 
 Let us look into the implementation of the method ==DescriptiorSystem>>sessionForLogin:== to understand
-better how each part interacts with each other.
+better how the parts interact.
 
 [[[caption=GlorpBookDescriptorSystem inherits this implementation.
 DescriptorSystem class >> sessionForLogin: aGlorpLogin
@@ -292,10 +294,10 @@ DescriptorSystem class >> sessionForLogin: aGlorpLogin
 First we get a ''system'' instantiating the receiver (in our case
  ==GlorpBookDescriptorSystem==) passing the platform as argument.
 The platform in the ''system'' is important because it will be used to
-generate ''SQL'' code specific for it, using particular syntax and data types.
+generate ''SQL'' code using its particular syntax and data types.
 
 Then we instantiate a ==GlorpSession== and store it in the ''session'' object.
-This ''session'' object is assigned a ==DatabaseAccessor==, it will use such
+This ''session'' object is assigned a ==DatabaseAccessor==. It uses this
 accessor to communicate to the database, hence the name, but to know what to
 send to the ''db'' it needs all the metadata defined in the ''system'' object
 defined before.
@@ -333,13 +335,13 @@ sequences, constraints and so on.
 !!! Transactions and ''Unit of Work''
 If you worked with RDBMS's before, you know you can use transactions that
 detach you from immediate writes to the database files, and enable you to
-rollback your changes if it is necessary, or do a batch of changes and commit
+rollback (undo) your changes, or do a batch of changes and commit
 them all at once.
 
-Glorp provides you with ''automatic'' handling of such database transactions,
-but also adds another concept, the ''Unit of work'' (aka ''UOW'' or ''UnitOfWork'').
+Glorp provides you with ''automatic'' handling of such database transactions.
+It also adds another concept, the ''Unit of work'' (aka ''UOW'' or ''UnitOfWork'').
 This ''UnitOfWork'' keeps track of all the persisted objects, enabling
-you to commit or rollback changes ""at the object level"" while also maintaining
+you to commit or rollback changes ""at the object level"" while maintaining
 the database transaction in sync with it.
 
 !!! Saving New Instances
@@ -359,12 +361,12 @@ session inUnitOfWorkDo: [
 ]]]
 
 As you can see, we didn't say if the instance needs to be inserted or updated,
-nor we specify an ''id'' for each instance. The framework will determine that
+nor did we specify an ''id'' for each instance. The framework will determine that
 by ''registering'' the instance in the all-mighty ''session''.
 
 !!! Reading Instances
 
-We can now read back some of the persisted instances, for that we, again, use
+We can now read back some of the persisted instances. We again, use
 the session object, sending it the message ==read:== and the class as argument.
 This will return a collection of results.
 
@@ -381,13 +383,12 @@ session read: Person where: [:each | each firstName = 'John'].
 ]]]
 
 This might lead you to think you can pass any block to filter the results
-as you can do with ==select:== in a regular Collection, but that is not possible.
+as you can do with ==select:== in a regular Collection, but that is not the case.
 Glorp uses blocks as a very clever way to build expressions that
-are later converted to SQL by the framework, you can do basic filtering
+are later converted to SQL by the framework. You can do basic filtering
 using this feature, but keep in mind it doesn't work as a regular block.
 
-Besides the use of regular operators such =====, ==>===, etc
-One of examples of the mentioned above is the use of ''special'' selectors
+Next to regular operators such as ===== and ==>===, you can use some ''special'' selectors
 that get translated to their counterparts SQL operators.
 For instance the ==similarTo:== selector gets converted to SQL's ==LIKE==
 operator. With this we can retrieve all the Persons named ''John''.
@@ -402,8 +403,8 @@ way to ==read:== and ==read:where:==.
 
 !!! Update of Instances
 
-We can also update one instance, i.e., to read one and update it. We should do it
-in the context of a UnitOfWork using the message ==inUnitOfWorkDo:==:
+We can also update one instance, i.e., to read one and update it. We do it
+in the context of a UnitOfWork using the message ==inUnitOfWorkDo:==:.
 
 [[[caption=Updating an object read within a UnitOfWork
 session inUnitOfWorkDo: [
@@ -422,7 +423,7 @@ you read are automatically registered by the session, saving you from explicitly
 ''registering'' them (which is safe to do anyway, but it is not required).
 
 !!! Deletion of Objects
-So far we covered Creation, Read, and Update, we're only missing the Deletion of
+So far we covered Creation, Read, and Update. We're only missing the Deletion of
 objects. This is as easy as it gets, just send the ==delete:== to the session
 object with the object you want to delete as argument.
 
@@ -475,7 +476,7 @@ session inUnitOfWorkDo: [
 The ==inUnitOfWorkDo:== message is a convenient way to isolate a block of execution
 within the context of a transaction at both object and database levels. However
 it has some limitations, like not being able to handle ''nested'' UnitOfWorks
-or transactions, everything happens in the context of the outer context transaction
+or transactions. Everything happens in the context of the outer context transaction
 in which it was evaluated.
 
 If for some reason you need to handle the start/end/rollback of the
@@ -486,7 +487,7 @@ unit of work manually, you can do so by using the following messages:
 -==rollbackUnitOfWork==
 -==commitUnitOfWorkAndContinue==
 
-The first three have self descriptive selectors, and can be using like this:
+The first three have self descripting selectors, and can be using like this:
 
 [[[caption=Manual handling of the transaction
   person := session readOneOf: Person where: [:each | each firstName = 'George'].
@@ -541,10 +542,10 @@ table data types and constraints and mappings of all sorts.
 !!! Class Models
 
 A class model defines the attributes of your domain objects, and how they
-compose. Each of your persisted objects need to have an instance of
+compose. Each of your persisted objects needs to have an instance of
 ==GlorpClassModel== in the descriptor system containing a collection of all the
-attributes of your class, attributes that by convention are added by means of
-implementing ==classModelForYourClass:==.
+attributes of your class. These attributes are added by 
+implementing ==classModelForYourClass:== by convntion.
 
 The simplest way to add an attribute is using a series of convenience methods,
 described below:
@@ -650,7 +651,7 @@ benefits of being platform agnostic, so it is a tradeoff.
 !!! Mappings (aka ''Descriptor'')
 Once we have the Class Model describing our business objects and the
 Table Models describing the tables where they will be stored, we need to
-describe how they are going to work together; to achieve that Glorp uses
+describe how they are going to work together. To achieve that Glorp uses
 an instance of ==Descriptor== that contains the mappings between the attributes
 of the class model and the fields of the tables involved.
 
@@ -689,7 +690,7 @@ method.
 !!!! 1:1 Relationships.
 When you're trying to map a single reference from one object to another,
 you use the class ==OneToOneMapping== and specify the name of the attribute
-that this is instance is mapping. If everything is as simple as this you don't
+that this instance is mapping. If everything is as simple as this you don't
 have to specify further instructions and Glorp will determine how to retrieve
 the instances based on the information provided in the ClassModel, foreign keys,
 etc. If you need further instructions you can always define them, more on that later.
@@ -763,7 +764,7 @@ of the mapping, for instance, you can send ==collectionType: Set== to your
 mapping and have it initialized to a Set instead of the default ==OrderedCollection==.
 
 !!!! Proxy.
-And by last, but not least, you can specify whether to proxy or not such relation.
+And last, but not least, you can specify whether to proxy or not such a relation.
 By sending ==shouldProxy:== either ==true== or ==false==, Glorp will
 place proxies or immediately build an instance from the database.
 If you don't specify this, it will proxy by default.
@@ -806,7 +807,7 @@ the primary key of your objects.
 
 You can use as many attributes as you want, but for the sake of simplicity we
 will use it as a *''surrogate key''>https://en.wikipedia.org/wiki/Surrogate_key*,
-which is a key that is a unique identifier an object not derived from
+which is a key that is a unique identifier, an object not derived from
 application data.
 
 [[[caption=Hierarchy Root of Book Classes.
@@ -849,6 +850,8 @@ Aside from the accessors, when you're dealing with collections
 early initialize all the instance variables that will reference such collections.
 Otherwise it could cause some failures, plus... having a ''complete''
 instance is a good practice too.
+
+@todo StephanEggermont: Why no lazy initialization?
 
 [[[caption=Initialization methods
 Person >> initialize
@@ -937,15 +940,15 @@ GlorpBookDescriptorSystem >> tableForINVOICE: aTable
 ]]]
 
 As you can see in our ''INVOICE'' table, we not only added fields, but also
-added ''Foreign Keys'' (aka ''FK''),
-to our table table model, this will add the ''FK'' to the list of constraints
+added ''Foreign Keys'' (aka ''FK'')
+to our table table model. This will add the ''FK'' to the list of constraints
 of the table model, and will be used by Glorp to order writes/deletions and
 infer relations.
 
-Also notice that we need to pass the referenced field as argument,
-and to do obtain it we ask the descriptor system for the table of ''PERSON''
+Also notice that we need to pass the referenced field as argument.
+To obtain it we ask the descriptor system for the table of ''PERSON''
 and ''ADDRESS'' by sending ==tableNamed:== with the name of table we want
-as argument, this will return the ==DatabaseTable== with that name,
+as argument. This will return the ==DatabaseTable== with that name,
 and to this object we will ask for the field named ''id''.
 
 [[[
@@ -980,7 +983,7 @@ GlorpBookDescriptorSystem >> tableForPERSON_ON_ADDRESS: aTable
 ]]]
 
 As you can see in the last method, we created a table model for the table
-==PERSON_ON_ADDRESS==, this table will be used as a link table. Because
+==PERSON_ON_ADDRESS==. This table will be used as a link table. Because
 this link table references to other tables we also created Foreign Keys
 from each reference field using the same approach described before.
 
@@ -1011,17 +1014,17 @@ contains Direct Mappings, and one-to-one mappings for the ==Person== and
 ==Address==, but also contains a one-to-many relationship to its items.
 
 We introduced the ==orderBy:== and ==writeTheOrderField== attributes in the
-#items mappings, you can use the first attribute independently or both together.
+#items mappings. You can use the first attribute independently or both together.
 
 The ==orderBy:== attribute instructs
 Glorp to read the elements from the database and ''order'' (aka ''sort'') them
-by the field described in the block, this is useful so the collection that holds
+by the field described in the block. This is useful so the collection that holds
 the references to the items (in this example) is always sorted the same way,
 because the order the rows come from the database is not always the same,
 and you can't trust they will return in the same order as they were written.
 
 The ==writeTheOrderField== command will make Glorp save the index of the
-element in the collection as a field in the row, it will use the field defined
+element in the collection as a field in the row. It will use the field defined
 in ==orderBy:== as its target, in this case ''position''. So if you have an
 OrderedCollection with five items, the first element one will have ==1== stored
 in the ''position'' field, the second ==2==, and so on. If you change the order
@@ -1118,7 +1121,7 @@ and between two fields, but it could be between as many fields as you want.
 
 !!! Sample data
 
-We will create some sample data for our example, and for the Perons we will
+We will create some sample data for our example, and for the Persons we will
 save three instances named after famous Smalltalkers, with random addresses,
 so don't mail them.
 
@@ -1154,7 +1157,7 @@ session inUnitOfWorkDo: [
 ]]]
 
 As you can see, we didn't have to register the newly created address because
-the Person was read inside of a UnitOfWork; so if we read the instance again
+the Person was read inside of a UnitOfWork. If we read the instance again
 and inspect its addresses we will find the new instance is there.
 
 [[[caption=Inspect the result of the following
@@ -1183,11 +1186,11 @@ Invoice >> totalPrice
 	^ self items sum: #price
 ]]]
 
-We can now procceed to create an few instances of Invoice, let's create
+We can now procceed to create an few instances of Invoice. Let's create
 one Invoice for each person in the database with two items describing
 donations to the *Pharo Consortium>http://consortium.pharo.org* and
 *Association>http://association.pharo.org* with randomized amounts
-(whitin certain range) for each one.
+(within a certain range) for each one.
 
 [[[caption=Creating random amount donations
 session inUnitOfWorkDo: [
@@ -1223,7 +1226,7 @@ print how much each Person donated.
 ]]]
 
 When we presented the ReferenceMappings we mentioned how Glorp puts proxies
-in the place of a referenced object to avoid performing unnecesary roundtrips
+in place of a referenced object to avoid performing unnecessary roundtrips
 to the database.
 In the example above, assuming all caches are empty, Glorp will perform one
 query to retrieve all the Invoices and then one extra query to retrieve
@@ -1241,7 +1244,7 @@ the invoices' items to sum them. In our example, we only have a few instances
 but what if we had a million of them? Instantiating everything at the Pharo
 side wouldn't be convenient for such a simple sum. Performing an SQL ==SUM()==
 at the database side would be more efficient, since we would only retrieve
-the total instead. But how to do such query?
+the total instead. But how to do such a query?
 
 !!! The Query object
 So far we've been querying objects by means of sending ==read:== or
@@ -1271,11 +1274,11 @@ like ==sum==.
 ]]]
 
 The retrieve method configures the query to return only the retrieved attributes
-of the read object, they query will return a collection with the objects
+of the read object. The query will return a collection with the objects
 retrieved instead of a collection of instances of the read class.
 
-If we know the beforehand that our query will return an single row with a single
-field, it is, a single object, then we can configure the query to return such
+If we know beforehand that our query will return an single row with a single
+field, i.e. a single object, we can configure the query to return that
 object directly by setting ==readsOneObject:== to true.
 
 If you retrieve more than one object then the query will return a collection
@@ -1293,7 +1296,7 @@ it can include a ==WHERE==, ===ORDER BY==, ==GROUP BY==, ==HAVING==, etc.
 
 !!!! ''WHERE'' expression
 You can always include a ''where'' expression as you did when reading
-through the session object, inside the ''where'' expression you can filter by
+through the session object. Inside the ''where'' expression you can filter by
 attributes of referenced objects.
 
 [[[
@@ -1335,8 +1338,8 @@ option comes to the rescue.
 	) executeIn: session.
 ]]]
 
-In the above example you can see we're retrieving two fields concatenated,
-and grouped by the same concatenated value. Remember that when doing a
+In the above example you can see we're retrieving two fields concatenated
+and grouped by the same concatenated value. Remember that when using 
 an aggregate function, all the non-aggregated fields retrieved must be included
 in the ''GROUP BY''. Notice here we're also grouping by a field in other table,
 Glorp resolves all the ''JOINs'' for you.
@@ -1352,7 +1355,7 @@ Although the ''GROUP BY'' expression is used extensively in production systems,
 it only works for retrieving fields of the query and not full-fledged instances
 of your objects described in your DescriptorSystem.
 
-!!!! ''LIMIT'' and ''OFSSET'' expressions
+!!!! ''LIMIT'' and ''OFFSET'' expressions
 You can also limit the number of rows returned by your Query, this is useful
 if you know your query will return one single row/object or if only want to
 retrieve a certain number of rows. The ''LIMIT'' expression varies between
@@ -1372,9 +1375,9 @@ expression it lets you implement simple pagination queries.
 We mentioned before that when you're querying the Invoices Glorp will
 place a Proxy object for each reference (e.g. Person) it doesn't have in
 the session cache, and then once the Proxy is hit by a message send it will
-materialize it by retrieving its contents by performing a database Query,
-imagine this scenario for at least 1000 Invoices that references a different
-Person each, that would be 1001 queries and their involved I/O impact.
+materialize it by retrieving its contents by performing a database Query.
+Imagine this scenario for at least 1000 Invoices that reference a different
+Person each, that would be 1001 queries and their resulting I/O impact.
 
 In a regular SQL query you would solve that by doing a regular ''JOIN'' with
 the related table; when reading first class Objects with Glorp it makes it
@@ -1391,7 +1394,7 @@ will knit all together by using ''JOIN'' expressions created from the ''Join''
 objects defined when configuring the reference mappings of the Class Descriptor.
 
 If nothing else is added to the ==alsoFetch:== expression block it will perform
-==INNER JOIN== to knit the relations; but if you're ''also fetching'' a
+==INNER JOIN== to knit the relations. If you're ''also fetching'' a
 reference that might be nil then the whole object/row would be excluded
 from the result. For instance, if an Invoice doesn't have an Address, then
 with the above example that invoice would be left out by the JOIN.
