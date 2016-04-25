@@ -32,7 +32,19 @@ Along with your working installation of your RDBMS of choice you should have ins
 --    ODBC (UFFI, Windows only)
 --    OpenDBX (UFFI)
 
-@@todo What is UDBC?
+!!!! A common driver API
+There are plenty of drivers available in Pharo, however those drivers have
+different API's making their use not directly interchangeable. Making it hard
+to migrate to a different driver or to simultaneously support different RDBMS.
+
+To solve that there is the UDBC, for Universal Database Connectivity library
+(formerly Garage Drivers), that  provides a common API for the different
+driver implementations. Using this common API your code won't need to change
+if for example you decide to move from MySQL to PostgreSQL, because the library
+classes act as ''adaptors'' between your code and the concrete implementation of
+the driver.  UDBC drivers are analogous to ODBC, JDBC or ADO.NET drivers.
+
++Connectivity parts>file://figures/Glorp-UDBC.png|width=72|label=UDBC diagram+
 
 !!! Glorp Packages
 
@@ -219,12 +231,6 @@ We use the recommended accessor, which is the ''UDBC'' accessor
 that is compatible with all the drivers supported by
 the ''Unified Database Connectivity'' library.
 
-@@todo Stef: did we load this library? where?
-@@todo EAM: Not yet, it will depend if by the end of the book the library is ready to be used
-
-@@todo Stef: I do not get it: each driver requires its own subclass now what is a PharoDatabaseAccessor use later?
-@@todo EAM: The PharoDatabaseAccessor name is misleading, it assumes (from VisualWorks) that you only have one unified driver API to access the database, which is not so at the moment. The accessor is an adapter that Glorp talks to, and this adapter talks to the database driver, so if you have different DB APIs, then you need different accessors.
-
 To define it as the default driver we must evaluate once the following expression:
 
 [[[caption=Setting the default Driver.
@@ -249,12 +255,21 @@ login := Login new
 The accessor requires a ==Login== to establish a connection
 to the database server specified in the login, using the platform specified.
 
-@todo StephanEggermont: Talk about safely connecting without storing passwords in the image 
-
 [[[
 accessor := UDBCDatabaseAccessor forLogin: login.
 accessor login.
 ]]]
+
+You can make the ==Login== ''secure'' by making its password ''volatile'', so
+once the password was accessed the instance variable will be set to nil and
+the secret won't be stored in the image anymore. Note that if you want to
+use the same login instance for other connections, you must assign the
+password string again.
+
+[[[caption=Making your Login secure
+login secure: true
+]]]
+
 
 !!!!! Verifying the connectivity.
 If everything goes fine, then evaluating ==accessor isLoggedIn== should answer
@@ -544,7 +559,7 @@ table data types and constraints and mappings of all sorts.
 A class model defines the attributes of your domain objects, and how they
 compose. Each of your persisted objects needs to have an instance of
 ==GlorpClassModel== in the descriptor system containing a collection of all the
-attributes of your class. These attributes are added by 
+attributes of your class. These attributes are added by
 implementing ==classModelForYourClass:== by convntion.
 
 The simplest way to add an attribute is using a series of convenience methods,
@@ -848,10 +863,9 @@ GlorpBookObject subclass: #InvoiceItem
 Aside from the accessors, when you're dealing with collections
 (to-many relations) that are going to persisted, it is recommended to
 early initialize all the instance variables that will reference such collections.
-Otherwise it could cause some failures, plus... having a ''complete''
+Otherwise it could cause some failures because Glorp keeps a copy of the object
+attributes to enable rolling back changes on memory. Plus... having a ''complete''
 instance is a good practice too.
-
-@todo StephanEggermont: Why no lazy initialization?
 
 [[[caption=Initialization methods
 Person >> initialize
@@ -1339,7 +1353,7 @@ option comes to the rescue.
 ]]]
 
 In the above example you can see we're retrieving two fields concatenated
-and grouped by the same concatenated value. Remember that when using 
+and grouped by the same concatenated value. Remember that when using
 an aggregate function, all the non-aggregated fields retrieved must be included
 in the ''GROUP BY''. Notice here we're also grouping by a field in other table,
 Glorp resolves all the ''JOINs'' for you.
