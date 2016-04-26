@@ -17,40 +17,65 @@ Glorp is a full-featured ORM which provides you with a number of features to red
 !! Installation
 
 !!! Database server
-Before installing Glorp you should already have installed the RDBMS of your choice on your machine or a reacheable server, it could be *PostgreSQL (http://postgresql.org)>http://postgresql.org*, *MySQL (http://dev.mysql.com/)>http://dev.mysql.com/*, *SQLite (http://sqlite.org)>http://sqlite.org*, or any other of your preference (as long it is supported). Later in the Concepts Section Glorp we will refer to this RDBMS as the ''Platform''.
+Before installing Glorp you should already have installed the RDBMS of your choice on your machine or a reacheable server, it could be *PostgreSQL (http://postgresql.org)>http://postgresql.org*, *MySQL (http://dev.mysql.com/)>http://dev.mysql.com/*, *SQLite (http://sqlite.org)>http://sqlite.org*, or any other of your preference (as long it is supported). Hereafter we will refer to this RDBMS of your choice as the ''Platform''.
 
 !!! Database Drivers
-Along with your working installation of your RDBMS of choice you should have installed in your image the drivers required to connect to the database server.
-- Native drivers (written in Pharo, no external dependencies)
---    PostgreSQL
---    MySQL
+Along with your working installation of your RDBMS you should have installed in
+your image the database drivers required to connect to the server.
 
-- UDBC
---    PostgreSQL
---    MySQL
---    SQLite (UFFI)
---    ODBC (UFFI, Windows only)
---    OpenDBX (UFFI)
+!!!! Native drivers
+With Native drivers the raw protocol is written in Smalltalk and it uses Pharo
+sockets to write and read the data from the wire. This has the advantage of
+being self contained, because you don't depend on an external file or setup
+to connect to a server. Also, because everything is written in Smalltalk
+it is debuggeable using Pharo tools down to a very low level.
+
+!!!! Library Wrapper Drivers (UFFI)
+Library Wrappers, as its name implies, wrap an underlying Operative System
+shared library like a ==.dll== or ==.so==, these wrappers will access
+the shared library functions by means of UFFI
+(''Universal Foreign Function Interface'') calls and data structures.
+
+Using an external library enables you to use an official client implementation
+of a proprietary protocol like Oracle, or you can be sure that even
+if the protocol spec is open you can use the official version of it.
+In order to use it in Pharo you need to implement the wrapper classes and methods.
 
 !!!! A common driver API
 There are plenty of drivers available in Pharo, however those drivers have
 different API's making their use not directly interchangeable. Making it hard
 to migrate to a different driver or to simultaneously support different RDBMS.
 
-To solve that there is the UDBC, for Universal Database Connectivity library
-(formerly Garage Drivers), that  provides a common API for the different
-driver implementations. Using this common API your code won't need to change
-if for example you decide to move from MySQL to PostgreSQL, because the library
-classes act as ''adaptors'' between your code and the concrete implementation of
-the driver.  UDBC drivers are analogous to ODBC, JDBC or ADO.NET drivers.
+To solve that there is UDBC, for Universal Database Connectivity library
+(formerly ''Garage Drivers''), that provides a common API for the different
+driver implementations. UDBC is Pharo's analogous to ODBC, JDBC or
+ADO.NET drivers.
+
+Using this common API your code won't need to change if, for example, you decide
+to move from MySQL to PostgreSQL, as long as you don't use exclusive features,
+because all the implemented drivers will conform to the common UDBC API.
 
 +Connectivity parts>file://figures/Glorp-UDBC.png|width=72|label=UDBC diagram+
+
+!!!! Available Drivers
+There are many drivers available drivers in different version of Pharo, as
+the time of writing this these are the currently supported drivers
+
+- UDBC
+--    PostgreSQL (Native)
+--    MySQL (Native)
+--    SQLite (UFFI)
+--    ODBC (UFFI, Windows only)
+
 
 !!! Glorp Packages
 
 Glorp comes in a few packages you can load using a conventional ''Metacello''
 expression. One package is the ==Glorp-Core== and there is also a
 ==Glorp-Tests== package.
+
+@todo: Move the packages to the definitive repo and add proper install
+instructions.
 
 [[[
 Metacello new
@@ -1829,6 +1854,12 @@ If you ever need to add functions not supported by default, you can extend
 the functions in ==FunctionExpression class >> createBasicFunctionsFor:==
 or by adding them to your current platform. Also you can read there the list
 of available symbol functions and their default mapping to SQL functions.
+
+!!! Glorp class model diagram
+The following diagram provides an outline of the most important classes and
+attributes of Glorp's object model.
+
++Glorp objects UML Diagram>file://figures/Glorp-Model.png|width=72|label=Glorp object model diagram+
 
 !! Appendix A: Basic Relational Databases Concepts
 !!! Tables
