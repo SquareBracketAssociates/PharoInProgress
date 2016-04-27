@@ -48,22 +48,23 @@ At the current time UDBC supports the following drivers.
 --    ODBC (UFFI, Windows only)
 --    OpenDBX (UFFI)
 
-SD: what is UDBC
+SD: I do not get the picture. It looks like postgres and Sqlite are not supported by UDBC.
 
 
 +Connectivity parts>file://figures/Glorp-UDBC.png|width=72|label=UDBC diagram+
 
 !!! Glorp Packages
 
-Glorp comes in a few packages you can load using a conventional ''Metacello''
-expression. One package is the ==Glorp-Core== and there is also a
-==Glorp-Tests== package.
+Glorp comes in a few packages (SD: which ones) you can load using a conventional ''Metacello''
+expression.
 
 [[[
 Metacello new
         project: 'Glorp';
         load
 ]]]
+
+ One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package.
 
 !!! Running the Tests
 
@@ -77,7 +78,7 @@ a ==Person== class and store it into a ==PERSON== database table,
 all from within the Pharo environment.
 
 !!! Class definition
-[[[caption=Defining our example class
+[[[caption=Defining our example class.
 Object subclass: #Person
 	instanceVariableNames: 'id firstName lastName birthDate'
 	classVariableNames: ''
@@ -85,31 +86,37 @@ Object subclass: #Person
 ]]]
 
 !!!Instance methods
-[[[caption=Accessors and initializers
+[[[caption=Accessors and initializers.
 Person >> firstName: aString
   firstName := aString
-
+]]]
+[[[
 Person >> firstName
-  ^firstName
-
+  ^ firstName
+]]]
+[[[
 Person >> lastName: aString
   lastName := aString
-
+]]]
+[[[
 Person >> lastName
   ^lastName
-
+]]]
+[[[
 Person >> birthDate: aDate
   birthDate := aDate
-
+]]]
+[[[
 Person >> birthDate
   ^birthDate
-
+]]]
+[[[
 Person >> initialize
   super initialize.
   birthDate := '1/1/1970' asDate
 ]]]
 
-!!! Defining a DescriptorSystem
+!! Defining a DescriptorSystem
 As you can see the above created class and methods, don't have anything
 related to persistence and don't require you to inherit from a
 particular class.
