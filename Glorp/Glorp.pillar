@@ -91,7 +91,7 @@ run the unit tests of Glorp, to ensure everything was loaded correctly and it
 is working properly.
 
 !! Person: Our First Example Class
-To put some of the concepts described before into practice we will create
+To put some of the concepts described previously into practice we will create
 a ==Person== class and store it into a ==PERSON== database table,
 all from within the Pharo environment.
 
@@ -147,7 +147,7 @@ such as the Tables, Descriptors and Class Models.
 
 By using a separate artifact (in this case, a class) to define all
 the metadata of your system, you can decouple your business models
-from tgheir persistence information.
+from their persistence information.
 This separation of concerns is a good practice,
 and helps with the maintainability of your code.
 
@@ -237,7 +237,7 @@ GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
 In the above method we can see how the the descriptor ''links'' the class
 attribute to the field name.
 
-Although verbose and maybe not visible in this simple example, here lies the
+Although verbose and may not be visible in this simple example, here lies the
 power of the Glorp orthogonal description system, you describe everything
 and then link all the parts the way you want without modifying your domain
 object.  
@@ -307,15 +307,15 @@ If everything goes fine, then evaluating ==accessor isLoggedIn== should answer
 ''true''. Another way to test it is performing a basic query like the following
 ==(accessor basicExecuteSQLString: 'SELECT 3+4') contents first first== should
 return ''7'' as the result; and yes, the ==contents first first== is dirty,
-but it is not mean to be used this way, we're doing it just to quickly verify that everything is working.
+but it is not meant to be used this way, we're doing it just to quickly verify that everything is working.
 
 !!! Session
 
 Once we're able to connect to the database we can start interacting with it using
 Glorp's objects. We will do that using an object that ''orchestrates''
  all the other objects, the ==GlorpSession==. The easiest way to get a
-session is to ask the ==DescriptionSystem== passing the a ==Login==
-instance as argument.
+session is to ask the ==DescriptionSystem== passing the ==Login==
+instance as the argument.
 
 [[[caption=Accessing a session.
 session := GlorpBookDescriptorSystem sessionForLogin: login.
@@ -412,7 +412,7 @@ by ''registering'' the instance in the all-mighty ''session''.
 
 !!! Reading Instances
 
-We can now read back some of the persisted instances. We again, use
+We can now read back some of the persisted instances. Again we use
 the session object, sending it the message ==read:== and the class as argument.
 This will return a collection of results.
 
