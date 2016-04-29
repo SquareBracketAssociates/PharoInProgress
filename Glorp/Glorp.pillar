@@ -69,17 +69,14 @@ the time of writing this these are the currently supported drivers
 
 !!! Glorp Packages
 
-Glorp comes in a few packages (SD: which ones) you can load using a conventional ''Metacello''
-expression.
+Glorp provides a Metacello configuration configured to load the core classes
+and/or its tests.
 
-@todo: Move the packages to the definitive repo and add proper install
-instructions.
-
-[[[
+[[[caption=Loading the default version
 Gofer it
-  smalltalkHubUser: 'GlorpDBX'
-        project: 'Glorp';
-        load
+	smalltalkhubUser: 'DBXTalk' project: 'Glorp';
+	configurationOf: 'Glorp';
+	loadVersion: #bleedingEdge.
 ]]]
 
  One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package.
@@ -240,7 +237,7 @@ attribute to the field name.
 Although verbose and may not be visible in this simple example, here lies the
 power of the Glorp orthogonal description system, you describe everything
 and then link all the parts the way you want without modifying your domain
-object.  
+object.
 
 !!! Creating the Tables
 
