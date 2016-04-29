@@ -494,8 +494,8 @@ cause the object to be deleted right away, without giving you the option
 to rollback such action unless you handle the transaction manually.
 
 !!! Transactions
-Glorp lets you either handle automatically transactions using unit of work or
-manually as we show now.
+Glorp lets you handle transactions automatically using a unit of work or
+manually as we will now show.
 
 !!!! Rolling Back Changes
 *Atomic>https://en.wikipedia.org/wiki/Atomicity_%28database_systems%29*
@@ -591,7 +591,7 @@ A class model defines the attributes of your domain objects, and how they
 compose. Each of your persisted objects needs to have an instance of
 ==GlorpClassModel== in the descriptor system containing a collection of all the
 attributes of your class. These attributes are added by
-implementing ==classModelForYourClass:== by convntion.
+implementing ==classModelForYourClass:== by convention.
 
 The simplest way to add an attribute is using a series of convenience methods,
 described below:
@@ -632,8 +632,8 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
 !!! Table Models
 
 Glorp also models your database objects, such as tables, constraints, indexes,
-etc.. With this model it will be able to determine how to serialize to SQL
-the objects, how to perform joins to retrieve 1:1 or 1:n relations, and so on.
+etc.. With this model it will be able to determine how to serialize the objects to 
+SQL, how to perform joins to retrieve 1:1 or 1:n relations, and so on.
 
 The descriptor system follows a convention to define the tables,
 it uses the ==tableForTABLENAME:== selector to configure ==TABLENAME==, the
@@ -655,7 +655,7 @@ GlorpBookDescriptorSystem >> tableForPERSON: aTable
 ]]]
 
 As you can see, you can add a field by sending ==createFieldNamed:type:== to
-the table object. The first argument of the method is name of field
+the table object. The first argument of the method is name of the field
 (aka ''column'') in your table, the second one is the datatype.
 For the datatype we're not specifying any particular implementation of the type
 but instead we send a message to the ''platform'' object, and in Glorp jargon
@@ -1058,8 +1058,8 @@ The mapping for invoice is a bit more elaborated, because it not only
 contains Direct Mappings, and one-to-one mappings for the ==Person== and
 ==Address==, but also contains a one-to-many relationship to its items.
 
-We introduced the ==orderBy:== and ==writeTheOrderField== attributes in the
-#items mappings. You can use the first attribute independently or both together.
+We introduced the ==orderBy:== and ==writeTheOrderField== attributes in 
+the #items mappings. You can use the first attribute independently or both together.
 
 The ==orderBy:== attribute instructs
 Glorp to read the elements from the database and ''order'' (aka ''sort'') them
@@ -1121,7 +1121,7 @@ GlorpBookDescriptorSystem >> descriptorForInvoiceItem: aDescriptor
 ]]]
 
 
-The mapping for the class Person is more elaborated and worth some explanation
+The mapping for the class Person is more elaborate and worth some explanation
 of what happens in the last lines.
 
 [[[caption=Class descriptors
@@ -1337,7 +1337,7 @@ of collections, in the form of ''#(#(...) #(...) ...)''.
 
 !!! Attributes of queries
 The Query object models an SQL ==SELECT== statement, and like that statement
-it can include a ==WHERE==, ===ORDER BY==, ==GROUP BY==, ==HAVING==, etc.
+it can include a ==WHERE==, ==ORDER BY==, ==GROUP BY==, ==HAVING==, etc.
 
 !!!! ''WHERE'' expression
 You can always include a ''where'' expression as you did when reading
