@@ -1,4 +1,4 @@
-! Querier
+{ "title": "Querier" }
 
 
 Querier is a library for accessing relational databases (RDBMS) in Pharo. It is focused on simplicity. Simple and effective access to related tables is one of the key features of Querier. The protocol and the overall design is heavily inspired by NotORM, a PHP library for querying databases. Querier is in fact an attempt to bring such a library to the Smalltalk/Pharo world. Querier has been developed by Michal Balda.

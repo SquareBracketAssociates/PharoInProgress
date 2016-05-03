@@ -1,4 +1,4 @@
-!Basys Network
+{ "title": "Basys Network" }
 
 This chapter presents the Basys package. Basys implements an abstract layer for networks which require bidirectional communication between clients and servers. Basys manages connections in such a way that sending and receiving data can be performed independently and simultaneously.
 

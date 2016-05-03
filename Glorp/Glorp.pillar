@@ -1,4 +1,4 @@
-! Object-Relational Persistence with Glorp
+{ "title": "Object-Relational Persistence with Glorp" }
 
 This document describes the Glorp object-relational mapper. By reading it, you will learn how to map your objects to a relational databases This document first revisits relational database concepts. Then it presents step by step how to use Glorp and its advanced concepts in a tutorial.
 We thank the authors of the previous Glorp tutorials R. Withney and N. Pratt for having granted us the right to use some of their material. This document has been written by E. Maringolo and edited by S. Ducasse.

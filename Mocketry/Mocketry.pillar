@@ -1,4 +1,4 @@
-!Mocketry
+{ "title": "Mocketry" }
 
 Mocketry is mock objects framework. It provides simplest way to stub any message to any object and to verify any occurred behaviour
 !!Create mocks easily

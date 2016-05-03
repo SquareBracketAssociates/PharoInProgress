@@ -1,4 +1,4 @@
-!Deploying a Pharo application for production
+{ "title": "Deploying a Pharo application for production" }
 
 It is very easy to develop with Pharo and its ecosystem. Once your development needs to go into production to produce value, a lot of questions comes out of the box: which operating system should I use? how do I run my application? how do I ensure y application will be restarted after a reboot or a crash? how do I log?
 

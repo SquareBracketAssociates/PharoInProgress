@@ -1,4 +1,4 @@
-!Git And Pharo
+{ "title": "Git And Pharo" }
 
 This document is a work in progress. Useful references include:
 
@@ -9,7 +9,7 @@ This document is a work in progress. Useful references include:
 - *http://comments.gmane.org/gmane.comp.lang.smalltalk.pharo.user/21661*
 - *https://www.mail-archive.com/pharo-dev%40lists.pharo.org/msg17601.html*
 
-todo Sept 2014: add some pictures and should ask thierry to finish it :)
+@@todo Sept 2014: add some pictures and should ask thierry to finish it :)
 
 In the future Pharo sources will be managed with Git. Howvever it takes time to arrive to a solution 
 that be used without too much extra knowledge of Git. Now if you want to take advantage of Git to manage
@@ -131,7 +131,7 @@ FileTree is the default module for exporting Monticello packages to a standard f
 allowing a version control system to handle the files. We will now describe the process of working with FileTree and Git 
 for the same workflow as above.
 
-@@authorToDo why should we be interested in this process? What are the pros and cons?
+@@todo why should we be interested in this process? What are the pros and cons?
 
 The first step is to clone GitAndPharoTutorial from github, expecting you to have registered in github as explained above, 
 and forked in github the GitAndPharoTutorial as well. In the command line, use ==git clone== with an ssh or an https url.
@@ -144,7 +144,7 @@ Create a FileTree repository from Monticello. Open Monticello, add a repository 
 and select the GitAndPharoTutorial/ directory created by the git clone above. You should get the following view, 
 noting that, contrary to gitfiletree above, you have no reference to the branch and no history.
 
-@@authorToDo Add a screenshot of the repository
+@@todo Add a screenshot of the repository
 
 Modify and save the package inside Pharo into the repository (adding a space to one of the methods and 
 saving it should be enough modifications). Open the repository: in that window note that only the latest version of the 
@@ -191,7 +191,7 @@ HEAD is now at b988b3a... Added BorderedMorph
 
 Return in Pharo, open the repository or refresh a repository window. Note that the version number for the package is:
 
-@@authorToDo Screenshot
+@@todo Screenshot
 
 You can study the difference between the two versions. Before doing anything however, you need to go back to the command line and reset back to the master branch otherwise your saves will be done in a detached state.
 
@@ -210,7 +210,7 @@ $ git pull
 
 !! Merge
 
-@@authorToDo Explain merging, using the sample repository.
+@@todo Explain merging, using the sample repository.
 
 Merging is a key operation in a version control system and is one of the reasons to use Git with Pharo: to have Git record merge 
 operations. We will restart with a clean version of the GitAndPharoTutorial:
@@ -236,7 +236,7 @@ and add a FileTree repository on the GitAndPharoMerge folder.
 
 
 !! Multi-user workflow
-@@authorToDo from then on these are notes.
+@@todo from then on these are notes.
 
 Start with the centralised workflow. Shows that it works perfectly well when combined with an approach in Pharo which is one person, one package.
 
@@ -278,7 +278,7 @@ Work underway to write LibCGit bindings using NativeBoost. Once done, we would h
 
 !!!!GitFileTree-MergeDriver
 
-@@authorToDo there is some documentation in *https://github.com/ThierryGoubier/GitFileTree-MergeDriver*
+@@todo there is some documentation in *https://github.com/ThierryGoubier/GitFileTree-MergeDriver*
 
 Underway, need to explain and package that.
 
