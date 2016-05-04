@@ -64,8 +64,6 @@ the time of writing this these are the currently supported drivers
 --    PostgreSQL (Native)
 --    MySQL (Native)
 --    SQLite (UFFI)
---    ODBC (UFFI, Windows only)
-
 
 !!! Glorp Packages
 
@@ -73,10 +71,11 @@ Glorp provides a Metacello configuration configured to load the core classes
 and/or its tests.
 
 [[[caption=Loading the default version
-Gofer it
-	smalltalkhubUser: 'DBXTalk' project: 'Glorp';
-	configurationOf: 'Glorp';
-	loadVersion: #bleedingEdge.
+Metacello new
+	smalltalkhubUser: 'DBXTalk' project: 'Garage';
+	configuration: 'GarageGlorp';
+	version: #stable;
+	load.
 ]]]
 
  One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package.
@@ -273,11 +272,13 @@ used to connect to the database server, like the ''Plaform'' used,
 hostname, port, username, password, database name and other parameters.
 
 [[[caption=Creating a login.
-login := Login new
+login := login := Login new
         database: PostgreSQLPlatform new;
         username: 'postgres';
         password: 'secret';
-        connectString: 'localhost_glorpbook'.
+        host: 'localhost';
+				port: '5432';
+				databaseName: 'glorpbook'.
 ]]]
 
 The accessor requires a ==Login== to establish a connection
