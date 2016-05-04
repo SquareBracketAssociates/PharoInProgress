@@ -1,4 +1,4 @@
-!Deltawerken: An Application Level Web Framework
+{ "title": "Deltawerken: An Application Level Web Framework" }
 
 Deltawerken is a Seaside application level framework, allowing fast application development 
 for medium-sized applications. An earlier extended version of it was used to build a system 

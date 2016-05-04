@@ -1,4 +1,4 @@
-! Reddit.st in 10 elegant classes
+{ "title": "Reddit.st in 10 elegant classes" }
 
 (A more recent and up to date version of this nice tutorial is available at: ==https://medium.com/@svenvc/reddit-st-in-10-cool-pharo-classes-1b5327ca0740==)
 
@@ -659,14 +659,3 @@ Each time the CAPTCHA is rendered, ==x== and ==y== get a new random value betwee
 The source code discussed in this chapter is available the SqueakSource project called ADayAtTheBeach. Look for the package called Reddit.
 
 Measuring the quality of the design is often a challenge. We believe that having classes with clear responsibilities. This is what we applied when designing such little application. Reddit.st consists of 10 classes for a total of 8 class methods and 75 instance methods. More than half are just one (1) line long, the rest averages just a few lines.
-
-
-
-
-
-%%% Local Variables: 
-%%% coding: utf-8
-%%% mode: latex
-%%% TeX-master: Lint.tex
-%%% TeX-PDF-mode:
-%%% End:

@@ -1,4 +1,4 @@
-! Keymappings
+{ "title": "Keymappings" }
 
 Keymappings is a library for handling shortcuts in the current Pharo UI library, Morphic. Keymappings models the basic concepts of shortcut handling for a GUI application. Keymappings main task is to define and manipulate shortcuts, that is, the associations between keys combinations and the actions they should trigger.
 

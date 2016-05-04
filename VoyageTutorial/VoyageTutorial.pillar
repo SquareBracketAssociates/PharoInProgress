@@ -1,4 +1,4 @@
-! A Tutorial about Voyage
+{ "title": "A Tutorial about Voyage" }
 
 This chapter describes a step by step tutorial showing the possibilities offered by Voyage an object to document mapper.
 We will use a simple but not trivial domain: super heroes, super powers and their equipments.

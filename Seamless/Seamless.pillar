@@ -1,4 +1,4 @@
-!Seamless. Transparent network of objects
+{ "title": "Seamless: Transparent network of objects" }
 
 Seamless implemented Basys network to organize transparent communication between distributed objects.
 
@@ -321,7 +321,7 @@ Now imaging that reference Ra not used anymore on peer B. And peer B removed it 
 
 What will happen if peer C will send messages to proxy B?
 
-+file://figures/SeamlessThreePeersSharedReferenceAndSecondRemoveItAndThrirdSendMessageToIt.jpg+
++file://figures/SeamlessThreePeersSharedReferenceAndSecondRemoveItAndThirdSendMessageToIt.jpg+
 
 Proxy B will resend message to peer B. But peer B not anymore has reference Ra. So peer B will create proxy C for it which will point to peer C. And proxy C will resent message back to peer C. Which will lead to infinite recursion.
 

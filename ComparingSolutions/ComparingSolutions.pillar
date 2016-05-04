@@ -1,6 +1,5 @@
-! Comparing Solutions: Benchmarking and Charting at Work
-
-Written by Natalia Tymchuk
+{ "title": "Comparing Solutions: Benchmarking and Charting at Work",
+  "attribution": "Natalia Tymchuk" }
 
 Often you have several solutions to a given problem and you would like to understand and evaluate which ones are the best.
 To get such an assessment, you will measure your solutions, however it is important to be able to perform your measures

@@ -1,4 +1,5 @@
-!StateSpecs
+{ "title": "StateSpecs" }
+
 StateSpecs is object state specification framework. It describes particular object states by first class specifications. For example there are SpecOfCollectionItem, SpecOfObjectClass and SpecOfObjectSuperclass. They can match and validate given objects. In case when object is not satisfied specification you will get failure result with detailed information about problem.
 [[[
 spec matches: anObject.

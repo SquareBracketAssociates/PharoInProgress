@@ -1,4 +1,5 @@
-!Mapless
+{ "title": "Mapless" }
+
 Obscenely simple persistence for Smalltalk. Mapless is a small framework for storing objects in a key ==\-\>== data fashion (i.e., noSQL databases) without requiring any kind of object-data map. So far only MongoDB is supported. And Redis can be used for reactivity and cache joy.
 Mapless is developed by Sebastian Sastre and the code project is located at: *https://github.com/sebastianconcept/Mapless*
 

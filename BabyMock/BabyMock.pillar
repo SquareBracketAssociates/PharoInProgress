@@ -1,4 +1,4 @@
-!BabyMock: A Visual Mock Library
+{ "title": "BabyMock: A Visual Mock Library" }
 
 BabyMock is a visual mock object library for Pharo Smalltalk, that supports test-driven development. A mock object is a replacement for a real object that helps you design and verify object interactions. BabyMock makes it easy to create mock objects as well as visualizes the object interactions. This visualization may help you to get a good mental picture of the objects relationships. In this chapter, we will describe how to use mock objects in conjunction with test-driven development.  
 

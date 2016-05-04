@@ -1,4 +1,4 @@
-! Reef: Reconciling Javascript and Seaside
+{ "title": "Reef: Reconciling Javascript and Seaside" }
 
 Reef is a framework to build dynamic components embedding Javascript developed by E. Lorenzano. Reef is a complement to Seaside. Reef does not replace Seaside, instead, it makes easier the definition and use of AJAX/Javascript. Reef makes the writing of Ajax interaction much simpler since as a developer there is no need to manipulate Javascript using queries and string concatenation. Reef also integrates smoothly with JS libraries such Bootstrapp.
 

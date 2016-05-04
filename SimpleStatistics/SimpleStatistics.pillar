@@ -1,4 +1,4 @@
-!Simple statistics and modelisations
+{ "title": "Simple statistics and modelisations" }
 
 This chapter will accompany you in your Data Mining analyzes from the import of data into Pharo, to their analysis using a simple but accurate package for statistics based on SciSmalltalk, and their modelisation using Roassal.
 

@@ -1,38 +1,38 @@
 {
-  "author" : "Damien Cassou",
-  "title" : "Saving your Pharo code in a Git repository"
+  "title": "Saving your Pharo code in a Git repository",
+  "attribution": "Damien Cassou"
 }
 
 What is Git and Why Should I Care
 
-@@authorToDo Read this thread and add its content somewhere below: "[Pharo-users] Github \+ Metacello \+ Baselines"
+@@todo Read this thread and add its content somewhere below: "[Pharo-users] Github \+ Metacello \+ Baselines"
 
-! A Tutorial
+!! A Tutorial
 
-!! Create your Project
+!!! Create your Project
 
 - on Github
 - in Pharo
 - commit and push
 
-!! Create a Baseline
+!!! Create a Baseline
 
-!! Create a Jenkins job
+!!! Create a Jenkins job
 
-!! Register on the Pharo Catalog
+!!! Register on the Pharo Catalog
 
 create a configuration
 
-!! Create a Travis configuration
+!!! Create a Travis configuration
 
-! Setting up an Advanced Environment: the Merge Driver
+!! Setting up an Advanced Environment: the Merge Driver
 
 - the problem
 - git pharo merge driver
 
-! Managing Project Configurations
+!! Managing Project Configurations
 
-!!Baselines
+!!!Baselines
 
 what is it. How does it work. How does it compare to ==ConfigurationOf== classes.
 
@@ -53,7 +53,7 @@ Metacello new
 
 
 
-!!Configurations
+!!!Configurations
 
 - the #stable definitions
 
@@ -80,22 +80,22 @@ gitfiletree for Cocoon.
 - writing a configuration that depends on a project hosted in git
 
 
-! Loading Git-based Projects in your Image
+!! Loading Git-based Projects in your Image
 
 - with read-only access
 - with read-write access
 
-!! Specifying the README of your Project
+!!! Specifying the README of your Project
 
-! Using Git Branches
+!! Using Git Branches
 
-! Using Continuous Integration
+!! Using Continuous Integration
 
-!! Jenkins
+!!! Jenkins
 
-!! Travis
+!!! Travis
 
-! Example Projects
+!! Example Projects
 
 To learn from others, you might want to have a look at these projects:
 
@@ -106,6 +106,6 @@ To learn from others, you might want to have a look at these projects:
 - https://github.com/theseion/LibGit
 - https://github.com/gcotelli/RenoirSt
 
-! References
+!! References
 
 links to external documentation

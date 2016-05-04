@@ -1,4 +1,4 @@
-! An XMLPullParser for Pharo
+{ "title": "An XMLPullParser for Pharo" }
 
 Handling XML is a practical aspect of modern computing. There are several libraries in Pharo to deal with XML such as the XMLReader and XMLWriter packages. In this chapter we present another approach that is known as an XML pull parser. In essence, an XML pull parser is like SAX (the Simple API for XML) i.e., that is, it is based on a streaming API. In particular there is no need to store the complete document. Finally contrary to SAX there is no need to build final state machine to process the document and the XML pull parser controls the flow of events. 
 
