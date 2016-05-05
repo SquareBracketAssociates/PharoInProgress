@@ -272,7 +272,7 @@ used to connect to the database server, like the ''Plaform'' used,
 hostname, port, username, password, database name and other parameters.
 
 [[[caption=Creating a login.
-login := login := Login new
+login := Login new
         database: PostgreSQLPlatform new;
         username: 'postgres';
         password: 'secret';
@@ -630,7 +630,7 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
 !!! Table Models
 
 Glorp also models your database objects, such as tables, constraints, indexes,
-etc.. With this model it will be able to determine how to serialize the objects to 
+etc.. With this model it will be able to determine how to serialize the objects to
 SQL, how to perform joins to retrieve 1:1 or 1:n relations, and so on.
 
 The descriptor system follows a convention to define the tables,
@@ -1056,7 +1056,7 @@ The mapping for invoice is a bit more elaborated, because it not only
 contains Direct Mappings, and one-to-one mappings for the ==Person== and
 ==Address==, but also contains a one-to-many relationship to its items.
 
-We introduced the ==orderBy:== and ==writeTheOrderField== attributes in 
+We introduced the ==orderBy:== and ==writeTheOrderField== attributes in
 the #items mappings. You can use the first attribute independently or both together.
 
 The ==orderBy:== attribute instructs
