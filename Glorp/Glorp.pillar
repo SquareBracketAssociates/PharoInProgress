@@ -1,6 +1,6 @@
 { "title": "Object-Relational Persistence with Glorp" }
 
-This document describes the Glorp object-relational mapper. By reading it, you will learn how to map your objects to a relational databases This document first revisits relational database concepts. Then it presents step by step how to use Glorp and its advanced concepts in a tutorial.
+This document describes the Glorp object-relational mapper. By reading it, you will learn how to map your objects to a relational database. It presents step by step how to use Glorp and its basic and advanced concepts in a tutorial. At the end we include an Appendix that revisits relational database concepts.
 We thank the authors of the previous Glorp tutorials R. Withney and N. Pratt for having granted us the right to use some of their material. This document has been written by E. Maringolo and edited by S. Ducasse.
 
 !! What is Glorp?
@@ -194,10 +194,17 @@ Please notice the upper case of the table name.
 
 [[[caption=Table model for PERSON table.
 GlorpBookDescriptorSystem >> tableForPERSON: aTable
-    (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
-    aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
-    aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
-    aTable createFieldNamed: 'birthDate' type: platform date.
+    (aTable createFieldNamed: 'id' type: platform serial)
+		 	bePrimaryKey.
+    aTable
+			createFieldNamed: 'firstName'
+			type: (platform varChar: 100).
+    aTable
+		 createFieldNamed: 'lastName'
+		 type: (platform varChar: 100).
+    aTable
+		 createFieldNamed: 'birthDate'
+		 type: platform date.
 ]]]
 
 The ''serial'' datatype, explained in detail below, is an autoincrementing
@@ -362,14 +369,14 @@ It is time to put to work all the classes and schema we just created. To do it
 we will create and persist a few instances of our example class ==Person==, and
 then read some of them back. We'll explain a little bit
 how Glorp decides what and when to ''INSERT'', ''UPDATE'' or ''DELETE'' an object using
-the concept of Unit of Work. But first we should create tables.
+the concept of Unit of Work. But we should create the required tables first.
 
 !!! Creating Tables
 Now we have our working ''session'' object, we can perform our ''DDL'' queries
 extracting the data from the ''system'' and sending commands to
 the ''accessor''. But before we should evaluate the following to create the tables.
 
-[[[
+[[[caption=Creating the required tables
 session createTables
 ]]]
 
@@ -397,9 +404,15 @@ Note that this operation should occur within a Unit of Work using the message
 [[[caption=Saving example instances of Person.
 session inUnitOfWorkDo: [
     {
-        (Person new firstName: 'John'; lastName: 'Locke'; birthDate: '1704-08-29' asDate).
-        (Person new firstName: 'John'; lastName: 'Malkovich'; birthDate: '1953-12-09' asDate).
-        (Person new firstName: 'George'; lastName: 'Lucas'; birthDate: '1944-05-14' asDate)
+        (Person new
+					firstName: 'John'; lastName: 'Locke';
+					birthDate: '1704-08-29' asDate).
+        (Person new
+					firstName: 'John'; lastName: 'Malkovich';
+					birthDate: '1953-12-09' asDate).
+        (Person new
+					firstName: 'George'; lastName: 'Lucas';
+					birthDate: '1944-05-14' asDate)
     } do: [ :each | session register: each ]
 ].
 ]]]
@@ -423,7 +436,9 @@ want to filter the results. For that you can pass a block that will act as
 a filter.
 
 [[[caption=Read all instances of Person matching a criteria|language=smalltalk
-session read: Person where: [:each | each firstName = 'John'].
+session
+	read: Person
+	where: [:each | each firstName = 'John'].
 ]]]
 
 This might lead you to think you can pass any block to filter the results
@@ -438,7 +453,9 @@ For instance the ==similarTo:== selector gets converted to SQL's ==LIKE==
 operator. With this we can retrieve all the Persons named ''John''.
 
 [[[caption=Use an operator that gets ''translated''|language=smalltalk
-session read: Person where: [:each | each lastName similarTo: 'Malk%'].
+session
+	read: Person
+	where: [:each | each lastName similarTo: 'Malk%'].
 ]]]
 
 Another convenient way to retrieve a single instance instead of a Collection
@@ -453,7 +470,9 @@ in the context of a UnitOfWork using the message ==inUnitOfWorkDo:==:.
 [[[caption=Updating an object read within a UnitOfWork
 session inUnitOfWorkDo: [
     | person |
-    person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+    person := session
+								readOneOf: Person
+								where: [:each | each lastName = 'Locke'].
     person birthDate: Date today.
     ].
 ]]]
@@ -474,7 +493,9 @@ object with the object you want to delete as argument.
 [[[caption=Deleting an object inside of a UnitOfWork
 session inUnitOfWorkDo: [
     | person |
-    person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+    person := session
+								readOneOf: Person
+								where: [:each | each lastName = 'Locke'].
     session delete: person
     ].
 ]]]
@@ -483,7 +504,9 @@ Another way to delete objects is passing a condition block.
 
 [[[caption=Delete using a where clause
 session inUnitOfWorkDo: [
-    session delete: Person where: [:each | each lastName = 'Locke'].
+    session
+			delete: Person
+			where: [:each | each lastName = 'Locke'].
     ].
 ]]]
 
@@ -510,7 +533,9 @@ and the database updated since the unit of work failed.
 
 [[[caption=Updating an object read within a UnitOfWork
 session inUnitOfWorkDo: [
-	person := session readOneOf: Person where: [:each | each lastName = 'Locke'].
+	person := session
+							readOneOf: Person
+							where: [:each | each lastName = 'Locke'].
 	person lastName: 'Wayne'.
 	Error signal: 'This error will abort the Unit Of Work.'
 ].
@@ -534,7 +559,9 @@ unit of work manually, you can do so by using the following messages:
 The first three have self descripting selectors, and can be using like this:
 
 [[[caption=Manual handling of the transaction
-  person := session readOneOf: Person where: [:each | each firstName = 'George'].
+  person := session
+							readOneOf: Person
+							where: [:each | each firstName = 'George'].
   session beginUnitOfWork.
   session delete: person.
   session rollbackUnitOfWork.
@@ -570,7 +597,9 @@ where you want to commit changes every ''n'' instances or similar.
 We can cleanup the sample instances by running:
 [[[caption=Delete using a where clause
 session inUnitOfWorkDo: [
-    session delete: Person where: [:each | each firstName = 'Sample'].
+    session
+			delete: Person
+			where: [:each | each firstName = 'Sample'].
 ].
 ]]]
 
@@ -877,16 +906,16 @@ GlorpBookObject subclass: #Address
 
 [[[caption=Invoice Class.
 GlorpBookObject subclass: #Invoice
-    	instanceVariableNames: 'issueDate person address items'
-    	classVariableNames: ''
-    	package: 'Glorp-Book'.
+	instanceVariableNames: 'issueDate person address items'
+	classVariableNames: ''
+	package: 'Glorp-Book'.
 ]]]
 
 [[[caption=Invoice Item Class.
 GlorpBookObject subclass: #InvoiceItem
-    	instanceVariableNames: 'invoice description price'
-    	classVariableNames: ''
-    	package: 'Glorp-Book'.
+	instanceVariableNames: 'invoice description price'
+	classVariableNames: ''
+	package: 'Glorp-Book'.
 ]]]
 
 Aside from the accessors, when you're dealing with collections
@@ -898,15 +927,15 @@ instance is a good practice too.
 
 [[[caption=Initialization methods
 Person >> initialize
-    super initialize.
-    addresses := OrderedCollection new.
-    invoices := OrderedCollection new.
+	super initialize.
+  addresses := OrderedCollection new.
+  invoices := OrderedCollection new.
 ]]]
 
 [[[caption=Initialization methods
 Invoice >> initialize
-    super initialize.
-    items := OrderedCollection new.
+  super initialize.
+  items := OrderedCollection new.
 ]]]
 
 !!! Class Model Declarations
@@ -915,36 +944,36 @@ domain model.
 
 [[[caption=Class Model Declarations
 GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
-    (aClassModel newAttributeNamed: #id) useDirectAccess: true.
-    aClassModel newAttributeNamed: #firstName.
-    aClassModel newAttributeNamed: #lastName.
-    aClassModel newAttributeNamed: #email.
-    aClassModel newAttributeNamed: #addresses collectionOf: Address.
-    aClassModel newAttributeNamed: #invoices collectionOf: Invoice.
+  (aClassModel newAttributeNamed: #id) useDirectAccess: true.
+  aClassModel newAttributeNamed: #firstName.
+  aClassModel newAttributeNamed: #lastName.
+  aClassModel newAttributeNamed: #email.
+  aClassModel newAttributeNamed: #addresses collectionOf: Address.
+  aClassModel newAttributeNamed: #invoices collectionOf: Invoice.
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> classModelForAddress: aClassModel
-    (aClassModel newAttributeNamed: #id) useDirectAccess: true.
-    aClassModel newAttributeNamed: #street.
-    aClassModel newAttributeNamed: #zip
+  (aClassModel newAttributeNamed: #id) useDirectAccess: true.
+  aClassModel newAttributeNamed: #street.
+  aClassModel newAttributeNamed: #zip
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> classModelForInvoice: aClassModel
-    (aClassModel newAttributeNamed: #id) useDirectAccess: true.
-    aClassModel newAttributeNamed: #issueDate.
-    aClassModel newAttributeNamed: #person type: Person.
-    aClassModel newAttributeNamed: #address type: Address.
-    aClassModel newAttributeNamed: #items collectionOf: InvoiceItem
+  (aClassModel newAttributeNamed: #id) useDirectAccess: true.
+  aClassModel newAttributeNamed: #issueDate.
+  aClassModel newAttributeNamed: #person type: Person.
+  aClassModel newAttributeNamed: #address type: Address.
+  aClassModel newAttributeNamed: #items collectionOf: InvoiceItem
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> classModelForInvoiceItem: aClassModel
-    (aClassModel newAttributeNamed: #id) useDirectAccess: true.
-    aClassModel newAttributeNamed: #invoice type: Invoice.
-    aClassModel newAttributeNamed: #description.
-    aClassModel newAttributeNamed: #price
+  (aClassModel newAttributeNamed: #id) useDirectAccess: true.
+  aClassModel newAttributeNamed: #invoice type: Invoice.
+  aClassModel newAttributeNamed: #description.
+  aClassModel newAttributeNamed: #price
 ]]]
 
 
@@ -954,32 +983,37 @@ Then we should declare the tables that represent our domain.
 
 [[[caption=Table models for Person
 GlorpBookDescriptorSystem >> tableForPERSON: aTable
- 	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
+	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'firstName' type: (platform varChar: 100).
-    aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
-    aTable createFieldNamed: 'email' type: (platform varchar: 200).
+  aTable createFieldNamed: 'lastName' type: (platform varChar: 100).
+  aTable createFieldNamed: 'email' type: (platform varchar: 200).
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> tableForADDRESS: aTable
- 	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
+	(aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'street' type: (platform varChar: 100).
-    aTable createFieldNamed: 'zip' type: platform integer.
+	aTable createFieldNamed: 'zip' type: platform integer.
 ]]]
 
 [[[
 GlorpBookDescriptorSystem >> tableForINVOICE: aTable
-    | personField addressField |
-    (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
-    aTable createFieldNamed: 'issueDate' type: platform date.
-    personField := aTable createFieldNamed: 'person_id' type: platform integer.
-    addressField := aTable createFieldNamed: 'address_id' type: platform integer.
-    aTable
-        addForeignKeyFrom: personField
-        to: ((self tableNamed: 'PERSON') fieldNamed: 'id').
-    aTable
-        addForeignKeyFrom: addressField
-        to: ((self tableNamed: 'ADDRESS') fieldNamed: 'id').
+	| personField addressField |
+	(aTable createFieldNamed: 'id' type: platform serial)
+		bePrimaryKey.
+	aTable createFieldNamed: 'issueDate' type: platform date.
+	personField := aTable
+									 createFieldNamed: 'person_id'
+									 type: platform integer.
+	addressField := aTable
+	 									createFieldNamed: 'address_id'
+										type: platform integer.
+  aTable
+  	addForeignKeyFrom: personField
+    to: ((self tableNamed: 'PERSON') fieldNamed: 'id').
+  aTable
+    addForeignKeyFrom: addressField
+    to: ((self tableNamed: 'ADDRESS') fieldNamed: 'id').
 ]]]
 
 As you can see in our ''INVOICE'' table, we not only added fields, but also
@@ -996,33 +1030,35 @@ and to this object we will ask for the field named ''id''.
 
 [[[
 GlorpBookDescriptorSystem >> tableForINVOICEITEM: aTable
-    | invoiceField |
-    (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
-    invoiceField := aTable createFieldNamed: 'invoice_id' type: platform serial.
-    aTable createFieldNamed: 'description' type: (platform varchar: 150).
-    aTable createFieldNamed: 'price' type: platform decimal.
-    aTable createFieldNamed: 'position' type: platform integer.
-    aTable
-        addForeignKeyFrom: invoiceField
-        to: ((self tableNamed: 'INVOICE') fieldNamed: 'id').
+	| invoiceField |
+  (aTable createFieldNamed: 'id' type: platform serial) bePrimaryKey.
+  invoiceField := aTable createFieldNamed: 'invoice_id' type: platform serial.
+  aTable createFieldNamed: 'description' type: (platform varchar: 150).
+  aTable createFieldNamed: 'price' type: platform decimal.
+  aTable createFieldNamed: 'position' type: platform integer.
+  aTable
+    addForeignKeyFrom: invoiceField
+    to: ((self tableNamed: 'INVOICE') fieldNamed: 'id').
 ]]]
 
 
 [[[
 GlorpBookDescriptorSystem >> tableForPERSON_ON_ADDRESS: aTable
-    | personField addressField |
-	personField := aTable createFieldNamed: 'person_id' type: platform integer.
-    addressField := aTable createFieldNamed: 'address_id' type: platform integer.
-
+  | personField addressField |
+	personField := aTable
+										createFieldNamed: 'person_id'
+										type: platform integer.
+  addressField := aTable
+										createFieldNamed: 'address_id'
+										type: platform integer.
 	personField bePrimaryKey.
 	addressField bePrimaryKey.
-
-    aTable
-        addForeignKeyFrom: personField
-        to: ((self tableNamed: 'PERSON') fieldNamed: 'id').
-    aTable
-        addForeignKeyFrom: addressField
-        to: ((self tableNamed: 'ADDRESS') fieldNamed: 'id').
+  aTable
+    addForeignKeyFrom: personField
+    to: ((self tableNamed: 'PERSON') fieldNamed: 'id').
+  aTable
+    addForeignKeyFrom: addressField
+    to: ((self tableNamed: 'ADDRESS') fieldNamed: 'id').
 ]]]
 
 As you can see in the last method, we created a table model for the table
@@ -1037,18 +1073,18 @@ mapping between the class model (the domain model) and the table.
 
 [[[caption=Class descriptors
 GlorpBookDescriptorSystem >> descriptorForAddress: aDescriptor
-    | table |
-    table := self tableNamed: 'ADDRESS'.
-    aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
-    (aDescriptor newMapping: DirectMapping)
-        from: #street
-        to: (table fieldNamed: 'street').
-    (aDescriptor newMapping: DirectMapping)
-            from: #city
-            to: (table fieldNamed: 'zip').
+	| table |
+  table := self tableNamed: 'ADDRESS'.
+  aDescriptor table: table.
+  (aDescriptor newMapping: DirectMapping)
+    from: #id
+    to: (table fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #street
+    to: (table fieldNamed: 'street').
+  (aDescriptor newMapping: DirectMapping)
+    from: #city
+    to: (table fieldNamed: 'zip').
 ]]]
 
 
@@ -1091,7 +1127,8 @@ GlorpBookDescriptorSystem >> descriptorForInvoice: aDescriptor
     attributeName: #address.
   (aDescriptor newMapping: ToManyMapping)
     attributeName: #items;
-    orderBy: [:each | (each getTable: 'INVOICEITEM') getField: 'position'];
+    orderBy: [:each |
+			(each getTable: 'INVOICEITEM') getField: 'position'];
     writeTheOrderField.
 ]]]
 
@@ -1102,20 +1139,20 @@ between Invoice and InvoiceItem bidirectional.
 
 [[[
 GlorpBookDescriptorSystem >> descriptorForInvoiceItem: aDescriptor
-    | table |
-    table := self tableNamed: 'INVOICEITEM'.
-    aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
-    (aDescriptor newMapping: DirectMapping)
-        from: #description
-        to: (table fieldNamed: 'description').
-    (aDescriptor newMapping: DirectMapping)
-        from: #price
-        to: (table fieldNamed: 'price').
-    (aDescriptor newMapping: OneToOneMapping)
-        attributeName: #invoice.
+  | table |
+  table := self tableNamed: 'INVOICEITEM'.
+  aDescriptor table: table.
+	(aDescriptor newMapping: DirectMapping)
+    from: #id
+    to: (table fieldNamed: 'id').
+  (aDescriptor newMapping: DirectMapping)
+    from: #description
+    to: (table fieldNamed: 'description').
+  (aDescriptor newMapping: DirectMapping)
+    from: #price
+    to: (table fieldNamed: 'price').
+  (aDescriptor newMapping: OneToOneMapping)
+    attributeName: #invoice.
 ]]]
 
 
@@ -1142,7 +1179,8 @@ GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
 
   (aDescriptor newMapping: ToManyMapping)
     attributeName: #invoices;
-    orderBy: [:each | (each getTable: 'INVOICE') getField: 'issueDate'].
+    orderBy: [:each |
+			(each getTable: 'INVOICE') getField: 'issueDate'].
 
   linkTable := self tableNamed: 'PERSON_ON_ADDRESS'.
   (aDescriptor newMapping: ManyToManyMapping)
@@ -1171,16 +1209,20 @@ so don't mail them.
 [[[
 session inUnitOfWorkDo: [
 	| lastnames firstnames |
-	{ 'Dan'. 'Alan'. 'Adele' } with: {'Ingalls'. 'Kay'. 'Goldberg'} do:
-    [:firstName :lastName |
-		| person |
-		person := (Person new firstName: firstName; lastName: lastName).
-		person addresses add: (
-			Address new
-        street: (1 to: 1000) atRandom printString, ' Random Avenue';
-        zip: (1000 to: 9000 by: 100) atRandom;
-        yourself).
-    session register: person
+	{ 'Dan'. 'Alan'. 'Adele' }
+		with: {'Ingalls'. 'Kay'. 'Goldberg'}
+		do: [:firstName :lastName |
+			| person |
+			person := (Person new
+									firstName: firstName;
+									lastName: lastName).
+			person addresses add: (
+				Address new
+	        street: (1 to: 1000) atRandom printString
+										, ' Random Avenue';
+	        zip: (1000 to: 9000 by: 100) atRandom;
+	        yourself).
+	    session register: person
 	]
 ].
 ]]]
@@ -1190,7 +1232,9 @@ Now we created the sample Persons, let's add an extra address for Alan.
 [[[caption=Adding Alan's VPRI institute address
 session inUnitOfWorkDo: [
 	| alan |
-	alan := session readOneOf: Person where: [ :each | each firstName = 'Alan' ].
+	alan := session
+						readOneOf: Person
+						where: [ :each | each firstName = 'Alan' ].
 	alan addresses
     add: (Address new
 		  street: '1025 Westwood Blv, 2nd Floor, Los Angeles, CA';
@@ -1204,7 +1248,9 @@ the Person was read inside of a UnitOfWork. If we read the instance again
 and inspect its addresses we will find the new instance is there.
 
 [[[caption=Inspect the result of the following
-(session readOneOf: Person where: [ :each | each firstName = 'Alan' ]) addresses.
+(session
+	readOneOf: Person
+	where: [ :each | each firstName = 'Alan' ]) addresses.
 ]]]
 
 Before continuing and to make code simpler and more readable we'll
@@ -1226,7 +1272,7 @@ Invoice >> addItem: anInvoiceItem
 
 [[[caption=Returns the added up price of its items
 Invoice >> totalPrice
-	^ self items sum: #price
+	^self items sum: #price
 ]]]
 
 We can now procceed to create an few instances of Invoice. Let's create
@@ -1344,7 +1390,8 @@ attributes of referenced objects.
 
 [[[
 ((SimpleQuery read: Invoice)
-  where: [:each | each person lastName = 'Goldberg' ]) executeIn: session
+  where: [:each | each person lastName = 'Goldberg' ]
+	)	executeIn: session
 ]]]
 
 Or even by interacting with a referenced collection, i.e. retrieving
@@ -1364,7 +1411,8 @@ criteria.
 [[[
 ((SimpleQuery read: InvoiceItem)
 	orderBy: [:each | each price descending];
-	orderBy: [:each | each invoice person lastName]) executeIn: session.
+	orderBy: [:each | each invoice person lastName]
+	) executeIn: session.
 ]]]
 
 !!!! ''GROUP BY'' expression
@@ -1375,9 +1423,11 @@ option comes to the rescue.
 
 [[[
 ((SimpleQuery read: InvoiceItem)
-	retrieve: [ :each | each invoice person firstName, '-',  each invoice person lastName];
-	retrieve: [ :each | each price sum ];
-	groupBy: [ :each | each invoice person firstName, '-', each invoice person lastName]
+	retrieve: [ :e |
+	 	e invoice person firstName, '-', e invoice person lastName];
+	retrieve: [ :e | e price sum ];
+	groupBy: [ :e |
+		e invoice person firstName, '-', e invoice person lastName]
 	) executeIn: session.
 ]]]
 
