@@ -30,11 +30,11 @@ being self contained, because you don't depend on an external file or setup
 to connect to a server. Also, because everything is written in Smalltalk
 it is debuggeable using Pharo tools down to a very low level.
 
-!!!! Library Wrapper Drivers (UFFI)
+!!!! Library Wrapper Drivers (FFI)
 Library Wrappers, as its name implies, wrap an underlying Operative System
 shared library like a ==.dll== or ==.so==, these wrappers will access
-the shared library functions by means of UFFI
-(''Universal Foreign Function Interface'') calls and data structures.
+the shared library functions by means of FFI
+(''Foreign Function Interface'') calls and data structures.
 
 Using an external library enables you to use an official client implementation
 of a proprietary protocol like Oracle, or you can be sure that even
@@ -63,7 +63,7 @@ the time of writing this these are the currently supported drivers
 - Garage
 --    PostgreSQL (Native)
 --    MySQL (Native)
---    SQLite (UFFI)
+--    SQLite (FFI)
 
 !!! Glorp Packages
 
