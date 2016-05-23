@@ -241,14 +241,14 @@ rect area should be: 3000.
 Inside "should expect" block you don't need to send ""extra #stub"" message to objects
 !!Verify message sends
 
-With Mocketry you can check that particular object received particular message. Use """should got""" expression for this:
+With Mocketry you can check that particular object received particular message. Use """should receive""" expression for this:
 [[[
 mock := Mock new.
 
 mock someMessage.
 
-mock should got someMessage.
-mock should not got anotherMessage
+mock should receive someMessage.
+mock should not receive anotherMessage
 ]]]
 You can verify that message was send to real objects. It is not only about mocks:
 [[[
@@ -257,14 +257,14 @@ rect := 0@0 corner: 2@3.
 rect stub "it should be here to enable message interception"
 rect area
 
-rect should got width. "area = width * height"
+rect should receive width. "area = width * height"
 ]]]
 And you can do this with globals too:
 [[[
 DateAndTime stub.
 DateAndTime midnight.
 
-DateAndTime should got now. "inside midnight #now is called"
+DateAndTime should receive now. "inside midnight #now is called"
 ]]]
 But you should be carefull with globals. Look at section *@stubMessageSends*.
 
@@ -278,8 +278,8 @@ rect stub.
 mock width.
 rect area.
 
-Any should got width. "it will check that mock and rect received message #width"
-Any should got area "it will fail because mock not received #area message".
+Any should receive width. "it will check that mock and rect received message #width"
+Any should receive area "it will fail because mock not received #area message".
 ]]]
 Also you can verify that ""ANY message"" was sent to particular object:
 [[[
@@ -287,7 +287,7 @@ mock := Mock new.
 
 mock someMessage should be: 100.
 
-mock should got anyMessage.
+mock should receive anyMessage.
 ]]]
 And both variants are supported:
 [[[
@@ -297,11 +297,11 @@ rect stub.
 
 mock someMessage.
 
-Any should got anyMessage. "will fail because rect not received any message".
+Any should receive anyMessage. "will fail because rect not received any message".
 
 rect width.
 
-Any should got anyMessage. "will not fail because both objects received at least one message"
+Any should receive anyMessage. "will not fail because both objects received at least one message"
 ]]]
 ""Any"" class is specific object spec which means "any" object. You can uses any kind of specs to verify message send for set of objects:
 [[[
@@ -313,11 +313,11 @@ rect area.
 rect2 := 0@0 corner: 4@5.
 rect2 width.
 
-(Kind of: Rectangle) should got width. "will not fail because both rect's received message #width"
-(Kind of: Rectangle) should got area "will fail because rect2 not received message #area"
+(Kind of: Rectangle) should receive width. "will not fail because both rect's received message #width"
+(Kind of: Rectangle) should receive area "will fail because rect2 not received message #area"
 
 mock := Mock new.
-(Kind of: Rectangle) should got width. "will not fail because mock is not kind of Rectangle"
+(Kind of: Rectangle) should receive width. "will not fail because mock is not kind of Rectangle"
 ]]]
 !!!Verify message sends with arguments
 
@@ -328,11 +328,11 @@ mock := Mock new.
 (mock messageWith: 10) should be: #ten.
 (mock messageWith: 'test' should be: #anyString.
 
-mock should got messageWith: 10.
-mock should got messageWith: (Instance of: SmallInteger).
-mock should got messageWith: 'test'.
-mock should got messageWith: (Kind of: String).
-mock should got messageWith: [:arg | arg isNumber].
+mock should receive messageWith: 10.
+mock should receive messageWith: (Instance of: SmallInteger).
+mock should receive messageWith: 'test'.
+mock should receive messageWith: (Kind of: String).
+mock should receive messageWith: [:arg | arg isNumber].
 ]]]
 !!!Capture message arguments
 Mocketry provides suitable tool to capture arguments of messages for subsequent verification:
@@ -367,7 +367,7 @@ mock someMessageWith: rect.
 rect area.
 
 Arg rectangle should be: rect.
-Arg rectangle should got width.
+Arg rectangle should receive width.
 ]]]
 !!!Verify message sends count
 
@@ -376,16 +376,16 @@ Mocketry allows to verify how many times object received particular message:
 mock := Mock new.
 
 mock someMessage.
-mock should got someMessage once.
+mock should receive someMessage once.
 
 mock someMessage.
-mock should got someMessage twice.
+mock should receive someMessage twice.
 
 mock someMessage.
-mock should got someMessage exactly: 3.
-mock should got someMessage atLeast: 2.
-mock should got someMessage atMost: 3.
-mock should got someMessage atLeast: 1 atMost: 5.
+mock should receive someMessage exactly: 3.
+mock should receive someMessage atLeast: 2.
+mock should receive someMessage atMost: 3.
+mock should receive someMessage atLeast: 1 atMost: 5.
 ]]]
 Same works to verify that set of objects received particular message expected number of times:
 [[[
@@ -395,23 +395,23 @@ mock2 := Mock new.
 mock someMessage; someMessage.
 mock2 someMessage.
 
-Any should got someMessage twice. "will fail because mock2 received #someMessage only once"
+Any should receive someMessage twice. "will fail because mock2 received #someMessage only once"
 
 mock2 someMessage.
-Any should got someMessage twice. "will not fail because both mocks received #someMessage twice"
+Any should receive someMessage twice. "will not fail because both mocks received #someMessage twice"
 ]]]
 !!!Verify message send result
 There are two ways how to verify result of occurred message:
 
-First you can continue "should got" expression with "which should" clause to validate actual returned value:
+First you can continue "should receive" expression with "which should" clause to validate actual returned value:
 [[[
 rect := 0@0 corner: 2@3.
 rect stub.
 
 rect area.
 
-rect should got area which should equal: 6.
-rect should got width which should beKindOf: Number
+rect should receive area which should equal: 6.
+rect should receive width which should beKindOf: Number
 ]]]
 And you can validate sender message of any object:
 [[[
