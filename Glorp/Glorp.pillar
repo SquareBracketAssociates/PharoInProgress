@@ -63,7 +63,6 @@ the time of writing this these are the currently supported drivers
 - Garage
 --    PostgreSQL (Native)
 --    MySQL (Native)
---    SQLite (FFI)
 
 !!! Glorp Packages
 
@@ -556,7 +555,7 @@ unit of work manually, you can do so by using the following messages:
 -==rollbackUnitOfWork==
 -==commitUnitOfWorkAndContinue==
 
-The first three have self descripting selectors, and can be using like this:
+The first three have self descripting selectors, and can be using like in the referenced code script.
 
 [[[caption=Manual handling of the transaction
   person := session
@@ -608,7 +607,7 @@ session inUnitOfWorkDo: [
 
 In our previous example we created a simple class that mapped ''1:1'' with a
 table using simple data types, but Glorp provides many more features than
-an ''ActiveRecord'' like mapping. Tt lets you fine tune the persistence of
+an ''ActiveRecord'' like mapping. It lets you fine tune the persistence of
 your classes. We will go over the different configurations of class models,
 table data types and constraints and mappings of all sorts.
 
