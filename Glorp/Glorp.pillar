@@ -291,7 +291,7 @@ The accessor requires a ==Login== to establish a connection
 to the database server specified in the login, using the platform specified.
 
 [[[
-accessor := GarageDatabaseAccessor forLogin: login.
+accessor := DatabaseAccessor forLogin: login.
 accessor login.
 ]]]
 
