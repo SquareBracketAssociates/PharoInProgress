@@ -268,7 +268,7 @@ To define it as the default driver we must evaluate once the following expressio
 
 [[[caption=Setting the default Driver.
 "Run this once"
-GAGlorpAccessor beDefaultGlorpDriver
+GAGlorpDriver beGlorpDefaultDriver.
 ]]]
 
 !!! The Login
