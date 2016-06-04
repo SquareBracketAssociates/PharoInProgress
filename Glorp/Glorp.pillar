@@ -182,7 +182,7 @@ GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
 
 Note that a class model is a Glorp representation of your domain class. Glorp uses it to
 store metadata about your domain objects. The descriptor system provides hooks to let you define
-such a class model. ==classModelForPerson:== is one of these hooks. Based on the name convention described
+such a class model. ==classModelForPerson:== is one of these hooks. Based on the naming convention described
 before, Glorp automatically associates this class model to your domain class.
 
 !!!! Table Model
@@ -210,7 +210,7 @@ The ''serial'' datatype, explained in detail below, is an autoincrementing
 integer datatype. Every time you save a new instance Glorp will obtain a
 new integer and assign it to your instance.
 
-!!!! Descriptor (aka ''Mapping'').
+!!!! Descriptor
 Once we have the class model and the table object, we should define the mappings
 between the class attributes and the table fields.
 In this simple example we use a ==DirectMapping==, which is a class of
@@ -222,9 +222,7 @@ GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
     | table |
     table := self tableNamed: 'PERSON'.
     aDescriptor table: table.
-    (aDescriptor newMapping: DirectMapping)
-        from: #id
-        to: (table fieldNamed: 'id').
+    aDescriptor directMappingFor: #id.
     (aDescriptor newMapping: DirectMapping)
         from: #firstName
         to: (table fieldNamed: 'firstName').
@@ -239,8 +237,8 @@ GlorpBookDescriptorSystem >> descriptorForPerson: aDescriptor
 In the above method we can see how the the descriptor ''links'' the class
 attribute to the field name.
 
-Although verbose and may not be visible in this simple example, here lies the
-power of the Glorp orthogonal description system, you describe everything
+Although this is verbose and the advantages may not be visible in this simple example, here lies the
+power of the Glorp orthogonal descriptor system, you describe everything
 and then link all the parts the way you want without modifying your domain
 object.
 
@@ -251,7 +249,7 @@ allows you to perform DDL (''Data Definition Language'') commands such as
 ==CREATE TABLE== or ==CREATE CONSTRAINT== (among others) using plain
 Pharo objects, and it can even determine when to run those.
 
-To do that we must first connect to the database. We will explain how to so in the following sections.
+To do that we must first connect to the database. We will explain how to do so in the following sections.
 We will be using a PostgreSQL server running on the same host as our Pharo image. We will then create the Login object and a  ==DatabaseAccessor== for it to interact with the database.
 
 !!! Database Accessor
@@ -318,7 +316,7 @@ but it is not meant to be used this way, we're doing it just to quickly verify t
 Once we're able to connect to the database we can start interacting with it using
 Glorp's objects. We will do that using an object that ''orchestrates''
  all the other objects, the ==GlorpSession==. The easiest way to get a
-session is to ask the ==DescriptionSystem== passing the ==Login==
+session is to ask the ==DescriptorSystem== passing the ==Login==
 instance as the argument.
 
 [[[caption=Accessing a session.
@@ -328,7 +326,7 @@ session login.
 
 !!! How the Parts Play Together
 
-Let us look into the implementation of the method ==DescriptiorSystem>>sessionForLogin:== to understand
+Let us look into the implementation of the method ==DescriptorSystem>>sessionForLogin:== to understand
 better how the parts interact.
 
 [[[caption=GlorpBookDescriptorSystem inherits this implementation.
@@ -398,7 +396,7 @@ the database transaction in sync with it.
 
 To save instances we should send the message ==register: anInstance== to a session.
 Note that this operation should occur within a Unit of Work using the message
-==inUnitOfWork:== as follows:
+==inUnitOfWorkDo:== as follows:
 
 [[[caption=Saving example instances of Person.
 session inUnitOfWorkDo: [
@@ -464,7 +462,7 @@ way to ==read:== and ==read:where:==.
 !!! Update of Instances
 
 We can also update one instance, i.e., to read one and update it. We do it
-in the context of a UnitOfWork using the message ==inUnitOfWorkDo:==:.
+in the context of a UnitOfWork using the message ==inUnitOfWorkDo:==.
 
 [[[caption=Updating an object read within a UnitOfWork
 session inUnitOfWorkDo: [
@@ -555,7 +553,7 @@ unit of work manually, you can do so by using the following messages:
 -==rollbackUnitOfWork==
 -==commitUnitOfWorkAndContinue==
 
-The first three have self descripting selectors, and can be using like in the referenced code script.
+The first three have self-describing selectors, and can be using like in the referenced code script.
 
 [[[caption=Manual handling of the transaction
   person := session
@@ -639,9 +637,15 @@ The above described methods return instances of ==GlorpAttributeModel==, which
 share common properties that you can configure.
 
 ;==useDirectAccess: aBoolean==
-:Let you define whether the access to the attribute described by the symbol of your domain model will be performed by directly accessing the instance variable (slot) instead of using a standard message send.
+:Let you define whether the access to the attribute described by the symbol of your domain model will be 
+performed by directly accessing the instance variable (slot) instead of using a message send. This is the
+default, and lets you persist variables that don't have getters and setters. It's also useful where the getters and setters
+have extra behavior that you don't want triggered by the persistence mechanisms. On the other hand, going through a 
+message send allows you to persist things that don't correspond directly to a single instance variable.
 ;==beForPseudoVariable==
 :Useful for cases where you want to describe an attribute that won't be read nor written, but still described to be used on queries.
+For example, in a later section we talk about mapping the position of an object in a collection to a field in the database, since databases don't
+maintain order. We could map that order field to a pseudo-variable and use it in queries, even though we don't want it stored in the object.
 
 [[[caption=Example class model for our Person class
 GlorpBookDescriptorSystem >> classModelForPerson: aClassModel
