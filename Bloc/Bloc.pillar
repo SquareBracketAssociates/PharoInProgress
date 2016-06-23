@@ -1,4 +1,4 @@
-! Bloc: a New Morph Framework
+{ "title": "Bloc: a New Morph Framework" }
 
 In this chapter you will learn about Bloc, a new morph framework that has been redesigned from scratch. 
 Note that we did not say that Bloc is a new Morphic Framework. Morphic is just the current Pharo 

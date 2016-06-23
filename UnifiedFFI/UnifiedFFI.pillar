@@ -1,80 +1,89 @@
-! UnifiedFFI
+{ "title": "UnifiedFFI" }
 
-As you know, in Pharo 5.0 we removed the previous FFI standard implementation. This was made because different reasons: 
+Foreign Function Interface (FFI) represents the way to call functions/procedures and data structures written in C.
+In this document you will learn about the new FFI framework named uFFI. u stands for unified. 
+We will present how to invoke functions written in C, access C struct, define callbacks and other frequent situations
+that you face when you want to interact with an external library.
+UFFI has been developed by E. Lorenzano. 
 
-- First, we lost the main maintainer of NativeBoost/ASMJIT in a very critical moment, when we were migrating to the new Virtual Machine (Spur), who changed the object format forcing us to adapt NativeBoost (a non trivial task for non assembly-programming experts)
-- Second, we are in the process of add different platforms in which Pharo can run. 64bits being the most important, but also different ARMs. 
-- Third, there were always concerns about safeness and security when using NativeBoost (as you might know, it requires making executable the whole memory of Pharo)
-- Finally, our maintain capacity is limited, and we need to unify all FFI backends around at this moment (There are 3: FFI, Alien, and NativeBoost-ASMJIT). 
 
-So, when considering all this options, we arrive to the conclusion that we need to replace NativeBoost-ASMJIT with something 
-we can maintain in the future. Since FFI and Alien will be merged into one FFI (to probably be migrated in the future to 
-an enhanced version), and since there some people maintaining it besides us, the answer was obvious. 
+!! uFFI Genesis
+As you know, in Pharo 5.0 we removed the previous FFI standard implementation called NativeBoost. This was made because different reasons: 
 
-But we have a problem: there is already a lot of libraries developed for NativeBoost-ASMJIT, and we do not want to lose 
-them (Athens and SDL2, for example, are core part of Pharo... but there are a lot more). 
+- First, we lost the main maintainer of NativeBoost/ASMJIT in a very critical moment, when we were migrating to the new Virtual Machine (Spur), which changed the object format forcing us to adapt NativeBoost (a non trivial task for non assembly-programming experts).
+- Second, we are in the process of add different platforms in which Pharo can run. 64bits being the most important, but also different ARMs. Using a assembly-oriented solution means that we have to develop a new back-end for each new architecture. 
+- Third, there were always concerns about safety and security when using NativeBoost (as you might know, it requires making executable the whole memory of Pharo).
+- Finally, our maintenance capacity is limited, and we wanted to unify the three  FFI backends FFI, Alien, and NativeBoost-ASMJIT into a single one. 
 
-Also, we believe NativeBoost syntax and it's effort for being close to C syntax are a big addition. Is a lot easier to 
-work with a framework when you can take a header file and just copy a declaration. 
+So, when considering all these options, we arrived to the conclusion that we need to replace NativeBoost-ASMJIT with something we can maintain in the future. Since FFI and Alien will be merged into one FFI (to probably be migrated in the future to an enhanced version), and since there some people maintaining it besides us, the answer was obvious. 
+
+But we faced a problem: there is already a lot of libraries developed using NativeBoost-ASMJIT, and we do not want to lose 
+them (Athens and SDL2, for example, are core parts of Pharo and there are a lot more). 
+
+Also, we believe NativeBoost syntax and its effort for being close to C syntax are a big enhancement. It is a lot easier to work with a framework when you can take a header file and just copy a declaration. 
 
 Take this as an example: 
 
 [[[language=smalltalk
-AthensCairoMatrix>>primMultiplyBy: m
+AthensCairoMatrix >> primMultiplyBy: m
 	self ffiCall: #(void cairo_matrix_multiply (
 		AthensCairoMatrix * self, 
 		AthensCairoMatrix * m , 
 		AthensCairoMatrix * self ) ) 
 ]]]
 
-This is a lot simpler than produce a primitive, then the necessary bindings, something like this: 
+With the NativeBoost syntax is a lot simpler than to produce a primitive. 
+In addition the necessary bindings are simple too as shown below: 
 
 [[[language=smalltalk
-AthensCairoMatrix>>multiplyBy: m
+AthensCairoMatrix >> multiplyBy: m
 	self primMultiply: self getHandle by: m getHandle with: self getHandle.
 
-AthensCairoMatrix>>primMultiplyBy: m
+AthensCairoMatrix >> primMultiplyBy: m
 	<cdecl: void 'cairo_matrix_multiply' (void*, void*, void *) module: 'libcairo2.dylib'>
-	^ 
+	^ ???
 ]]]
 
-And of course things start to complicate when you have to do more complex operations. 
+SD: why do we have cdecl:?
+And of course things start to get complicated when you have to do more complex operations. 
 
-In sum, we want to keep it not just because of backward compatibility, but because we believe is a 
-better approach to make C bindings than what we traditionally have. 
+In summary, we wanted to keep the NativeBoost syntax not just because of backward compatibility, but because we believe is a better approach to make C bindings than what we traditionally had. 
 
 Then, we needed a way to use NativeBoost syntax with a different backend, and that's what the new FFI-NB does. 
 As I've been pointed, the name is misleading, but it means "FFI with NB syntax"... and yes, I agree we can 
 find a better name.
+SD: what is FFI-NB? UFFI?
 
-Of course, that means if you are using ASMJIT, your code will not work anymore :(
 
-!! Using FFI-NB
+We know present how to use UnifiedFFI.
 
-!!! Calling a simple external function
+!! Calling a simple external function
 
-Suppose you want to know the amount of time the image has been running by calling the underlying OS function 
-named ==clock==. This function is part of the standard C library (==libc==). Its C declaration is: (According 
+Suppose that you want to know the amount of time the image has been running by calling the underlying OS function 
+named ==clock==. This function is part of the standard C library (==libc==). Its C declaration is: According 
 to man its return type is ==clock\_t== instead of ==uint==, but we deliberately made it ==uint== for the sake 
-of simplicity. We will see how to deal with typedefs in the following sections.)
+of simplicity. We will see how to deal with typedefs in the following sections.
+
+SD: but can the user run it? Else this is not a tutorial.
 
 [[[
 uint clock (void)
 ]]]
 
 To call ==clock== from the image, you should write a binding: a normal Smalltalk method using the ==ffiCall:module:== 
-message (Note that it exists other messages to define callouts. They will be discussed later). 
+message. Note that it exists other messages to define callouts. They will be discussed later. 
 
 Here is the full definition of the binding of this ==clock== function:
 
 [[[language=smalltalk
-FFICExamples class>>ticksSinceStart
+FFICExamples class >> ticksSinceStart
   ^ self ffiCall: #( uint clock () ) module: LibC
 ]]]
 
 In the above example, we define a method named ==ticksSinceStart== on the class side of the class named ==FFICExamples==.
-FFI-NB imposes no constraint on the class where the method should be added and programmers can choose to add their bindings 
-either on the instance- or the class-side.
+FFI-NB imposes no constraint on the class where the method should be added and programmers can choose to add their bindings  either on the instance- or the class-side.
+
+SD: do we have examples loadable?
 
 To know the number of native clock ticks since the Pharo Virtual Machine started, execute the method and print its result:
 
@@ -82,16 +91,16 @@ To know the number of native clock ticks since the Pharo Virtual Machine started
 FFICExamples ticksSinceStart
 ]]]
 
-!!!! Analysis of an FFI Callout
+!!! Analysis of an FFI Callout
 
 Now that the call worked, let us look at the definition again:
 
 [[[language=smalltalk
-FFICExamples class>>ticksSinceStart
+FFICExamples class >> ticksSinceStart
 	^ self ffiCall: #( int clock () ) module: LibC
 ]]]
 
-!!!!! Callout
+!!!! Callout
 
 What we have just done is usually named an FFI ''callout''. 
 ==#ffiCall:module:== is a method provided by the FFI-NB package and defined in the ==Object== class (so you can use it anywhere). 
@@ -111,14 +120,11 @@ The signature is described by an array: here ==#(int clock ())==.
 - Its second is the name of the called function, here ==clock==.
 - Its third element is also an array which describes the function parameters if there's any.
 
-Basically, if you strip down outer #(), what is inside is a C function prototype, which is very close to normal C syntax. 
-This is intentionally done so, that in most cases you can actually copy-and-paste a complete C function declaration, 
-taken from header file or from documentation, and it is ready for use.
+Basically, if you strip down the outer #(), what is inside is a C function prototype, which is very close to normal C syntax. This is intentionally done so, that in most cases you can actually copy-and-paste a complete C function declaration,  taken from header file or from documentation, and it is ready for use.
 
-The second argument, ==#module:==, should be a module name or a ==FFILibrary==. Module names are easy to explain: is just 
-a string who points to your library, e.g. 'libc.so.6'. Libraries will be explained in next section.
+The second argument, ==#module:==, should be a module name or a ==FFILibrary==. A module name is easy to explain: it is just  a string who points to your library, e.g. 'libc.so.6'. Libraries will be explained in next section.
 
-!!!!! Using platform dependent libraries
+!!!! Using platform dependent libraries
 
 In the previous example, you can see we used a reference to the class ==LibC== while specifying module, instead passing
 directly the string =='libc.so.6'==. 
@@ -172,7 +178,7 @@ FFICExamples class>>ticksSinceStart
 
 @@note ==ffiLibraryName== is a terrible name I forget to change. It should be just ==ffiLibrary== (but now change is not so easy...)
 
-!!!! About marshaling
+!!! About marshaling
 
 In the ==clock== callout example above, the return type is ==int== and not ==SmallInteger==. This is the same as 
 with function arguments. They are all described in terms of C language. In general you don't have to worry too 
@@ -185,12 +191,12 @@ This conversion process for types from different languages is called ''marshalli
 We will see more examples of automatic conversions(By automatic, we mean that they are already defined in 
 the FFI-NB library) in this Chapter. 
 
-!!! Passing arguments to a function
+!! Passing arguments to a function
 
 The previous ==clock== example was the one of the simplest possible. It executes a function without parameters and we 
 got the result. Now let's look how we can call functions that take arguments. 
 
-!!!! Passing a method parameter
+!!! Passing a method parameter
 
 Let's start with a really simple function: ==abs()==, which takes an integer and returns its absolute value.
 
@@ -221,7 +227,7 @@ Now you can try printing this:
 FFICExamples abs: -42.
 ]]]
 
-!!!! About arguments
+!!! About arguments
 
 In the callout code/binding declaration, we are expressing not one but ''two'' different aspects: the obvious one 
 is the C function signature, the other one is the objects to pass as arguments to the C function when the method is 
@@ -233,7 +239,7 @@ You can also use some constants, and in that case it's not always necessary to s
 This is because FFI-NB automatically uses them as C 'int's: ==nil== and ==false== are converted to 0, and ==true== to 1. 
 Numbers are converted to their respective value, and can be positive and negative. 
 
-!!!! Passing literals
+!!! Passing literals
 
 Imagine that we want to have a wrapper that always calls the ==abs== function with the number -42. 
 Then we directly define it as follows:
@@ -253,9 +259,9 @@ FFICExamples class>>floor: aFloat
 	^ self ffiCall: #( double floor(double aFloat) ) module: LibC
 ]]]
 
-@@authorToDo Luc Examples with more complex literals: arrays, ...
+@@todo Luc Examples with more complex literals: arrays, ...
 
-!!!! Passing variables
+!!! Passing variables
 
 Often some functions in C libraries take flags as arguments whose values are declared using #define in C headers.
 You can, of course take these constant values from header and put them into your callout.
@@ -298,7 +304,7 @@ SmallInteger>>absoluteValue
 
 It is is also possible to pass an instance variable, but we let you do it as an exercise :)
 
-!!!! Passing strings
+!!! Passing strings
 
 As you may know strings in C are sequences of characters terminated with a special character: ==\\0==. 
 It is then interesting to see how FFI-NB deals with them since they are an important data structure in C. 
@@ -316,7 +322,7 @@ FFICExamples class>>stringLength: aString
 	^ self ffiCall: #( int strlen (String aString) ) module: LibC
 ]]]
 
-!!!!! Example analysis.
+!!!! Example analysis.
 
 You may have noticed that the callout description is not exactly the same as the C function header. 
 
@@ -324,7 +330,7 @@ In the signature ==#( int strlen (String aString) )== there are two differences 
 - The first difference is the const keyword of the argument. For those not used to C, that's only a modifier keyword that the compiler takes into account to make some static validations at compile time. It has no value when describing the signature for calling a function at runtime.
 - The second difference, an important one, is the specification of the argument. It is declared as ==String aString== instead of ==char * aString==. With ==String aString==, FFI-NB will automatically do the arguments conversion from Smalltalk strings to C strings (null terminated). Therefore it is important to use String and not ==char *==. In the example, the string passed will be put in an external C ==char== array and a null termination character will be added to it. Also, this array will be automatically released after the call ends. This automatic memory management is very useful but we can also control it as we will see later. Using ==(String aString)== is equivalent to ==(someString copyWith: (Character value:0)== as in ==FFICExamples stringLength: (someString copyWith: (Character value:0)==. Conversely, FFI-NB will take the C result value of calling the C function and convert it to a proper Smalltalk Integer in this particular case.
 
-!!!! Passing two strings
+!!! Passing two strings
 
 We will now call the ==strcmp== function, which takes two strings as arguments and returns -1, 0 or 1 depending on 
 the relationship between both strings.
@@ -344,7 +350,7 @@ Notice that you can add arguments by appending them to the arguments array, usin
 notice that you have to explicitly tell which object is going to be sent for each argument, as already told. In this
 case, aString is the first one and anotherString is the second one.
 
-!!! Getting return value from a function
+!! Getting return value from a function
 
 Symmetrically to arguments, returned values are also marshalled, it means that C values are converted to Smalltalk objects. 
 
@@ -362,7 +368,7 @@ FFICExamples>>#getEnv: aString
 There is a mapping defined for each atomic type. About a bit more complex objects (like external objects or structures), 
 we will talk in following sections.
 
-!!!! Returning "void *"
+!!! Returning "void *"
 
 Take this call as an example: 
 
@@ -374,9 +380,9 @@ FFICExamples class>>malloc: aNumber
 This is a special case of return: when there is a function who answers a ''void *''. In this case, since FFI-NB cannot know 
 which kind of object it represents, it will answer an instance of ==ExternalData== (we will see this in next section).
 
-@@authorToDo Luc illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil
+@@todo Luc illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil
 
-!!! External address
+!! External address
 
 External addresses (contained in the class ==ExternalAddress==) is the way we represent any kind of data ''outside'' 
 Smalltalk. That means data (pointers, structures, arrays) who are allocated in the heap.
@@ -396,7 +402,7 @@ LibC>>memCopy: src to: dest size: n
 	^ self ffiCall: #(void *memcpy(void *dest, const void *src, size_t n)
 ]]]
  
-!!! External objects
+!! External objects
 
 FFIExternalObject represent an object in the heap. An external object is a reference to any kind of data allocated 
 in the heap mapped to a Smalltalk object. 
@@ -434,24 +440,19 @@ to call ==registerAsExternalResource== (in case of children from FFIExternalObje
 
 @@note FFIExternalObject replaces NBExternalObject
 
-!!! Structures
+!! Structures
 
-NOTES: #instanceSize now is called #structureSize
+!! Arrays
 
-!!! Arrays
+!! Callbacks
 
-!!! Callbacks
-
-@@note
-- for the moment callback types are restricted to basic C types (+ExternalAddress)... just because type conversion handling is not implemented.
-
-!!! Deprecated/modified/not working
+!! Deprecated/modified/not working
 
 - ==nbCall:...== methods are replaced by ==ffiCall:...== methods. While ==nbCall:...== still work, they will be deprecated in future versions. 
 - ==nbLibraryNameOrHandle== is replaced by ==ffiLibraryName==. It has to answer ""a string or a children of ==FFILibrary=="". 
 - NB types has been replaced with FFI types (but they should work the same). But if you have direct references to ==NBInt32== (for example), you need to change it.
 
-!!!! ==NativeBoost class== replacement
+!! Replacement for the NativeBoost class
 
 !! How does it works?
 

@@ -1,6 +1,4 @@
-! Building a Contact Manager
-
-!!
+{ "title": "Building a Contact Manager" }
 
 [[[
 contact := Contact newNamed: 'John Doe' email: 'jdoe@inria.fr'
@@ -22,6 +20,3 @@ Contact>>setName: aString email: anEmailString
 	fullName := aString.
 	email := anEmailString.
 ]]]
-!!
-
-!!

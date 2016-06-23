@@ -1,4 +1,6 @@
-!Gestures with OSWindow
+{ "title": "Gestures with OSWindow" }
+
+
 !!Basic gestures
 There are currently six basic gestures:
 -Drag (Down, Move, Up)
