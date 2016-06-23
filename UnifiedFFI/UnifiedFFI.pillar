@@ -408,7 +408,7 @@ to create a cairo surface, you can call this:
 
 [[[
 AthensCairoSurface class>>primImage: aFormat width: aWidth height: aHeight
-	^ self ffiCall: #(AthensCairoSurface cairo_image_surface_create ( int aFormat,
+	^ self ffiCall: #(AthensCairoSurface * cairo_image_surface_create ( int aFormat,
                                                                       int aWidth,
                                                                       int aHeight) )
 ]]]
@@ -436,9 +436,14 @@ to call ==registerAsExternalResource== (in case of children from FFIExternalObje
 
 !!! Structures
 
+NOTES: #instanceSize now is called #structureSize
+
 !!! Arrays
 
 !!! Callbacks
+
+@@note
+- for the moment callback types are restricted to basic C types (+ExternalAddress)... just because type conversion handling is not implemented.
 
 !!! Deprecated/modified/not working
 
@@ -457,4 +462,25 @@ To simplify, we do ""the same"" but instead injecting machine code, we create by
 parameters, then we add a call to the function.
 
 @@todo here design explanation.
+
+
+! Notes
+
+
+!!! Non conventional casts
+Casting in C is trivial. You can do something like this: 
+
+[[[
+void *var = 0x42000000.
+]]]
+
+And you will be creating a pointer who points to the address 0x42000000. This kind of declarations are used 
+in certain frameworks, notably some Windows libraries.
+In Pharo this "casting" is not so easy, and we need to declare this kind of variables as ExternalAddresses. We 
+do this as this: 
+
+[[[language=Smalltalk
+var := ExternalAddress fromAddress: 16r42000000.
+]]]
+
 
