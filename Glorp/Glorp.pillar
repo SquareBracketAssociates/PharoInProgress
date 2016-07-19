@@ -234,6 +234,17 @@ GlorpBookDescriptorSystem >> tableForPERSON: aTable
 		 type: platform date.
 ]]]
 
+If the table name is not uppercase, it is necessary to add
+#allTableNames with the correct case, e.g.:
+
+[[[caption=Non-uppercase table names
+GlorpBookDescriptorSystem >> allTableNames
+
+	"Return a list of all the table names that this system uses."
+	^#('Person')
+]]]
+
+
 The ''serial'' datatype, explained in detail below, is an autoincrementing
 integer datatype. Every time you save a new instance Glorp will obtain a
 new integer and assign it to your instance.
