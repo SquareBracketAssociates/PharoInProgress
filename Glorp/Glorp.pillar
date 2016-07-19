@@ -79,6 +79,34 @@ Metacello new
 
  One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package.
 
+!!! Glorp with UDBC / SQLite3
+
+Glorp may also be configured to work directly with the UDBC SQLite3
+driver in Pharo 5 (instead of the Garage drivers):
+
+[[[caption=Load Glorp with UDBC / SQLite3
+    Gofer it   
+        smalltalkhubUser: 'TorstenBergmann' project: 'UDBC'; 
+        configuration; 
+        load. 
+        (Smalltalk at: #ConfigurationOfUDBC) loadBleedingEdge. 
+    
+    Gofer it 
+        smalltalkhubUser: 'DBXTalk' project: 'Garage'; 
+        configurationOf: 'GarageGlorp'; 
+        load. 
+        #ConfigurationOfGarageGlorp asClass project stableVersion load. 
+    
+    Gofer it 
+        smalltalkhubUser: 'DBXTalk' project: 'Glorp'; 
+        package: 'Glorp-SQLite3'; 
+        load. 
+    
+    GlorpSQLite3CIConfiguration new configureSqlite3. 
+    GlorpDemoTablePopulatorResource invalidateSetup.
+]]]
+
+
 !!! Running the Tests
 
 Having loaded the Database drivers and the Glorp packages, it is recommended to
