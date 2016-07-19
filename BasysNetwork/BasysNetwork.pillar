@@ -12,28 +12,28 @@ Each Basys connection runs its own incoming data loop which processes received d
 
 +A network is a graph of peers.>file://figures/networkAsPeers.jpg|width=50|label=fig:networkAsPeers+
 
-Basys models a network as connected peers (as shown by Figure *@fig:networkAsPeers*). 
+Basys models a network as connected peers (as shown by Figure *@fig:networkAsPeers*).
 Each peer (network node) has its own ==BasysNetwork== instance. ==BasysNetwork== is main class of Basys and should be subclassed by concrete network implementations.
 
 !!! Example
 
-In Basys, to represent a network with multiple hosts, we create one instance of ==BasysNetwork== (subclasses since ==BasysNetwork== is an abstract class specifying the hooks that should be specialized by the application using Basys) for each node in the network. 
+In Basys, to represent a network with multiple hosts, we create one instance of ==BasysNetwork== (subclasses since ==BasysNetwork== is an abstract class specifying the hooks that should be specialized by the application using Basys) for each node in the network.
 
-For example imagine that we want to run a server on port 40433, 
+For example imagine that we want to run a server on port 40433,
 On a server side, we will start a basys server on a network instance as follows:
 
 [[[
-network := BasysNetwork new. 
+network := BasysNetwork new.
 network startServerOn: 40433
 ]]]
 
-The server will start to listen for incoming client connections. 
+The server will start to listen for incoming client connections.
 
 
 Then on a client we  define a new BasysNetwork and connect it to the running server using the message ==remotePeerAt:== as follows:
 
 [[[
-network := BasysNetwork new. 
+network := BasysNetwork new.
 network remotePeerAt: (TCPAddress localAt: 40433)
 ]]]
 
@@ -48,9 +48,9 @@ A ==BasysNetwork== instance has two main instance variables:
 - ==remotePeers==: Network remote peers is a collection of ==BasysRemotePeer== instances which represent the currently connected remote peers (as shown in Figure *@fig:peerswithpool*).
 
 
-On location B  we have a remote peer instance representing location A and vice versa (as shown in Figure *@fig:peerswithpool*). 
+On location B  we have a remote peer instance representing location A and vice versa (as shown in Figure *@fig:peerswithpool*).
 Each remote peer maintains a pool of connections with the remote side.
-For each communication between different computers, we have a separate remote peer with its set of connections: each connection in a remote peer will 
+For each communication between different computers, we have a separate remote peer with its set of connections: each connection in a remote peer will
 point to the same remote peer.
 
 
@@ -60,7 +60,7 @@ point to the same remote peer.
 Any established connection on client is added to peer which represents server. And any established connection to server is added to peer which represents client. Peers interact with each others using connection pools.
 
 
-To interact with remote side, a peer retrieves a free connection from pool or establish new if it can. 
+To interact with remote side, a peer retrieves a free connection from pool or establish new if it can.
 Then the retrieved connection is passed to a given action block using the message ==execute:==
 
 [[[
@@ -74,7 +74,7 @@ There are two kinds of remote peers: active (==BasysActiveRemotePeer==) and pass
 +>file://figures/typesOfPeers.jpg|width=60|label=fig:typesOfPeers+
 
 !!!!! Active peers.
-Active peers are created by client for a given address using the message ==remotePeerAt:== as follows: 
+Active peers are created by client for a given address using the message ==remotePeerAt:== as follows:
 
 [[[
 peer := network remotePeerAt: (TCPAddress localAt: 40433)
@@ -82,8 +82,8 @@ peer := network remotePeerAt: (TCPAddress localAt: 40433)
 
 They establish new connections on demand when no one exists in pool or all are busy.
 
-!!!!!Passive peers. 
-Passive peers are created by a ==BasysServer== for incoming connections using the message ==startServerOn:==. 
+!!!!!Passive peers.
+Passive peers are created by a ==BasysServer== for incoming connections using the message ==startServerOn:==.
 Servers should be started on network as follows:
 
 [[[
@@ -97,15 +97,15 @@ To perform requests, passive peers are waiting for free connections. They cannot
 
 Basys performs identification procedure for all established connections.
 It should ensure that all client connections belong to same peer instance on server.
-This is what is done in the method ==establishNewConnection==: 
+This is what is done in the method ==establishNewConnection==:
 
 [[[
 BasysActivePeer >> establishNewConnection
    connection := network establishNewConnectionTo: address.
    connection acceptIncomingData.
    [ receivedRemotePeerId := network identifyLocalPeerOn: connection.
-   self assignId: receivedRemotePeerId receivedFrom: connection ] 
-   	on: Error 
+   self assignId: receivedRemotePeerId receivedFrom: connection ]
+   	on: Error
 	do: [:err | connection close.
 			err pass ].
    ^ connection
@@ -125,8 +125,8 @@ For the first case, passive peer defines a convenient method named ==beIdentifie
 [[[
 BasysPassivePeer >> beIdentifiedAs: peerId
 	| registeredPeer |
-	registeredPeer := network 
-						remotePeerWithId: peerId 
+	registeredPeer := network
+						remotePeerWithId: peerId
 						ifAbsent: [	id := peerId. ^self ].
 	self == registeredPeer ifTrue: [ self error: 'Should not happen' ].
 	registeredPeer importConnectionsFrom: connectionPool.
@@ -142,7 +142,7 @@ A client establishes a new connection to a server. Then it initiates the identif
 
 In first case established connection will be migrated to the existing peer. The existing peer will become active and the original peer will be removed.
 
-In last case, the received id will be assigned to the original peer as shown by method ==assignId:receivedFrom:==: 
+In last case, the received id will be assigned to the original peer as shown by method ==assignId:receivedFrom:==:
 
 [[[
 BasysActivePeer >> assignId: peerId receivedFrom: aBasysConnection
@@ -157,7 +157,7 @@ BasysActivePeer >> assignId: peerId receivedFrom: aBasysConnection
 
 !!Basys concretisation
 
-Each application that wants to take advantage of Basys should specialize five hooks. Basys implementors should subclass the class ==BasysNetwork== and answer the following five questions by defining the corresponding methods: 
+Each application that wants to take advantage of Basys should specialize five hooks. Basys implementors should subclass the class ==BasysNetwork== and answer the following five questions by defining the corresponding methods:
 
 -What is network data?
 -What to do with data?
@@ -167,11 +167,11 @@ process: dataObject receivedFrom: senderPeer
 
 -How to send data?
 [[[
-sendDataPacket: dataObject by: aSocket
+sendDataPacket: dataObject by: aBasysConnection
 ]]]
 -How to receive data?
 [[[
-receiveIncomingDataPacketFrom: senderPeer by: aSocket
+receiveIncomingDataPacketFrom: senderPeer by: aBasysConnection
 ]]]
 -How to identify peers?
 [[[
@@ -179,5 +179,3 @@ identifyLocalPeerOn: aBasysConnection
 ]]]
 
 Seamless implements these operations to create transparent network of distributed objects.
-
-
