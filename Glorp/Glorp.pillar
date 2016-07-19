@@ -457,6 +457,10 @@ As you can see, we didn't say if the instance needs to be inserted or updated,
 nor did we specify an ''id'' for each instance. The framework will determine that
 by ''registering'' the instance in the all-mighty ''session''.
 
+Note that if registering an object that was read in a previous unit of
+work, the object cannot be modified prior to registration in the current
+unit of work.
+
 !!! Reading Instances
 
 We can now read back some of the persisted instances. Again we use
