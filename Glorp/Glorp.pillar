@@ -1876,10 +1876,10 @@ class attributes as the parent Descriptor.
 !!! How Glorp expressions work
 At this point you might have noticed that we use blocks in many places
 to specify the ''where'' expression, ''retrieve'' a particular field, ''order''
-the results, and many other things. Altough we use blocks for the convenience
+the results, and many other things. Although we use blocks for the convenience
 and readability they provide, once assigned to a Glorp object like
 ==SimpleQuery== it will convert the block to a ''Glorp expression'', depending
-on the context it will any of the subclasses of ==GlorpExpression==.
+on the context it may be any of the subclasses of ==GlorpExpression==.
 
 [[[caption=A simple expression
 query where: [:each | each attribute > 100]
