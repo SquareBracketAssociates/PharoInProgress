@@ -51,6 +51,9 @@ Default strategies are defined as singletons to reduce garbage during transfer.
 Default strategies can be overridden on network level. Strategy can be explicitly added to network for specific set of objects.
 [[[
 network addTransferStrategy: (SeamlessTransferByReferenceStrategy for: (Instance of: Point).
+"or short versions:"
+network transferByReference: (Kind of: Class).
+network transferByValue: (Kind of: Point).
 ]]]
 Set of objects are defined by criteria which understands #matches: message. In this example StateSpecs is used.
 
@@ -76,6 +79,12 @@ SeamessSyncRequestContext>>createSeamlessReference
 
 SeamlessRequestContextReference>> createProxy
     ^SeamlessRemoteContext new
+]]]
+SeamlessObjectReference supports caching. SeamlessTransferByReferenceStrategy could be created with set of messages which result should be transferred together with given object (reference).
+When SeamlessProxy receives message it first check cache for it. And if message is cached then existing result will be returned. No remote communication will be performed.
+For example such strategy could be added to network by:
+[[[
+network transferByReference: (Kind of: Class) withCacheFor: #(name allInstVarNames).
 ]]]
 !!!Transfer by value
 This strategy transfers object as copy. It is not specified what should happens with it instance variables.
