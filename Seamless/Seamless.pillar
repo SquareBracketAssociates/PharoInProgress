@@ -1,6 +1,6 @@
-{ "title": "Seamless: Transparent network of objects" }
+{ "title": "Seamless. Transparent network of objects" }
 
-Seamless implemented Basys network to organize transparent communication between distributed objects.
+Seamless implements Basys network to organize transparent communication between distributed objects.
 
 SeamlessNetwork instance should be created on client and server.
 [[[
@@ -78,20 +78,33 @@ SeamlessRequestContextReference>> createProxy
     ^SeamlessRemoteContext new
 ]]]
 !!!Transfer by value
-This strategy is transfered object as copy. It is not specified what should happens with it instance variables.
+This strategy transfers object as copy. It is not specified what should happens with it instance variables.
 
 For example Rectangle can be transferred by value with two different ways:
 [[[
 originReference corner: cornerReference
 ]]]
-In this case for both corners Seamless chooses transfer by reference.
+In this case both corners was transferred by reference.
 
 But it can be:
 [[[
 10@20 corner: cornerReference
 ]]]
-Which means that for origin point Seamless chooses transfer by value strategy but for corner it chooses transfer by reference
+Which means that for origin point Seamless chooses transfer by value strategy but for corner it chooses transfer by reference.
 
+Objects could specify exact meaning of value transfer. For example OrderedCollection will also transfer by value internal array. To specify it OrderedCollection implements method #prepareValueTransferBy:
+[[[
+OrderedCollection>>prepareValueTransferBy: aSeamlessObjectTransporter
+	aSeamlessObjectTransporter transferAsValue: array
+]]]
+Many classes define this method.
+!!!Transfer by deep copy
+This strategy transfers object as deep copy. Any defined strategies of internal state of object is ignored.
+Logic for object transfer as whole is delegated to concrete serialization protocol. In case of Fuel it will just write given object into stream without any Seamless analysis.
+!!!Transfer by referenced copy
+This strategy will transfer object by reference but on remote side copy of object will be used as representation.
+When copy will return back to client original object will be used.
+SeamlessObjectCopyReference is used here as special reference to be sent between peers.
 !!SeamlessObjectTransporter
 Seamless delegates object sending and receiving to SeamlessObjectTransporter. It is abstract class which implements general behaviour to prepare sent and received objects. Subclasses use prepared information to correctly implement concrete transfer protocol:
 [[[
@@ -116,18 +129,21 @@ SeamlessObjectTransporter>>prepareObjectForTransfer
 ]]]
 It asks transfer strategy for each node. And strategy commands what to do with it:
 [[[
-TransferByReferenceStrategy>>prepareTransferOf: anObject by: transporter
-	transporter transferByReference: anObject
+TransferByReferenceStrategy>>prepareTransferOf: anObject by: aSeamlessObjectTrasporter
+ 	| reference |
+	reference := aSeamlessObjectTrasporter transferAsReference: anObject.
+	cachedMessages do: [ :each |
+		reference cacheMessage: each with: (anObject perform: each)]
 
-TransferByValueStrategy>>prepareTransferOf: anObject by: transporter
-	“By default transporter transfer given object by value.
-	So we don't need to do anything here”
+TransferByValueStrategy>>prepareTransferOf: anObject by: aSeamlessObjectTrasporter
+	"By default transporter transfer given object by value. So we don't need to do anything here.
+	But we allow objects to specify default meaning of value transfer.
+	For example Object do nothing.
+	But OrderedCollection marks internal array to be transfered as value too"
+	anObject prepareValueTransferBy: aSeamlessObjectTrasporter
 
-MessageSendTransferStrategy>>prepareTransferOf: aMessageSend by: transporter
-	“By default arrays are transferred by reference.
-	But array with message arguments must be transferred by value.
-        Instead message can’t be executed on remote side”
-	transporter transferByValue: aMessageSend arguments
+TransferByReferencedCopyStrategy>>prepareTransferOf: anObject by: aSeamlessObjectTrasporter
+	aSeamlessObjectTrasporter transfer: anObject asReference: [SeamlessObjectCopyReference to: anObject]
 ]]]
 At the end concrete transporter uses collected information to substitute required objects by references.
 [[[
@@ -143,8 +159,7 @@ SeamlessFuelObjectTransporter>>transferObjectBy: aSocket
 	stream flush
 ]]]
 !!!Receiving objects
-
-Concrete transporters implements reading objects from network.
+Concrete transporters implement reading objects from network.
 [[[
 FuelObjectTransporter>>receiveObjectBy: aSocket
 	| stream |
@@ -160,42 +175,67 @@ When object is received transporter prepare it for external usage. It scans full
 SeamlessObjectTransporter>>prepareReceivedObjectWhichWasFrom: aRemotePeer
 	traveler := ObjectTraveler on: object.
 	traveler skip: aRemotePeer.
-
-	traveler referencesDo: [:each | | existedObject |
-		each isSeamlessReference ifTrue: [
-			each peer: aRemotePeer.
-			existedObject := network objectFor: each.
-			traveler replaceCurrentReferenceWith: existedObject.
-			traveler skip: existedObject ]].
+	traveler referencesDo: [:each |
+		each representYourselfIn: self forTransferFrom: aRemotePeer.
+	].
 	^object
+
+Object>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
+  "Different objects could have specific remote representation"
+
+SeamlessObjectReference>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
+	senderPeer := aRemotePeer.
+	anObjectTransporter materializeReceivedReference: self
+
+SeamlessObjectTransporter>>materializeReceivedReference: aSeamlessObjectReference
+	| existingObject |
+	existingObject := network objectFor: aSeamlessObjectReference ifNotNew: [:o | traveler skip: o].
+	self replaceReceivedObjectBy: existingObject.
+	traveler alsoLookAt: aSeamlessObjectReference
+]]]
+Method #representYourselfIn:forTransferFrom: provides extra hooks for transferring objects.
+For example there is SeamlessObjectContainer. It is always transferred by value together with content. On remote side content will substitute container:
+[[[
+SeamlessObjectContainer>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
+	anObjectTransporter replaceReceivedObjectBy: content
+]]]
+It allows send message arguments with forced value strategy:
+[[[
+remotePoint distanceTo: (SeamlessObjectContainer with: 2@3)
+]]]
+There is short version for this:
+[[[
+remotePoint distanceTo: (2@3) asTransferredByValue
 ]]]
 !!Managing distributed objects
 SeamlessDistributedObjects is implemented to organize thread safe access for distributed objects.
 
 It implements mapping between objects and their references.
 
-Reference is represented by SeamlessObjectReference subclasses. It contain id, peerId and peer instance variables.
+Reference is represented by SeamlessObjectReference subclasses. It contain id, ownerPeerId and senderPeer instance variables.
 
-Pair “id and peerId” is globally unique and used as identity property.
-Peer instance variable contains sender of reference.
+Pair “id and ownerPeerId” is globally unique and used as identity property.
+senderPeer instance variable contains sender of reference.
 
 SeamlessDistributedObjects provides access to object by reference and it can find reference for object. SeamlessNetwork implements convenient methods for this:
 
 [[[
-SeamlessNetwork>>objectFor: aSeamlessReference
-	^distributedObjects at: aSeamlessObjectReference
+SeamlessNetwork>>objectFor: aSeamlessObjectReference
+	^distributedObjects
+		at: aSeamlessObjectReference
+		ifAbsentUseProxy: [ aSeamlessObjectReference createProxy]
 ]]]
 
 It creates proxy if no local object exists for given reference.
 
 [[[
 SeamlessNetwork>>referenceFor: anObject
-	^distributedObjects referenceFor: anObject receivedFrom: localPeer
+	^self referenceFor: anObject ifNewUse: [ anObject createSeamlessReference]
 ]]]
 
 It creates reference for new distributed object. Created reference will contain local peer as sender peer.
 
-Now no garbage collection implemented for distributed objects
+Now no garbage collection implemented for distributed objects. They could be cleaned manualy by "network destroy" command.
 
 !!Seamless requests
 
