@@ -13,10 +13,12 @@ network startServerOn: 40422. "it is part of Basys network API"
 
 Client can connect to server and retrieve remote environment:
 [[[
-remotePeer :=  network environmentAt: (TCPAddress ip: #[127 0 0 1] port: 40422). "short version: TCPAddress localAt: 40422"
+remotePeer :=  network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
 remoteSmalltalk := remotePeer remoteEnvironment.
-"or short version"
-remoteSmalltalk := network environmentAt: (TCPAddress ip: #[127 0 0 1] port: 40422). "short version: TCPAddress localAt: 40422"
+
+"or there is short version"
+
+remoteSmalltalk := network environmentAt: (TCPAddress localAt: 40422).
 ]]]
 Returned result is proxy which delegates any received message to remote object. Remote messages are executed on server which return result back to client. Result can be returned as another proxy or as copy which contain another proxies.
 
@@ -33,9 +35,8 @@ remoteTranscript print: #(1 2 3 4 5)
 ]]]
 Here array will be passed to server as reference. Then on server transcript will interact with it to print it. And as result client will receive messages from server.
 
-Seamless allows evaluate scripts on remote side of peers:
+Seamless allows scripts evaluation on remote side of peers:
 [[[
-remotePeer := network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
 remotePeer evaluate: [1 + 2]. "==>3"
 ]]]
 Given block is transferred to remote side and evaluated. Result is returned to client. As in other cases it could be proxy or normal object.
@@ -47,13 +48,14 @@ remoteRect asLocalObject "==> 0@0 corner: 2@3"
 ]]]
 All global references of block (literals) are transferred by value and on remote side they are local objects. Following example will show notification on remote image:
 [[[
-remotePeer evaluate: [Object inform: 'this message was sent from remote image'].
+remotePeer evaluate: [Object inform: 'message from remote image'].
 ]]]
 Also blocks could reference local objects like temps or workspace variables. They are transferred according to own strategies (explaned at *@transferStrategies*):
 [[[
 | result |
 result := OrderedCollection new.
-remotePeer evaluate: [100 to: 500 do: [:i | result add: i factorial ]].
+remotePeer evaluate: [100 to: 500 do: [:i |
+      result add: i factorial ]].
 ]]]
 It could lead to backward messages from server to client:
 [[[
@@ -61,7 +63,7 @@ It could lead to backward messages from server to client:
 rect := 0@0 corner: 2@3.
 remotePeer evaluate: [rect area]. "==>6"
 ]]]
-Given block is executed on server which produces message #area to client object "rect". Result will be first transferred to server and then from server it will be transfered back to client waiting process.
+Given block is executed on server which produces message #area to client object "rect". Result will be first transferred to server and then from server it will be transfered back to client.
 
 Remote blocks could perform non local return in regular Smalltalk semantics:
 [[[
@@ -108,7 +110,7 @@ New kind of reference should be created by subclassing SeamlessObjectReference. 
 
 Then required classes can return new kind of reference from method #createSeamlessReference.
 
-For example look at existed implementations:
+For example look at existing implementations:
 [[[
 Object>>createSeamlessReference
 	^SeamlessObjectReference new
@@ -126,7 +128,7 @@ SeamlessObjectReference supports caching. SeamlessTransferByReferenceStrategy co
 
 When SeamlessProxy receives message it first check cache for it. And if message is cached then existing result will be returned. No remote communication will be performed.
 
-For example such strategy could be added to network by:
+Such strategy could be added to network by:
 [[[
 network transferByReference: (Kind of: Class) withCacheFor: #(name allInstVarNames).
 ]]]
@@ -145,12 +147,11 @@ But it can be:
 ]]]
 Which means that for origin point Seamless chooses transfer by value strategy but for corner it chooses transfer by reference.
 
-Objects could specify concrete meaning of what is value. For example OrderedCollection will also transfer by value internal array. To specify it method #prepareValueTransferBy: is implemented:
+Objects could specify concrete meaning of what is value. For example OrderedCollection will also transfer by value internal array. To specify it method #prepareValueTransferBy: should be implemented:
 [[[
 OrderedCollection>>prepareValueTransferBy: aSeamlessObjectTransporter
 	aSeamlessObjectTransporter transferAsValue: array
 ]]]
-Many classes define this method.
 !!!Transfer by deep copy
 This strategy transfers object as deep copy. Any defined strategies for internal state of object are ignored.
 
@@ -237,7 +238,7 @@ SeamlessObjectTransporter>>prepareReceivedObjectWhichWasFrom: aRemotePeer
 	^object
 
 Object>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
-  "Different objects could have specific remote representation"
+  "some objects could have specific remote representation"
 
 SeamlessObjectReference>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
 	senderPeer := aRemotePeer.
@@ -430,7 +431,7 @@ It works fine for two peers. But when reference is shared between multiple peers
 
 +file://figures/SeamlessThreePeersSharedReference.jpg+
 
-But lets look at example of network with three peers A, B, C.
+Here example of network with three peers A, B, C.
 
 Peer A transfer reference Ra to peer B. On peer B reference will be presented by proxy A which will delegates all messages to peer A.
 
@@ -488,7 +489,9 @@ On sender side it will open debugger with this general exception on local proces
 Advanced system should return signalled error to sender as normal exception with references to remote signaler context (and process). Then exception could be handled with normal #on:do: message.
 
 And in case of unhandled error debugger will show local and remote stack together which will lead to regular IDE experience.
+
+Also it will allow resumable exceptions.
 !!!Better integration with debugger
 It could be possible to extend debugger such way that step into remote message on sender side will show remote context from receiver and allow debug it deeply.
 
-And viсe versa debugging process of incoming remote message on receiver could show remote sender stack together with local
+And vice versa debugging process of incoming remote message on receiver could show remote sender stack together with local.
