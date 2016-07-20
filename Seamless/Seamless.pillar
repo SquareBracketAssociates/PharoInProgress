@@ -30,7 +30,47 @@ remoteTranscript print: #(1 2 3 4 5)
 ]]]
 Here array will be passed to server as reference. Then on server transcript will interact with it to print it. And as result client will receive messages from server.
 
+Seamless allows evaluate scripts on remote side of peers:
+[[[
+remotePeer := network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
+remotePeer evaluate: [1 + 2]. "==>3"
+]]]
+Given block is transferred to remote side and evaluated. Result is returned to client. As in other cases it could be proxy or normal object.
+Proxy could load local copy by special message #asLocalObject:
+[[[
+remoteRect := remotePeer evaluate: [0@0 corner: 2@3]. "==>aSeamlessProxy"
+remoteRect asLocalObject "==> 0@0 corner: 2@3"
+]]]
+All global references of block (literals) are transferred by value and on remote side they are local objects. Following example will show notification on remote image:
+[[[
+remotePeer evaluate: [Object inform: 'this message was sent from remote image'].
+]]]
+Also blocks could reference local objects like temps or workspace variables. They are transferred according to their strategies (explaned at *@transferStrategies*):
+[[[
+| result |
+result := OrderedCollection new.
+remotePeer evaluate: [100 to: 500 do: [:i | result add: i factorial ]].
+]]]
+It could lead to backward messages from server to client:
+[[[
+| rect |
+rect := 0@0 corner: 2@3.
+remotePeer evaluate: [rect area]. "==>6"
+]]]
+Given block is executed on server which produces message #area to client object "rect". Result will be first transferred to server and then from server it will be transfered back to client waiting process.
+
+Remote blocks could perform non local return in regular Smalltalk semantics:
+[[[
+remotePeer evaluate: [1 to: 10 do: [:i | i>5 ifTrue: [^i] ] ]. "==>6"
+]]]
+Seamless also support async evaluation of blocks without waiting result:
+[[[
+| result |
+result := OrderedCollection new.
+remotePeer evaluateAsync: [result add: 1000 factorial]. "it will not wait result"
+]]]
 !!Transfer strategies
+@transferStrategies
 By default objects transferred by reference. But some objects like numbers and strings are transferred by value. Classes can override this behaviour by implementing #seamlessDefaultTransferStrategy.
 
 For example Object returns SeamlessTransferByReferenceStrategy. But numbers and strings return SeamlessTransferByValueStrategy.
