@@ -13,14 +13,13 @@ network startServerOn: 40422. "it is part of Basys network API"
 
 Client can connect to server and retrieve remote environment:
 [[[
+remotePeer :=  network environmentAt: (TCPAddress ip: #[127 0 0 1] port: 40422). "short version: TCPAddress localAt: 40422"
+remoteSmalltalk := remotePeer remoteEnvironment.
+"or short version"
 remoteSmalltalk := network environmentAt: (TCPAddress ip: #[127 0 0 1] port: 40422). "short version: TCPAddress localAt: 40422"
 ]]]
 Returned result is proxy which delegates any received message to remote object. Remote messages are executed on server which return result back to client. Result can be returned as another proxy or as copy which contain another proxies.
-Also environment could be returned from remote peer (look at Basys chapter):
-[[[
-remotePeer := network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
-remoteSmalltalk := remotePeer remoteEnvironment.
-]]]
+
 In example result is reference to remote Smalltalk instance. It can access globals from remote environment:
 [[[
 remoteTranscript := remoteSmalltalk at: #Transcript.
@@ -40,6 +39,7 @@ remotePeer := network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
 remotePeer evaluate: [1 + 2]. "==>3"
 ]]]
 Given block is transferred to remote side and evaluated. Result is returned to client. As in other cases it could be proxy or normal object.
+
 Proxy could load local copy by special message #asLocalObject:
 [[[
 remoteRect := remotePeer evaluate: [0@0 corner: 2@3]. "==>aSeamlessProxy"
@@ -49,7 +49,7 @@ All global references of block (literals) are transferred by value and on remote
 [[[
 remotePeer evaluate: [Object inform: 'this message was sent from remote image'].
 ]]]
-Also blocks could reference local objects like temps or workspace variables. They are transferred according to their strategies (explaned at *@transferStrategies*):
+Also blocks could reference local objects like temps or workspace variables. They are transferred according to own strategies (explaned at *@transferStrategies*):
 [[[
 | result |
 result := OrderedCollection new.
@@ -67,7 +67,7 @@ Remote blocks could perform non local return in regular Smalltalk semantics:
 [[[
 remotePeer evaluate: [1 to: 10 do: [:i | i>5 ifTrue: [^i] ] ]. "==>6"
 ]]]
-Seamless also support async evaluation of blocks without waiting result:
+Seamless also supports async evaluation of blocks without waiting result:
 [[[
 | result |
 result := OrderedCollection new.
@@ -78,7 +78,6 @@ remotePeer evaluateAsync: [result add: 1000 factorial]. "it will not wait result
 By default objects transferred by reference. But some objects like numbers and strings are transferred by value. Classes can override this behaviour by implementing #seamlessDefaultTransferStrategy.
 
 For example Object returns SeamlessTransferByReferenceStrategy. But numbers and strings return SeamlessTransferByValueStrategy.
-
 [[[
 Object>>seamlessDefaultTransferStrategy
   ^SeamlessTransferStrategy defaultByReference
@@ -89,7 +88,6 @@ Number>>seamlessDefaultTransferStrategy
 MessageSend>>seamlessDefaultTransferStrategy
   ^SeamlessTransferStrategy defaultForMessageSend
 ]]]
-
 Default strategies are defined as singletons to reduce garbage during transfer.
 
 Default strategies can be overridden on network level. Strategy can be explicitly added to network for specific set of objects.
@@ -124,8 +122,10 @@ SeamessSyncRequestContext>>createSeamlessReference
 SeamlessRequestContextReference>> createProxy
     ^SeamlessRemoteContext new
 ]]]
-SeamlessObjectReference supports caching. SeamlessTransferByReferenceStrategy could be created with set of messages which result should be transferred together with given object (reference).
+SeamlessObjectReference supports caching. SeamlessTransferByReferenceStrategy could be created with set of messages which result should be transferred together with given object.
+
 When SeamlessProxy receives message it first check cache for it. And if message is cached then existing result will be returned. No remote communication will be performed.
+
 For example such strategy could be added to network by:
 [[[
 network transferByReference: (Kind of: Class) withCacheFor: #(name allInstVarNames).
@@ -145,18 +145,21 @@ But it can be:
 ]]]
 Which means that for origin point Seamless chooses transfer by value strategy but for corner it chooses transfer by reference.
 
-Objects could specify exact meaning of value transfer. For example OrderedCollection will also transfer by value internal array. To specify it OrderedCollection implements method #prepareValueTransferBy:
+Objects could specify concrete meaning of what is value. For example OrderedCollection will also transfer by value internal array. To specify it method #prepareValueTransferBy: is implemented:
 [[[
 OrderedCollection>>prepareValueTransferBy: aSeamlessObjectTransporter
 	aSeamlessObjectTransporter transferAsValue: array
 ]]]
 Many classes define this method.
 !!!Transfer by deep copy
-This strategy transfers object as deep copy. Any defined strategies of internal state of object is ignored.
+This strategy transfers object as deep copy. Any defined strategies for internal state of object are ignored.
+
 Logic for object transfer as whole is delegated to concrete serialization protocol. In case of Fuel it will just write given object into stream without any Seamless analysis.
 !!!Transfer by referenced copy
 This strategy will transfer object by reference but on remote side copy of object will be used as representation.
+
 When copy will return back to client original object will be used.
+
 SeamlessObjectCopyReference is used here as special reference to be sent between peers.
 !!SeamlessObjectTransporter
 Seamless delegates object sending and receiving to SeamlessObjectTransporter. It is abstract class which implements general behaviour to prepare sent and received objects. Subclasses use prepared information to correctly implement concrete transfer protocol:
@@ -247,6 +250,7 @@ SeamlessObjectTransporter>>materializeReceivedReference: aSeamlessObjectReferenc
 	traveler alsoLookAt: aSeamlessObjectReference
 ]]]
 Method #representYourselfIn:forTransferFrom: provides extra hooks for transferring objects.
+
 For example there is SeamlessObjectContainer. It is always transferred by value together with content. On remote side content will substitute container:
 [[[
 SeamlessObjectContainer>>representYourselfIn: anObjectTransporter forTransferFrom: aRemotePeer
@@ -255,11 +259,10 @@ SeamlessObjectContainer>>representYourselfIn: anObjectTransporter forTransferFro
 It allows send message arguments with forced value strategy:
 [[[
 remotePoint distanceTo: (SeamlessObjectContainer with: 2@3)
-]]]
-There is short version for this:
-[[[
+"or short version"
 remotePoint distanceTo: (2@3) asTransferredByValue
 ]]]
+Independently of transfer strategy defined for given point it will be transferred by value as argument of #distanceTo: message.
 !!Managing distributed objects
 SeamlessDistributedObjects is implemented to organize thread safe access for distributed objects.
 
@@ -268,6 +271,7 @@ It implements mapping between objects and their references.
 Reference is represented by SeamlessObjectReference subclasses. It contain id, ownerPeerId and senderPeer instance variables.
 
 Pair “id and ownerPeerId” is globally unique and used as identity property.
+
 senderPeer instance variable contains sender of reference.
 
 SeamlessDistributedObjects provides access to object by reference and it can find reference for object. SeamlessNetwork implements convenient methods for this:
@@ -380,6 +384,7 @@ Logger will keep log of all transferred requests over network. Any incoming or o
 SeamlessLogger stop
 ]]]
 It not cleans requests history. It just disables requests interception.
+
 Logger can be stopped and cleaned by:
 [[[
 SeamlessLogger stopAndClean
@@ -388,7 +393,7 @@ Or it could be restarted with fresh history:
 [[[
 SeamlessLogger startAfresh
 ]]]
-So after starting logger transcript will show requests. But most interesting part of logging system is analysing full communication statistics:
+So after starting logger transcript will show requests. But most interesting part of logging system is analysing of full communication statistics:
 [[[
 stat := SeamlessLogger collectStatistics
 ]]]
@@ -418,6 +423,7 @@ First case can be implemented by extracting all proxies to separate weak collect
 +file://figures/SeamlessTwoPeersSharedReferenceByWeakArray.jpg+
 
 Container can hold integers for proxies which will point to index inside separated weak array. This will allow garbage collector remove unused proxies. And by this Seamless can cleanup unused references.
+
 It works fine for two peers. But when reference is shared between multiple peers such approach has problems
 
 +file://figures/SeamlessThreePeersSharedReference.jpg+
@@ -443,6 +449,7 @@ Possible solution to this problem is to forbid remote indirect messages. Seamles
 Such restriction can be more stronger. Seamless can forbid transfer of references o peers which not know owner peers. In that case sending objects which just contains references can be failed. No matter if this references will never receive messages on this peers.
 
 With that approach concrete application will be responsible to ensure that peers know each others.
+
 In the case of two peers network this restrictions make no sense. And also classic client server application should not suffer by this. Usually client data not becomes shared between other clients.
 
 By the way guarantee of direct messages will provide better performance for distributed applications.
@@ -454,13 +461,16 @@ So secure way to clean unused distributed objects is to ask all known peers abou
 -all known peers can be asked for used references to detect local references which is really not used in network.
 
 But known peers can be unavailable at garbage collection time. What to do in that case?
+
 Different application can put differen requirements for such cases. Some of them can just say: remove unavailable peers and continue garbage collection. Others can say: try again after hour and then remove it.
+
 So it is responsibility of application to put specific strategy on garbage collection of distributed object.
 
 Seamless should implement general requests for garbage collection with hooks which will provide required flexibility.
 
 !!!!Cleaning unused peers
 BasysNetwork contains remote peers collection. Now nobody clean it automatically. So any connected client keep in network forever.
+
 Solution is using weak collection for remote peers. It is not problem if server will remove particular remote peer but client will use it in future. Client always can establish new connection and server will recreate peer for it.
 
 Special disconnecting request can be implemented to explicitly remove peers and release all it resources.
@@ -468,11 +478,15 @@ Special disconnecting request can be implemented to explicitly remove peers and 
 Analysis of transferred object graph can be merged with fuel analyses to remove duplicated object traversal
 !!!Distributed exceptions
 It should be possible to implement normal Smalltalk semantics for remote exception handling.
+
 Now in case of exception remote message send or evaluated block will terminate remote process and return special SeamlessRemoteException with string information about original error.
+
 On sender side it will open debugger with this general exception on local process (which sent request). No remote stack will be shown.
 
 Advanced system should return signalled error to sender as normal exception with references to remote signaler context (and process). Then exception could be handled with normal #on:do: message.
+
 And in case of unhandled error debugger will show local and remote stack together which will lead to regular IDE experience.
 !!!Better integration with debugger
 It could be possible to extend debugger such way that step into remote message on sender side will show remote context from receiver and allow debug it deeply.
+
 And viсe versa debugging process of incoming remote message on receiver could show remote sender stack together with local
