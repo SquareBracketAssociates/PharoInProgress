@@ -405,7 +405,9 @@ localRect := 0@0 corner: 5@2.
 remoteRect evaluate: [remoteRect area + localRect area] "==>16"
 ]]]
 will show number of messages, receivers and bytes which was transfered over network in dimension of receiver class or message selector:
+
 +file://figures/SeamlessStatistics.png+
+
 !!Future work
 
 !!!Garbage collection
