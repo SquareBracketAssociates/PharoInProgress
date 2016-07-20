@@ -46,11 +46,11 @@ Proxy could load local copy by special message #asLocalObject:
 remoteRect := remotePeer evaluate: [0@0 corner: 2@3]. "==>aSeamlessProxy"
 remoteRect asLocalObject "==> 0@0 corner: 2@3"
 ]]]
-All global references of block (literals) are transferred by value and on remote side they are local objects. Following example will show notification on remote image:
+All global references of block (literals) are transferred in the way that on remote side they will same local globals. Following example will show notification on remote image:
 [[[
 remotePeer evaluate: [Object inform: 'message from remote image'].
 ]]]
-Also blocks could reference local objects like temps or workspace variables. They are transferred according to own strategies (explaned at *@transferStrategies*):
+Also blocks could reference objects from local context like temps or workspace variables. They are transferred according to own strategies (explained at *@transferStrategies*):
 [[[
 | result |
 result := OrderedCollection new.
