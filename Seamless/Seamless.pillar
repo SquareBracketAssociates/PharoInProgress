@@ -16,7 +16,11 @@ Client can connect to server and retrieve remote environment:
 remoteSmalltalk := network environmentAt: (TCPAddress ip: #[127 0 0 1] port: 40422). "short version: TCPAddress localAt: 40422"
 ]]]
 Returned result is proxy which delegates any received message to remote object. Remote messages are executed on server which return result back to client. Result can be returned as another proxy or as copy which contain another proxies.
-
+Also environment could be returned from remote peer (look at Basys chapter):
+[[[
+remotePeer := network remotePeerAt: (TCPAddress ip: #[127 0 0 1] port: 40422).
+remoteSmalltalk := remotePeer remoteEnvironment.
+]]]
 In example result is reference to remote Smalltalk instance. It can access globals from remote environment:
 [[[
 remoteTranscript := remoteSmalltalk at: #Transcript.
@@ -334,7 +338,6 @@ SeamlessPeerIdentificationRequest>>executeFor: senderPeer
 	context returnValue: senderPeer localPeerId to: identifiedPeer
 
 SeamlessGetEnvironmentRequest>>executeFor: senderPeer
-
 	context returnValue: Smalltalk to: senderPeer
 ]]]
 
@@ -363,20 +366,41 @@ When request is executed on receiver peer sender peer should receive result and 
 
 To implement it special trick is used.
 
-Sync context is always transferred by reference and on receiver peer it is represented by special proxy SeamlessRemoteContext. As proxy it can delegate messages to real remote object which is sync context in that case. So to implement return SeamlessRemoteContext just sends remote message #return: to itself:
+Sync context is always transferred by reference and on receiver peer it is represented by special proxy SeamlessRemoteContext. As proxy it can delegate messages to real remote object which is sync context in that case. So to implement return SeamlessRemoteContext just sends remote message #return: to itself. It is performed by special SeamlessDeliverResultRequest:
 [[[
-RemoteRequestContext>>return: result to: senderPeer
-	| messageSend |
-	messageSend := MessageSend receiver: self selector: #return: argument: result.
-
-	senderPeer sendDataPacket: (SeamlessMessageSendRequest with: messageSend)
+SeamlessRemoteContext>>return: result to: senderPeer	senderPeer sendDataPacket: (SeamlessDeliverResultRequest result: result to: self)SeamlessDeliverResultRequest>>executeFor: senderPeer	context return: result]]]
+SeamlessDeliverResultRequest is executed on sender side where context is sync context which is waiting on semaphore for result.
+!!SeamlessLogger
+SeamlessLogger is special tool to analyse network communication. It needs to be started:
+[[[
+SeamlessLogger start
 ]]]
-Return request is sent directly to sender peer which means that on sender side it will have default context.
-Any requests has default context (SeamlessDefaultRequestContext) which skipes any returned result.
-
-So on sender peer "return request" will be executed but it result will be ignored.
-Or in other words "return request" will pass result to sender peer without any following interaction with receiver peer.
-
+Logger will keep log of all transferred requests over network. Any incoming or outgoing requests will be immedietely printed to Transcript. To pause logger it should be stopped:
+[[[
+SeamlessLogger stop
+]]]
+It not cleans requests history. It just disables requests interception.
+Logger can be stopped and cleaned by:
+[[[
+SeamlessLogger stopAndClean
+]]]
+Or it could be restarted with fresh history:
+[[[
+SeamlessLogger startAfresh
+]]]
+So after starting logger transcript will show requests. But most interesting part of logging system is analysing full communication statistics:
+[[[
+stat := SeamlessLogger collectStatistics
+]]]
+Statistics could be inspected with nice GT extensions. For example statistics on following code:
+[[[
+remoteRect := remotePeer evaluate: [0@0 corner: 2@3].
+remoteRect area. "==>6".
+localRect := 0@0 corner: 5@2.
+remoteRect evaluate: [remoteRect area + localRect area] "==>16"
+]]]
+will show number of messages, receivers and bytes which was transfered over network in dimension of receiver class or message selector:
++file://figures/SeamlessStatistics.png+
 !!Future work
 
 !!!Garbage collection
@@ -422,7 +446,6 @@ With that approach concrete application will be responsible to ensure that peers
 In the case of two peers network this restrictions make no sense. And also classic client server application should not suffer by this. Usually client data not becomes shared between other clients.
 
 By the way guarantee of direct messages will provide better performance for distributed applications.
-
 !!!!Cleaning unused distributed objects
 When object are going to be transfered over network it become distributed. Special reference object created for him to represent it inside network. Seamless can't just remove distributed object when it is not anymore used on owner peer. Other peers can have reference to it which allow them to send messages to it.
 
@@ -437,17 +460,19 @@ So it is responsibility of application to put specific strategy on garbage colle
 Seamless should implement general requests for garbage collection with hooks which will provide required flexibility.
 
 !!!!Cleaning unused peers
-
 BasysNetwork contains remote peers collection. Now nobody clean it automatically. So any connected client keep in network forever.
 Solution is using weak collection for remote peers. It is not problem if server will remove particular remote peer but client will use it in future. Client always can establish new connection and server will recreate peer for it.
 
 Special disconnecting request can be implemented to explicitly remove peers and release all it resources.
-
 !!!Optimizing fuel protocol
 Analysis of transferred object graph can be merged with fuel analyses to remove duplicated object traversal
-!!!More reusable transfer strategies
-It can be useful to get strategies which transfer object by reference with cached information inside (like #pringString value of object)
-!!!More Seamless requests
-It can be possible to implement special DebugMessageSendRequest which will prepare messageSend on receiver peer for remote debugging by sender
-!!!Adapting old Seamless examples
-!!!Adapting old Seamless logging
+!!!Distributed exceptions
+It should be possible to implement normal Smalltalk semantics for remote exception handling.
+Now in case of exception remote message send or evaluated block will terminate remote process and return special SeamlessRemoteException with string information about original error.
+On sender side it will open debugger with this general exception on local process (which sent request). No remote stack will be shown.
+
+Advanced system should return signalled error to sender as normal exception with references to remote signaler context (and process). Then exception could be handled with normal #on:do: message.
+And in case of unhandled error debugger will show local and remote stack together which will lead to regular IDE experience.
+!!!Better integration with debugger
+It could be possible to extend debugger such way that step into remote message on sender side will show remote context from receiver and allow debug it deeply.
+And viсe versa debugging process of incoming remote message on receiver could show remote sender stack together with local
