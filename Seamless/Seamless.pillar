@@ -394,7 +394,7 @@ Or it could be restarted with fresh history:
 [[[
 SeamlessLogger startAfresh
 ]]]
-So after starting logger transcript will show requests. But most interesting part of logging system is analysing of full communication statistics:
+So after starting logger transcript will show requests. But most interesting part of logging system is analysis of full communication statistics:
 [[[
 stat := SeamlessLogger collectStatistics
 ]]]
