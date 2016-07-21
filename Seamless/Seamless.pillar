@@ -20,7 +20,7 @@ remoteSmalltalk := remotePeer remoteEnvironment.
 
 remoteSmalltalk := network environmentAt: (TCPAddress localAt: 40422).
 ]]]
-Returned result is proxy which delegates any received message to remote object. Remote messages are executed on server which return result back to client. Result can be returned as another proxy or as copy which contain another proxies.
+Returned result is proxy which delegates any received message to remote object. Remote messages are executed on server which return result back to client. Result can be returned as another proxy or as copy which contains another proxies.
 
 In example result is reference to remote Smalltalk instance. It can access globals from remote environment:
 [[[
@@ -46,7 +46,7 @@ Proxy could load local copy by special message #asLocalObject:
 remoteRect := remotePeer evaluate: [0@0 corner: 2@3]. "==>aSeamlessProxy"
 remoteRect asLocalObject "==> 0@0 corner: 2@3"
 ]]]
-All global references of block (literals) are transferred in the way that on remote side they will same local globals. Following example will show notification on remote image:
+All global references of block (literals) are transferred in the way that on remote side they will be same local globals. Following example will show notification on remote image:
 [[[
 remotePeer evaluate: [Object inform: 'message from remote image'].
 ]]]
@@ -367,7 +367,7 @@ SeamlessSyncRequestContext>>return: aRequestResult
 		resultWaiter signal
 ]]]
 
-When request is executed on receiver peer sender peer should receive result and somehow call #return: method of waiting sync context.
+When request is executed on receiver-peer, the sender-peer should receive result and somehow call #return: method of waiting sync context.
 
 To implement it special trick is used.
 
