@@ -291,7 +291,7 @@ SeamlessNetwork>>referenceFor: anObject
 	^self referenceFor: anObject ifNewUse: [ anObject createSeamlessReference]
 ]]]
 
-It creates reference for new distributed object. Created reference will contain local peer as sender peer.
+It creates reference for new distributed object. Created reference will contain local peer as sender-peer.
 
 Now no garbage collection implemented for distributed objects. They could be cleaned manualy by "network destroy" command.
 
@@ -316,7 +316,7 @@ Context represents logical request sender. Request holds it in context variable 
 
 Here is SeamlessSyncRequestContext. It forks request sending and waits result.
 
-Requests should implement method #executeFor: which are called on receiver peer as part of network data processing.
+Requests should implement method #executeFor: which are called on receiver-peer as part of network data processing.
 
 During execution requests can return result to sender.
 
@@ -350,7 +350,7 @@ There are few types of contexts. They all implement method #return:to: to send r
 
 +file://figures/SeamlessContexts.jpg+
 
-Request sending contexts are used to send requests to receiver peer and somehow return result from it. They are subclasses of SeamlessRequestSendingContext.
+Request sending contexts are used to send requests to receiver-peer and somehow return result from it. They are subclasses of SeamlessRequestSendingContext.
 
 They should implement #sendRequest: method and simple version of #return: without senderPeer argument.
 
@@ -371,7 +371,7 @@ When request is executed on receiver-peer, the sender-peer should receive result
 
 To implement it special trick is used.
 
-Sync context is always transferred by reference and on receiver peer it is represented by special proxy SeamlessRemoteContext. As proxy it can delegate messages to real remote object which is sync context in that case. So to implement return SeamlessRemoteContext just sends remote message #return: to itself. It is performed by special SeamlessDeliverResultRequest:
+Sync context is always transferred by reference and on receiver-peer it is represented by special proxy SeamlessRemoteContext. As proxy it can delegate messages to real remote object which is sync context in that case. So to implement return SeamlessRemoteContext just sends remote message #return: to itself. It is performed by special SeamlessDeliverResultRequest:
 [[[
 SeamlessRemoteContext>>return: result to: senderPeer	senderPeer sendDataPacket: (SeamlessDeliverResultRequest result: result to: self)SeamlessDeliverResultRequest>>executeFor: senderPeer	context return: result]]]
 SeamlessDeliverResultRequest is executed on sender side where context is sync context which is waiting on semaphore for result.
@@ -447,7 +447,7 @@ What will happen if peer C will send messages to proxy B?
 
 Proxy B will resend message to peer B. But peer B not anymore has reference Ra. So peer B will create proxy C for it which will point to peer C. And proxy C will resent message back to peer C. Which will lead to infinite recursion.
 
-Possible solution to this problem is to forbid remote indirect messages. Seamless can always try to find owner peer of reference on current network. And if it not found error can be signalled. Otherwise Seamless can send message directly to owner peer instead of indirect transfer through sender peer.
+Possible solution to this problem is to forbid remote indirect messages. Seamless can always try to find owner peer of reference on current network. And if it not found error can be signalled. Otherwise Seamless can send message directly to owner peer instead of indirect transfer through sender-peer.
 
 Such restriction can be more stronger. Seamless can forbid transfer of references o peers which not know owner peers. In that case sending objects which just contains references can be failed. No matter if this references will never receive messages on this peers.
 
