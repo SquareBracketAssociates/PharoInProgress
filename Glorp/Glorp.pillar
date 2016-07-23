@@ -79,6 +79,34 @@ Metacello new
 
  One package is the ==Glorp-Core== and there is also a ==Glorp-Tests== package.
 
+!!! Glorp with UDBC / SQLite3
+
+Glorp may also be configured to work directly with the UDBC SQLite3
+driver in Pharo 5 (instead of the Garage drivers):
+
+[[[caption=Load Glorp with UDBC / SQLite3
+    Gofer it   
+        smalltalkhubUser: 'TorstenBergmann' project: 'UDBC'; 
+        configuration; 
+        load. 
+        (Smalltalk at: #ConfigurationOfUDBC) loadBleedingEdge. 
+    
+    Gofer it 
+        smalltalkhubUser: 'DBXTalk' project: 'Garage'; 
+        configurationOf: 'GarageGlorp'; 
+        load. 
+        #ConfigurationOfGarageGlorp asClass project stableVersion load. 
+    
+    Gofer it 
+        smalltalkhubUser: 'DBXTalk' project: 'Glorp'; 
+        package: 'Glorp-SQLite3'; 
+        load. 
+    
+    GlorpSQLite3CIConfiguration new configureSqlite3. 
+    GlorpDemoTablePopulatorResource invalidateSetup.
+]]]
+
+
 !!! Running the Tests
 
 Having loaded the Database drivers and the Glorp packages, it is recommended to
@@ -205,6 +233,17 @@ GlorpBookDescriptorSystem >> tableForPERSON: aTable
 		 createFieldNamed: 'birthDate'
 		 type: platform date.
 ]]]
+
+If the table name is not uppercase, it is necessary to add
+#allTableNames with the correct case, e.g.:
+
+[[[caption=Non-uppercase table names
+GlorpBookDescriptorSystem >> allTableNames
+
+	"Return a list of all the table names that this system uses."
+	^#('Person')
+]]]
+
 
 The ''serial'' datatype, explained in detail below, is an autoincrementing
 integer datatype. Every time you save a new instance Glorp will obtain a
@@ -417,6 +456,10 @@ session inUnitOfWorkDo: [
 As you can see, we didn't say if the instance needs to be inserted or updated,
 nor did we specify an ''id'' for each instance. The framework will determine that
 by ''registering'' the instance in the all-mighty ''session''.
+
+Note that if registering an object that was read in a previous unit of
+work, the object cannot be modified prior to registration in the current
+unit of work.
 
 !!! Reading Instances
 
@@ -1837,10 +1880,10 @@ class attributes as the parent Descriptor.
 !!! How Glorp expressions work
 At this point you might have noticed that we use blocks in many places
 to specify the ''where'' expression, ''retrieve'' a particular field, ''order''
-the results, and many other things. Altough we use blocks for the convenience
+the results, and many other things. Although we use blocks for the convenience
 and readability they provide, once assigned to a Glorp object like
 ==SimpleQuery== it will convert the block to a ''Glorp expression'', depending
-on the context it will any of the subclasses of ==GlorpExpression==.
+on the context it may be any of the subclasses of ==GlorpExpression==.
 
 [[[caption=A simple expression
 query where: [:each | each attribute > 100]
