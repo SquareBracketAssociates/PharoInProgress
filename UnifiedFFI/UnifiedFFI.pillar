@@ -441,6 +441,99 @@ to call ==autoRelease== (in case of children from FFIExternalObject) or implemen
 @@note FFIExternalObject replaces NBExternalObject
 
 !! Structures
+The ==FFIExternalStructure== object is used to manipulate C structures from Pharo.
+Imagine you need to manipulate the following C structure from Pharo:
+
+[[[
+struct My_Structure {
+    uint8 id;
+    char * name;
+    uint name_length;
+}
+]]]
+
+The first step is to create a subclass of ==FFIExternalStructure== that we name ==MyStructure==:
+
+[[[
+FFIExternalStructure subclass: #MyStructure
+    instanceVariableNames: ''
+    classVariableNames: ''
+    package: 'FFIDemo'
+]]]
+
+Then, we need to describe the structure. This is done by overriding the ==FFIExternalStructure class>>#fieldsDesc== method.
+The syntax used to do it is pretty close to the C syntax:
+
+[[[
+MyStructure class>>#fieldsDesc
+    ^ #(
+    uint8 id;
+    char * struct_name;
+    uint name_length;
+    ) 
+]]]
+
+Once the structure is described, you can generate the accessors by evaluating ==MyStructure rebuildFieldAccessors==.
+This will generate accessors and mutators on instance side of ==MyStructure==.
+
+Now we are going to make the use of this structure a bit easier. As you saw before, the structure holds a char pointer
+to represent its name (as a ==String==) and it also holds the length of this ==String== in ==name_length== field.
+
+Right now, you can use the structure like this:
+[[[
+myStruct := MyStructure externalNew. "Use #externalNew to create the object on the external heap."
+
+"Create an external array of type char to hold the name."
+newName := FFIExternalArray externalNewType: 'char' size: 3.
+'foo' doWithIndex: [ :char :i |
+    newName at: i put: char ].
+
+"Set the name."
+myStruct struct_name: newName.
+myStruct name_length: newName size.
+
+"Get the name."
+structName := String
+                newFrom: (FFIExternalArray
+                            fromHandle: myStruct struct_name getHandle type: 'char' size: myStruct name_length)
+]]]
+
+So to get the actual string, you need to take the char pointer and read ==name_length== char. We are going to wrap this
+procedure in a new method:
+
+[[[
+MyStructure>>#structName
+    ^ String
+        newFrom: (FFIExternalArray
+                    fromHandle: self struct_name getHandle type: 'char' size: self name_length)
+]]]
+
+We want the same thing for the mutator. We do not want to matter with ==name_length== when setting ==struct_name==:
+
+[[[
+MyStructure>>#structName: aString
+    | externalArray |
+    externalArray := FFIExternalArray externalNewType: 'char' size: aString size.
+    aString doWithIndex: [ :char :i |
+        externalArray at: i put: char ].
+    self struct_name: externalArray.
+    self name_length: aString size.
+]]]
+
+With the two preceding methods added, you can use ==MyStructure== the same way you use any other Pharo object:
+
+[[[
+myStruct := MyStructure externalNew "Of course you still need to use #externalNew!"
+                structName: 'foo';
+                id: 42;
+                yourself.
+
+myStruct structName. "foo"
+myStruct id. "42"
+
+myStruct structName: 'bar'.
+myStruct structName. "bar"
+]]]
 
 
 
