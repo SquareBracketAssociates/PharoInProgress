@@ -436,15 +436,19 @@ AthensCairoCanvas class>>asExternalTypeOn: generator
 ]]]
 
 @@note if you want to add the resource to an automatic free mechanism (to make GC frees also the external object), you need 
-to call ==registerAsExternalResource== (in case of children from FFIExternalObject) or implement similar mechanism. 
+to call ==autoRelease== (in case of children from FFIExternalObject) or implement similar mechanism. 
 
 @@note FFIExternalObject replaces NBExternalObject
 
 !! Structures
 
+
+
 !! Arrays
 
 !! Callbacks
+
+!! Handles (Windows)``
 
 !! Deprecated/modified/not working
 
