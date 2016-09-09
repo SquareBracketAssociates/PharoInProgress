@@ -422,9 +422,9 @@ AthensCairoSurface class>>primImage: aFormat width: aWidth height: aHeight
 This will call the cairo function ==cairo_image_surface_create== but instead answer an ==ExternalAddress== it will create an 
 instance of ==AthensCairoSurface==, so you can treat the allocated pointer as an object.
 
-Any class in the system can be an external object as long as: 
+Any class in the system can be an external object as long as either: 
 
-- it inherits from ==FFIExternalObject==
+- it inherits from ==FFIExternalObject==; or
 - it implements in its ""class side"" the method ==asExternalTypeOn:==.
 
 You can check for implementors of ==asExternalTypeOn:== for examples, but they usually looks like this one:
