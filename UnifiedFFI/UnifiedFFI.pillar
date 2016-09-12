@@ -407,8 +407,8 @@ LibC>>memCopy: src to: dest size: n
 FFIExternalObject represent an object in the heap. An external object is a reference to any kind of data allocated 
 in the heap mapped to a Smalltalk object. 
 
-This is confuse, so I will try to explain it better: When you allocate a region of memory in the heap, you get a pointer
-to that location, who does not represent anything. But often, frameworks will allocate structures, pointers, etc. who 
+This is confusing, so I will try to explain it better: When you allocate a region of memory in the heap, you get a pointer
+to that location, which does not represent anything. But often, frameworks will allocate structures, pointers, etc. which 
 actually represents "an object" (not in the same sense as a Smalltalk object, but can be interpreted like one). For example, 
 to create a cairo surface, you can call this: 
 
