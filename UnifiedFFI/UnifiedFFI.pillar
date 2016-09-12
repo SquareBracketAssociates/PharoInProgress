@@ -457,8 +457,41 @@ An example of this is how AthensCairoSurface works.
 @todo add an example
 
 !! Structures
-The ==FFIExternalStructure== object is used to manipulate C structures from Pharo.
-Imagine you need to manipulate the following C structure from Pharo:
+The ==FFIExternalStructure== object is used to manipulate C structures from Pharo.  
+From the standard C library we can use the div() function as an example. 
+Given a numerator and denominator, it returns a structure holding the quotient and remainder.
+In stdlib.h we find these definitions...
+
+   typedef struct
+     {
+       int quot;                   /* Quotient.  */
+       int rem;                    /* Remainder.  */
+     } div_t;
+
+   div_t div (int __numer, int __denom)
+
+Converting these to FFI definitions we get...
+
+    FFIExternalStructure subclass: #Div_t
+	instanceVariableNames: ''
+	classVariableNames: ''
+	package: 'UnifiedFFI-ExampleLibC'
+
+    Div_t class >> fieldsDesc
+    	"self rebuildFieldAccessors"
+	^ #(
+		int quot;
+		int rem;
+		)
+
+    LibC class >> div_numer: numer denom: denom
+	^ self ffiCall: #( Div_t div( int numer, int denom ) ) module: LibC
+
+So lets try it out...
+    LibC div_numer: 7 denom: 2
+    ==> "Div_t ( quot: 3   rem: 1)"
+
+Now for another example, imagine you need to manipulate the following C structure from Pharo:
 
 [[[
 struct My_Structure {
