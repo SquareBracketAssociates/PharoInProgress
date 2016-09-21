@@ -51,7 +51,7 @@ Array stub new.
 It will crash image.
 And if you stub global from workspace it is your responsibility to recover it from stub behaviour. Do it by this:
 [[[
-DateAndTime recoverFromVirus.
+DateAndTime recoverFromGHMutation.
 ]]]
 In case when you stub global inside test Mocketry automatically recovers all global stubs when test completes.
 
