@@ -1,74 +1,99 @@
 { "title": "Gestures with OSWindow" }
 
-
-!!Basic gestures
+In this small chapter we will present hwo to use 
+!! Basic gestures
 There are currently six basic gestures:
--Drag (Down, Move, Up)
--Hold
--Double Tap
--Scroll
--Rotation
--Swipe ( move from edge )
+- Drag (Down, Move, Up)
+- Hold
+- Double Tap
+- Scroll
+- Rotation
+- Swipe ( move from edge )
 
-They are the most common used gestures in the applications, but you can create new ones and compose with multiple gestures as you want (see "How to create new gestures ?").
+They are the most common used gestures in applications, but you can create new ones and compose with multiple gestures as you want (see "How to create new gestures ?").
 
 Some of these gestures are customizable, for each gesture has these settings:
--Hold
+- Hold
 --Maximum distance moved to consider as static
 --Time to hold
--Double Tap
+- Double Tap
 --Distance from one tap to another
 --Time between two taps
--Pinch
+- Pinch
 --Maximum distance between the two fingers
 --Minimum distance traveled by each finger
--Rotation
+- Rotation
 --Minimal angle wandered before detection
--Scroll
+- Scroll
 --Minimal distance traveled by each finger
 --Persistent scrolling (once you scroll vertically you can't scroll horizontally and vice versa)
--Swipe
+- Swipe
 --Minimal distance to an edge
 
-Take a look to this short demo *video>https://youtu.be/eNrbH8A5nyY*, showing a demonstration of the existing gestures.
+Take a look to this short demo video available on youtube at *https://youtu.be/eNrbH8A5nyY*, showing a demonstration of the existing gestures.
 
-!!How to create new gestures ?
+!! How to use gestures in your application ?
+You have to create a custom event handler. To do so, you have to subclass the handler named ==OSWindowGestureHandler==
+
+Register the desired gestures with your handler.
+[[[
+OSTouchGestureHandler new registerGesture: OSTouchTwoFingersScroll new 
+]]]
+
+Now that you can receive gesture choose the behaviour of your handler in the visiting methods.
+Example:
+[[[
+OSTouchGestureHandler >> visitTouchTwoFingersScrollBegin: anEvent
+	Transcript crShow: 'First scroll of my life !!!'
+]]]
+
+An important thing is to call super in the method visitTouchPointerDown/Move/up. 
+It is important because the gesture handler uses these events to gather informations about the fingers for gestures detection.
+
+!! How to create new gestures?
 There are two differents options to implement new gestures..
 The common part of these two options is the events that will be sent by your detector.
-[[[caption=Your event has to inherit from OSTouchComplexEvent.|language=smalltalk
-OSTouchComplexEvent subclass: OSTouchOneFingerDoubleTapThenHoldEvent]]]
 
-[[[caption=Then you create the #accept: method for the double dispatch.|language=smalltalk
-OSTouchOneFingerDoubleTapThenHold>>accept: aVisitor
-	aVisitor visitTouchOneFingerDoubleTapThenHold: self]]]
+[[[caption=Your event has to inherit from OSTouchComplexEvent.
+OSTouchComplexEvent subclass: OSTouchOneFingerDoubleTapThenHoldEvent
+]]]
 
-Now you can create your gesture detector, wich has to inherit from OSTouchGestureFactory. Where you can already find two methods:
-- 'sendToEventHandler:' to send your generated events to the event handler.
-- 'centerOfAllFinger' to calculates the center of your gesture.
+[[[caption=Then you create the #accept: method for the double dispatch.
+OSTouchOneFingerDoubleTapThenHold >> accept: aVisitor
+	aVisitor visitTouchOneFingerDoubleTapThenHold: self
+]]]
+
+Now you can create your gesture detector, which has to inherit from ==OSTouchGestureFactory==. Where you can already find two methods:
+- ==sendToEventHandler:== to send your generated events to the event handler.
+- ==centerOfAllFinger== to calculate the center of your gesture.
 
 You have two choices to ensure that your gesture will be detected. The first one is to use low level informations about the fingers that are stored in the "activeFinger" instance variable. The second one is to overwrite visiting methods to deal with events thrown by OSWindow.
 
-[[[caption=Your gesture factory will inherit from OSTouchGestureFactory|language=smalltalk
+[[[caption=Your gesture factory will inherit from OSTouchGestureFactory
 OSTouchGestureDetector subclass: OSTouchOneFingerDoubleTapThenHoldDetector ]]]
 
-!!!Creating your gesture from scratch
-I do not recommend this method , which is too low-level, you should only use it when it's necessary.
-[[[caption=First you can code the holding part|language=smalltalk
+!!Creating your gesture from scratch
+
+We do not recommend this method which is too low-level, you should only use it when it's necessary.
+
+[[[caption=First you can code the holding part
 OSTouchOneFingerDoubleTapThenHold>>createWaitingProcessForHold
 	^ [ (Delay forMilliseconds: waitingTime) wait.
 	    (activeFingers allSatisfy: [ :each | each totalDistanceTravelled < maxDistanceTolerated])
-		ifTrue: [ self sendToEventHandler: self createHoldThenDoubleTapEvent ] ] fork ]]]
+		ifTrue: [ self sendToEventHandler: self createHoldThenDoubleTapEvent ] ] fork 
+]]]
 
-[[[caption=Then we can make the necessary condition for the double tap detection|language=smalltalk
+[[[caption=Then we can make the necessary condition for the double tap detection
 OSTouchOneFingerDoubleTapThenHold>>checkDoubleTouch
 	(eventHandler fingerCount = self necessaryFingers
 		and: [ (position closeTo: previousPosition)
 		and: [ timestamp - previousTimestamp < maxTimeToDoubleTouch ] ])
 	     	     ifFalse: [ ^ self ].
-	self createWaitingProcessForHold ]]]
+	self createWaitingProcessForHold
+]]]
 
 
-[[[caption=Finally, we catch the input, these events are the lower offered level|language=smalltalk
+[[[caption=Finally, we catch the input, these events are the lower offered level
 OSTouchOneFingerDoubleTapThenHold>>vistTouchPointerDown: anEvent
 	super visitTouchPointerDownEvent: anEvent.
 	previousPosition := position.
@@ -77,12 +102,14 @@ OSTouchOneFingerDoubleTapThenHold>>vistTouchPointerDown: anEvent
 	timestamp := anEvent timestamp.
 	self checkDoubleTouch.
 	eventHandler fingerCount = self necessaryFingers
-		ifFalse: [ process terminate ] ]]]
+		ifFalse: [ process terminate ] 
+]]]
 		
-[[[caption=Don't forget the case when a finger is removed|language=smalltalk
+[[[caption=Don't forget the case when a finger is removed
 OSTouchOneFingerDoubleTapThenHold>>vistTouchPointerUp: anEvent
 	super visitTouchPointerDownEvent: anEvent.
-	process isActive ifTrue: [ process terminate ] ]]]
+	process isActive ifTrue: [ process terminate ] 
+]]]
 
 
 And voila, you just made your own gesture.
@@ -92,29 +119,22 @@ Imagine that you want to make a scroll, followed by a hold, then a double tap. I
 That is why the API allows you to use other gestures to make a complex one.
 
 
-!!!Composing with multiple gestures
-This way is much simpler but doesn't cover all the possibilites.
-[[[caption=Catch the first double tap event|language=smalltalk
-OSTouchOneFingerDoubleTapThenHold>>visitTouchOneFingerDoubleTap: anEvent
+!!Composing with multiple gestures
+
+This way is much simpler but doesn't cover all the possibilities.
+
+[[[caption=Catch the first double tap event
+OSTouchOneFingerDoubleTapThenHold >> visitTouchOneFingerDoubleTap: anEvent
 	positionOfTheLastDoubleTap := anEvent position.
 	[ hasJustDoubleTapped := true.
 	(Delay forSeconds: 1) wait.
-	hasJustDoubleTapped := false.] fork ]]]
+	hasJustDoubleTapped := false.] fork
+]]]
 
-[[[caption=If a double tap has been catched, then our corresponding event is sent.|language=smalltalk
+[[[caption=If a double tap has been catched, then our corresponding event is sent.
 OSTouchOneFingerDoubleTapThenHold>>vistTouchOneFingerHold: anEvent
 	(hasJustDoubleTapped and: [anEvent position closeTo: positionOfTheLastDoubleTap])
-		ifTrue: [ self sendToEventHandler: OSTouchOneFingerDoubleTapThenHold new] ]]]
+		ifTrue: [ self sendToEventHandler: OSTouchOneFingerDoubleTapThenHold new] 
+]]]
 
-!!How to use gestures in your application ?
-You have to create a custom event handler. To do so, you have to subclass the handler named OSWindowGestureHandler.
-[[[caption=Register the desired gestures with your handler|language=smalltalk
-OSTouchGestureHandler new registerGesture: OSTouchTwoFingersScroll new ]]]
 
-Now that you can receive gesture choose the behaviour of your handler in the visiting methods.
-Example:
-[[[language=smalltalk
-OSTouchGestureHandler>>visitTouchTwoFingersScrollBegin: anEvent
-	Transcript crShow: 'First scroll of my life !!!' ]]]
-An important thing is to call super in the method visitTouchPointerDown/Move/up. 
-It is important because the gesture handler uses these events to gather informations about the fingers for gestures detection.
