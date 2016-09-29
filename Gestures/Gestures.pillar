@@ -1,6 +1,7 @@
 { "title": "Gestures with OSWindow" }
 
-In this small chapter we will present hwo to use 
+In this small chapter we will present hwo to use gestures. Note that Gestures work for now only in externel OS specific windows. You cannot simply attach a gesture detection to a morph in a morphic world. It will come. 
+
 !! Basic gestures
 There are currently six basic gestures:
 - Drag (Down, Move, Up)
