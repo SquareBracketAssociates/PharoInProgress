@@ -38,3 +38,8 @@ Gofer it
     package:'Bloc-Sparta';
     load.
 ]]]
+
+Finally, you have to enable Sparta as the defaut rendering engine:
+[[[language=smalltalk
+BlUniverse defaut useOSWindowSpartaHost.
+]]]
