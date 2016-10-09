@@ -501,7 +501,7 @@ struct My_Structure {
 }
 ]]]
 
-The first step is to create a subclass of ==FFIExternalStructure== that we name ==MyStructure==:
+The first step is to create a subclass of FFIExternalStructure that we name MyStructure:
 
 [[[
 FFIExternalStructure subclass: #MyStructure
