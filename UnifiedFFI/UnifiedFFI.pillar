@@ -489,7 +489,7 @@ Converting these to FFI definitions we get...
 
 So lets try it out...
     LibC div_numer: 7 denom: 2
-    ==> "Div_t ( quot: 3   rem: 1)"
+     "Div_t ( quot: 3   rem: 1)"
 
 Now for another example, imagine you need to manipulate the following C structure from Pharo:
 
@@ -501,7 +501,7 @@ struct My_Structure {
 }
 ]]]
 
-The first step is to create a subclass of FFIExternalStructure that we name MyStructure:
+The first step is to create a subclass of ==FFIExternalStructure== that we name ==MyStructure==:
 
 [[[
 FFIExternalStructure subclass: #MyStructure
@@ -590,7 +590,7 @@ myStruct structName. "bar"
 
 !! Callbacks
 
-!! Handles (Windows)``
+!! Handles (Windows)
 
 !! Deprecated/modified/not working
 
