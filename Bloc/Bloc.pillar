@@ -1,92 +1,46 @@
 {
-  "title": "Bloc: a new 2D graphical framework",
+  "title": "Bloc: Graphical architecture and framework for Pharo",
   "attribution": "Glenn Cavarle"
 }
 
-In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~Pharo/Bloc*, a new 2D graphical framework.
+In this chapter you will learn about *Bloc>https://github.com/pharo-graphics/Bloc*, a new low-level graphical architecture and framework for Pharo.
 
 !! Installation
 
-!!! Current development Version
+!!! Current development version
 
-Load the Bloc source code in a *Pharo 6 image (dev)>http://files.pharo.org/image/60/latest.zip*:
+Load the Bloc source code in the latest *Pharo 6 image>http://files.pharo.org/image/60/latest.zip*:
 [[[language=smalltalk
-Gofer it
-    smalltalkhubUser: 'Pharo' project: 'Bloc';
-    configuration;
-    loadDevelopment.
+Metacello new
+    baseline: 'Bloc';
+    repository: 'github://pharo-graphics/Bloc/src';
+    load:#development
 ]]]
 
-''__Issues:__'' during package loading, you need to proceed for unresolved dependencies (NewList stuff).
+or download the *bleeding-edge image from the CI server.>https://ci.inria.fr/pharo-contribution/job/Bloc/PHARO=60,VERSION=development,VM=vm/lastSuccessfulBuild/artifact/Bloc.zip*
 
-or download the *last Bloc image.>https://ci.inria.fr/pharo-contribution/job/Bloc/PHARO=60,VERSION=development,VM=vm/lastSuccessfulBuild/artifact/Bloc.zip*
-
-Run the image with the Pharo Virtual Machine:
+Run this image with the latest stable Pharo Virtual Machine [
 *Linux>http://files.pharo.org/get-files/60/pharo-linux-stable.zip* |
 *Mac>http://files.pharo.org/get-files/60/pharo-mac-stable.zip* |
 *Windows>http://files.pharo.org/get-files/60/pharo-win-stable.zip*
-
-''__Notes:__''
-- Bloc will be moved to GitHub at the end of the year.
-
-!!! Sparta Backend (under development)
-
-The current development version of Bloc is using *Athens>http://www.smalltalkhub.com/#!/~Pharo/Athens* as the drawing backend but
-a new next-gen backend named *Sparta>https://github.com/syrel/Sparta* is also under development and will be fully integrated in Bloc soon.
-
-To install Sparta and to use it as the default backend in Bloc, follow instructions *here>https://github.com/syrel/Sparta* and load the ''Bloc-Sparta'' package:
+] and install the Sparta-Moz2D binary:
 [[[language=smalltalk
-Gofer it
-    smalltalkhubUser: 'Pharo' project: 'Bloc';
-    package:'Bloc-Sparta';
-    load.
+MozLibraryInstaller install.
 ]]]
 
-Finally, you have to enable Sparta as the defaut rendering engine:
-[[[language=smalltalk
-BlUniverse defaut useOSWindowSpartaHost.
-]]]
-
-!! Roadmap
-
-!!! ""0.11 - Sparta Integration""
-
-- libMoz2D plugin for Windows
-- Renaming of Sparta librarie
--# "''Sparta''" prefix for basic abstractions (ex: SpartaCanvas, ...)
--# "''Sp''" prefix for text related abstractions (ex: SpAttribute, SpText, ...)
-- BlText migration
-- Improvement of 64bit libMoz2D linux plugin
-
-!!! ""0.12 - Drawing Improvement""
-
-- GradientPaint (Linear and Radial) integration
--# Static start and end points
--# Proportional start and end points
-- New SVG importer/converter
--# Conversion of all SVG elements (circle, ellipse, line, polygon, polyline, rect, path, text)
--# Import from SVG file
-- New effect API
-
-!!! ""0.13 - Advanced Features""
-
-- Multitouch & Gesture
--# Moving OSWindow  gestures to Bloc
-- KeyBinding Improvement
-- Drag&Drop improvement (local&shared clipboard)
 
 
-! Concepts
+!! Concepts
 
-!! Architecture Overview
+!!! Architecture Overview
 
-+Bloc Architecture Diagram>file://figures/infrastructure.png|width=50|label=architecture+
-Figure*@architecture* illustrates the architectural components which compose the Bloc infrastructure stack.
++Bloc Architecture Diagram>file://figures/infrastructure.png|width=100|label=architecture+
+Figure *@architecture* illustrates the architectural components which compose the Bloc infrastructure stack.
 
-!!! Efficient Engines
+!!!! Efficient Engines
 
 Below the ''Bloc Infrastructure'' lies the low-level rendering and windowing engines,
-namely *Sparta>Sparta>https://github.com/syrel/Sparta* and *OSWindow>http://smalltalkhub.com/#!/~Pharo/OSWindow*.
+namely *Sparta>Sparta>https://github.com/syrel/Sparta* and *OSWindow-SDL2>http://smalltalkhub.com/#!/~Pharo/OSWindow*.
 
 ==Sparta== is a new Pharo high performance vector graphics librarie that provides bindings to the ==Moz2D== rendering backend.
 ==Moz2D==, and as result ==Sparta==, has support of native OS graphic engines, as well as cross platform ones.
@@ -94,33 +48,33 @@ On all platforms Sparta provides support of ==Cairo== and ==Skia==.
 Additionally, high performant ==CoreGraphics== and ==CoreGraphics Accelerated== on Mac OS and ==Direct2D== on Windows.
 In total Sparta supports 5 different rendering backends.
 
-==OSWindow== is the Pharo native windowing system that provides bindings to ==SDL2== and ==OpenGL==.
+==OSWindow-SDL2== is the Pharo native windowing library that provides bindings to ==SDL2== and ==OpenGL==.
 
 !!! Unified Infrastructure
 
-The ''Bloc Infrastructure'' ties together ==Sparta== and ==OSWindow== and makes them available to the layers above in a unified way.
+The ''Bloc Infrastructure'' ties together ==Sparta== and ==OSWindow-SD2== and makes them available to the layers above in a unified way.
 It manages the multi-windowing, the events propagation and the rendering process.
 It also provides synchronization (and thread) support related to tasks, animations and rendering.
 
-!!! Scene Graph
+!!!! Scene Graph
 
 The ==Bloc== Scene Graph, shown as the top layer in Figure*@architecture*, is the starting point for building a Bloc application.
 It provides a hierachical tree of nodes that represents all of the visual elements of a user interface.
 It can handle user inputs and can be rendered in a dedicated window.
 
-!! Basic Elements
-!! Composition and Layouts
-!! Event System
-!! Drawing System
+!!! Basic Elements
+!!! Composition and Layouts
+!!! Event System
+!!! Drawing System
 
-! Features
+!! Features
 
-!! Keyboard Navigation
-!! Localization
+!!! Keyboard Navigation
+!!! Localization
 
-!! Drag and Drop
+!!! Drag and Drop
 
-!!! Introduction
+!!!! Introduction
 
 A drag&drop gesture is a data transfer between a source object and a target object.
 Source and target objects can be any Elements.
@@ -138,7 +92,7 @@ and it is shared between all the drag&drop events related to the current gesture
 ''__Issues__'': due to the SDL2 limitations, a drag&drop process can be performed only within the same Space.
 SDL DROP_FILE event is not fired.
 
-!!! A basic Drag&Drop example
+!!!! A basic Drag&Drop example
 
 Let's start implementing a first Drag&Drop gesture between two rectangles.
 
@@ -154,7 +108,7 @@ Let's start implementing a first Drag&Drop gesture between two rectangles.
 
 ]]]
 
-!!! Defining the visual feedback for dragged data
+!!!! Defining the visual feedback for dragged data
 
 Any Element receives the DragStart event when a Drag&Drop gesture is detected.
 To define a visual feedback, a DragView has to be defined.
@@ -165,7 +119,7 @@ A DragView only support an image (Form) for the visual representation of the dra
       evt dragboard dragView: (BlDragView on: src asForm)].
 ]]]
 
-!!! Defining the visual feedback for the drop target
+!!!! Defining the visual feedback for the drop target
 
 [[[language=smalltalk
   target
@@ -175,15 +129,13 @@ A DragView only support an image (Form) for the visual representation of the dra
           target border: BlBorder empty].
 ]]]
 
-!!! Handling drop event on the target
+!!!! Handling drop event on the target
 
 [[[language=smalltalk
   target addEventHandlerOn: BlDropEvent  do:[:evt|
       target addChild: evt gestureSource].
 ]]]
 
-
-!! Styles
-!! Visual Effects
-!! Animations
-!! Thread Support
+!!! Visual Effects
+!!! Animations
+!!! Thread Support
