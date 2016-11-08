@@ -1,9 +1,9 @@
 {
-  "title": "Bloc: Graphical architecture and framework for Pharo",
+  "title": "Bloc: Graphical infrastructure and framework for Pharo",
   "attribution": "Glenn Cavarle"
 }
 
-In this chapter you will learn about *Bloc>https://github.com/pharo-graphics/Bloc*, a new low-level graphical architecture and framework for Pharo.
+In this chapter you will learn about *Bloc>https://github.com/pharo-graphics/Bloc*, a new low-level graphical infrastructure and framework for Pharo.
 
 !! Installation
 
