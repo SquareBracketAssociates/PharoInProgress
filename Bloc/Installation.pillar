@@ -1,0 +1,45 @@
+{
+  "title": "Bloc Installation",
+  "attribution": "Glenn Cavarle"
+}
+! Installation
+
+!! Current development Version
+
+Load the Bloc source code in a *Pharo 6 image (dev)>http://files.pharo.org/image/60/latest.zip*:
+[[[language=smalltalk
+Gofer it
+    smalltalkhubUser: 'Pharo' project: 'Bloc';
+    configuration;
+    loadDevelopment.
+]]]
+
+''__Issues:__'' during package loading, you need to proceed for unresolved dependencies (NewList stuff).
+
+or download the *last Bloc image.>https://ci.inria.fr/moose/job/bloc/lastSuccessfulBuild/artifact/bloc.zip*
+
+Run the image with the Pharo Virtual Machine:
+*Linux>http://files.pharo.org/get-files/60/pharo-linux-stable.zip* |
+*Mac>http://files.pharo.org/get-files/60/pharo-mac-stable.zip* |
+*Windows>http://files.pharo.org/get-files/60/pharo-win-stable.zip*
+
+''__Notes:__''
+- Bloc will be moved to GitHub at the end of the year.
+
+!! Sparta Backend (under development)
+
+The current development version of Bloc is using *Athens>http://www.smalltalkhub.com/#!/~Pharo/Athens* as the drawing backend but
+a new next-gen backend named *Sparta>https://github.com/syrel/Sparta* is also under development and will be fully integrated in Bloc soon.
+
+To install Sparta and to use it as the default backend in Bloc, follow instructions *here>https://github.com/syrel/Sparta* and load the ''Bloc-Sparta'' package:
+[[[language=smalltalk
+Gofer it
+    smalltalkhubUser: 'Pharo' project: 'Bloc';
+    package:'Bloc-Sparta';
+    load.
+]]]
+
+Finally, you have to enable Sparta as the defaut rendering engine:
+[[[language=smalltalk
+BlUniverse defaut useOSWindowSpartaHost.
+]]]

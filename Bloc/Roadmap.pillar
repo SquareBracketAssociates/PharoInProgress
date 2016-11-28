@@ -1,0 +1,33 @@
+{
+  "title": "Bloc Roadmap",
+  "attribution": "Glenn Cavarle"
+}
+! Roadmap
+
+!! ""0.11 - Sparta Integration""
+
+- libMoz2D plugin for Windows
+- Renaming of Sparta librarie
+-# "''Sparta''" prefix for basic abstractions (ex: SpartaCanvas, ...)
+-# "''Sp''" prefix for text related abstractions (ex: SpAttribute, SpText*, ...)
+- BlText migration
+- Improvement of 64bit libMoz2D linux plugin
+
+!! ""0.12 - Drawing Improvement""
+
+- GradientPaint (Linear and Radial) integration
+-# Static start and end points
+-# Proportional start and end points
+- New SVG importer/converter
+-# Conversion of all SVG elements
+   (circle, ellipse, line, polygon, polyline, rect, path, text)
+-# Import from SVG file
+- New effect API
+
+
+!! ""0.13 - Advanced Features""
+
+- Multitouch & Gesture
+-# Moving OSWindow  gestures to Bloc
+- KeyBinding Improvement
+- Drag&Drop improvement (local&shared clipboard)

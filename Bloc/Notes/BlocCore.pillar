@@ -1,0 +1,666 @@
+{ "title": "Bloc Core",
+  "attribution": "Alain Plantec" }
+
+! Bloc: a new Morph Framework
+
+In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~AlainPlantec/Bloc*, a new 2D graphical framework that has been designed from scratch. Bloc has been developed by A. Plantec. 
+Bloc's goal is to reinvent Morphic (the current UI framework of Pharo), because we love Morphic but it shows its age.  
+
+In this chapter, we describe the overall architecture and the key players of Bloc. We present a quick tour of the Bloc core. 
+In this quick tour, a lot of examples are commented-out. These examples are chosen to cover the main aspects of the Bloc core from the programmer's point of view.
+
+!! What is Bloc
+Bloc is a complete infrastructure to display 2D graphical elements such as elementary graphical objects and widgets. 
+
+""An important point of vocabulary."" Note that we did not say that Bloc is a new Morphic Framework. Morphic is just the current 2D graphical framework of Pharo. Bloc has been designed to be able to embed Morphic elements so that we can use Morphic widgets during the building of Bloc.
+Thus, in a first step, backward compatibility with Morphic is kept. This means that Morphic-based user interfaces can be displayed within Bloc.
+But the inverse is not true, Bloc user interfaces can not be displayed within a Morphic World. When we will have enough widgets in Bloc, we will be able to make a big jump and completely separate Bloc from Morphic. 
+
+Bloc is composed of three main categories of entities: entities managing the runtime 
+(event dispatch, alarm, main rendering loop), basic graphical visual elements such as images, label (basically views or shapes), 
+and entities that define the behavior of the entities and their interactions in terms of event listeners. 
+
+- An infrastructure. The new infrastructure is roughly composed of spaces (managed by a single universe) and a rendering loop manager and helper objects.
+- Basic morphs. They are composed of a simple hierarchy whose root is ==BlMorph==. Each morph is potentially composed of a view, an instance of ==BlMorphView== or of one of its subclasses (the view manages the rendering) and an event listener chain (that handles interactions and implements event reactions).
+
+Note that the widgets are designed on top of Bloc but in a separate project called Brick. 
+
+!! Installing Bloc
+The package repository of Bloc is in Smalltalkhub.
+
+[[[label=Bloc-repository|caption=The Bloc repository at Smalltalkhub|language=Smalltalk
+	MCSmalltalkhubRepository
+		owner: 'Pharo'
+		project: 'Bloc'
+		user: ''
+		password: ''
+]]]
+
+Just install the ==ConfigurationOfBloc== package. Then evaluate the Script *BlocInstall*.
+
+
+[[[label=BlocInstall|caption=Installation of Bloc through ConfigurationOfBloc|language=Smalltalk
+ConfigurationOfBloc loadBleedingEdge
+]]]
+
+After having installed Bloc, you can see a new submenu in the world menu as shown in Figure *bloc-worldmenu*. Then, just create a new bloc space with the ''New Bloc space'' sub-item and switch to your first Bloc space. 
+
+Being in a Bloc space, the only difference consists in the world-menu invocation: in Bloc, the world-menu is invoked with the right mouse button. Normally, you should be able to open any Morphic tools and use it as in a Morphic world.
+
++The new world-menu item added after Blov installation>file://figures/bloc-worldmenu-item.png|width=40|label=bloc-worldmenu+
+
+
+!!What is a Bloc Morph 
+
+All objects that you can see on the screen are morphs. The Pharo screen itself is a morph. A morph may be simple or composed of other morphs. For example, a button may be a simple morph whereas a window is a composed morph. 
+
+In Bloc, a morph is an instance of ==BlMorph==. Basically, a ==BlMorph== has three kinds of responsibilities: 
+- Is has to render itself. In order to render itself, it stores its own extent and applies affine transformations. 
+- It has to answer to events. In order to answer to events, it defines the behavior that is runned when an event is received and this is the case for all possible kinds of events.
+- It has to maintain a collection of submorphs. A morph can be composed.  Moreover, it can use a particular layout strategy to automatically maintain the position and the extent of its submorphs.
+
+!! Rendering: the Role of a View
+A ==BlMorph== renders itself through a separate object called the view of the morph. A morph view is an instance of ==BlView== or of one of its subclasses. The responsibility of a view is to draw something on a canvas to represent a morph. To do that, a view implements ==#drawOnAthensCanvas:== which takes an ==AthensCanvas== as argument. Note that a view can be composed (using the same layout algorithm than  a morph) subviews. 
+
+A view can be of different kind. It can be a rectangle, a circle, an ellipse, a polygon, a text... More view kinds can be added from scratch or by subclassing existing ones. 
+
+Moreover, complex views can be built by composition as a view can be a composite (an instance of one of the subclasses of ==BlEnclosedView==). Each view of a composite has its own transform, it is managed through local coordinates and can be animated with the help of Alarms (shown later).
+
+!!! Examples
+
+The first example create a morph with the red rectangular view. 
+
+[[[label=script-simpleview|caption=Implementation of a simple event logger|language=Smalltalk
+| m |
+m := BlMorph new
+	withRectangleViewDo: [ :v | v color: Color red ];
+	yourself.
+m openInWorld.
+m
+]]]
+
+Note that you can create a morph without a view and add a view dynamically to it later.
+Here executing this snippet does not display the morph since it does not have a view. 
+
+[[[label=script-simpleview|caption=Implementation of a simple event logger|language=Smalltalk
+| m |
+m := BlMorph new
+		inspect;
+		openInWorld.
+m
+]]]
+
+Using the inspector you can add a view using the following snippet ==self withRectangleViewDo: [ :v | v color: Color green ]==.
+
+As a shortcut a morph can be created from a view using the message ==asMorph==. The following expression is equivalent to the previous one.
+ 
+[[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
+BlRectangleView new asMorph inspect; openInWorld
+]]]
+
+A morph can dynamical changes its view. For example the following morph changes its view when it is grabbed or dropped.
+
+[[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
+Morph new
+	view: BlRectangleView new;
+	open
+	
+BlRectangleView new asMorph open	
+]]]
+
+!!!! Implementation points. By default the view of a morph is a MinimalView which does not support view addition. 
+We can change the minimal view using the message ==view:== and then add subviews using the messages ==viewDo:== or ==addView:==
+
+[[[
+b := BlMorph new view: (BlRectangleView new color: Color blue; yourself).
+b viewDo: [:v | v addView: (BlCircleView new color: Color red; yourself) ].
+
+or
+b view addView: (BlCircleView new color: Color red; yourself)
+]]]
+
+!!! Design Rationale
+Having a separate view is an important design decision. It has postive impacts on the quality of the implementation of a user interface. We see at least the following benefits of this design:
+# Good separation of concerns: To represent an object, not only the surface painting but also the borders and the composition of the view must be managed. These responsibilities involves many methods and different kinds of protocol. Then, separating a morph from its view has the immediate benefit to lesser the number of methods implemented by the ==BlMorph== class and to make it clearer the responsibilities of a morph. Regarding the view hierarchy, the separation of concerns has the same kind of benefit. As examples, an enclosed view can have subviews and a border but not an image view or a text view. Then methods defined to manage subviews or a border are only implemented at the ==BlEnclosedView== level and not by ==BlTextView== and ==BlPolygonView==. Separation of concerns is the main benefit which makes the next benefits possible.
+# Reusability of a morph: A morph implementation can be reusable whatever its view kind. Let's take the example of a button. A button is a morph which reacts to mouse click. Thus, the button behavior can be reused whatever the view. The same button implementation can be reused for a classical rectangle but also for a circle, for an image, and even for a text view, for a polygon view or a composed view. As a consequence, this impacts the number of ==BlMorph== subclasses and it makes it clearer why a ==BlMorph== subclass has to be defined.
+# Reusibility of the rendering: A view can be seen as drawing operations reified by a class. As an example, the code written to render the focus border of a morph is in fact implemented by the ==BlRectangleView== class. Without the morph/view separation, the same code may be duplicated for each morph that is supposed to draw a focus border. One can even define a focus border view class that would take into account the current user interface theme or a particular style. This view class would be reusable each time a focus border is involved for the rendering of whatever morph.
+# Simplification with less generic properties: During its lifetime, a morph may need to store dynamic properties. These properties are stored into the ==properties== instance variable of the ==BlMorph== class. This dictionary is very useful to manage temporarily defined properties and it improves a morph reusibility. But it has two serious drawbacks. (1) it is very difficult to manage and maintain a morph class that involves such kind of properties. (2) reading and writing a property stored into a dictionary is time consuming. Some of these properties are defined to store data that are useful for the rendering and only for the rendering. Instead, with separate view classes, these generic properties can be reified as instance variables in a dedicated class, the view.
+# Simplification of morph composition: being able to compose view has the consequence to simplify a morph composition because the number of submorph to assemble together decrease. Let's take the example of a text editor view. This view shows the text which is currently edited but also decorations such as a focus border, a view to indicate that the text has changed and a input cursor. In addition, the pharo browser presents an orange bar for the complexity of the code (number of lines). All these indicators are not supposed to answer to events. They are added and placed by the editor morph depending on the text and on the actions done on the text. Without the morph/view speration, they must be implemented as submorphs of the text editor morph. This increase the number of submorphs to add and remove and the complexity of the code of the text editor. With the morph/view separation, these indicators are just managed by a composite view which contains a view for the text and one view per indicator. The text editor morph itself can be made with one and only one morph without any submorph.
+# Efficienty of the event dispatching: Morphs responds to events. The morph which responds to one event is the handler of the event. For some of the system event kinds (mouse down, mouse enter, mouse still over, mouse still down, drop...), the handler is not identified when the event arrives. Instead, the handler has to be found thanks to a dispatching algorithm which  traverses the morph tree, from the root morph to the leaf morphs. The simplification of the morph composition has the additional benefit to make it more efficient the event dispatching because the number of submorphs to traverse decreases.
+# Allowing a morph to dynamically change or to recompose its view: Nothing prevents a morph to dynamically change its view. This can be done without changing its composition in term of submorph. Then a morph can change its presentation depending on the context and on events it handles without introducing unwanted complexity. As an example, the hand morph is a composite morph. When it is dragging, the hand morph contains a submorph which is the dragged morph. In that case, not only the dragged morph can change or modify its view while it is dragged but also the hand morph itself.
+
+!! Event Listeners
+The second responsibility of a morph is to handle events. This is done via event listeners. ==BlEventListener== is the root of the hierarchy of event listener classes.  It implements the default behavior shared by all the event listeners. An event listener behaves as an event receiver for the system and the morph event hierarchy (see ==BlAbstractEvent== hierarchy).  An event listener is always used within an event listener chain. THis chain acts as a chain of responsibility where elements appearing first in the chain give or not control their next element. 
+This approach supports a high flexibility since an element may be plugged dynamically in the chain and can control the flow of processing.
+
+There are two kinds of event listener chain:
+- The first one is the  global chain that is owned by the space.
+- The second is the local one. Each morph has its own local chain. 
+The tail event listener is alway specific. The global chain tail is an instance of ==BlSpaceEventListener==, the tail of a local chain is an instance of ==BlMorphEventListener==. The other event listeners are instance of a subclass of ==BlGlobalEventListener== or of ==BlLocalEventListener==. 
+
+!!!An event journey
+Any new event is first managed by the space global chain. This is the responsibility of the space chain to dispatch the event to a particular morph or to do other actions. If an event is at the end dispatched to a morph, then the morph local chain is used to manage the event. Whatever the kind of event listener chain (local or global), the event circulation is implemented with two passes, from the head to the tail of the chain.
+
+!!!!The first Pass
+The first pass relies on the ==#handleEvent:== message. As an example, regarding the global chain, when the VM event fetcher builds an event, this event is passed to the space  by sending ==#handleEvent:== to it. Then, the space directly send ==#handleEvent:== to the head of its event listener chain  with the same event passed as argument. At the end of the first pass, the event is passed to the tail of the chain. Then, the role of the chain tail is to dispatch the event to the head of the same event listener chain. This is the start of the second pass. 
+
+As an illustration, this first pass can easily be instrumented to log all events. To do that, just implement a subclass of ==BlGlobalEventListener== with the ==#handleEvent:== shown in Script *script-global-logger*:
+
+[[[label=script-global-logger|caption=Implementation of a simple event logger|language=Smalltalk
+MyTranscriptGlobalLogger>>handleEvent:  anEvent
+	Transcript show: anEvent asString , String cr.
+	^ super handleEvent: anEvent
+]]]
+
+To see this event listener in action, one have to open the ==Transcript== and to add a ==MyTranscriptGlobalLogger== instance to the space chain as follows:
+
+''BlUniverse runningSpace addEventListener: MyTranscriptGlobalLogger new.''
+
+A easier possibility is to send ==#plug== to the global event event listener:
+
+''MyTranscriptGlobalLogger new plug.''
+
+To remove the logger,  just send ==#unplug== to the eventListener or send ==#removeEventListener:== to the space with the event listener as argument.
+
+Script *script-global-logger-script* can be used to experiment this global logger:
+[[[label=script-global-logger-script|caption=A script to experiment a global event logger|language=Smalltalk
+	| logger |
+	logger := MyTranscriptGlobalLogger new.
+	logger plug.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging' ] fork
+]]]
+
+The same kind of logging can be used at the morph level. To log all the events that a morph is asked to handle, just define a ==MyTranscriptLocalLogger== class as a subclass of ==BlLocalEventListener==, implement the same ==#handleEvent:== method as in  ==MyTranscriptGlobalLogger== and run the Script *script-local-logger-script*:
+
+[[[label=script-local-logger-script|caption=A script to experiment a local event logger|language=Smalltalk
+	| logger morph |
+	morph := BlMorph new
+		withRectangleViewDo: [ :v | v color: Color blue ];
+		openInWorld.
+	logger := MyTranscriptLocalLogger new.
+	morph addEventListener: logger.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging'] fork
+]]]
+
+!!!! The second pass
+As a dispatch mechanism, when the event reach the tail at the end of the first pass, the message sent to the head of the chain depends on the class of the event. For example, for a incoming ==BlMouseDownEvent==, the behavior of a ==BlSpaceEventListener== (the tail of the global chain) is to send ==#mouseDown:== to the head of the event listener chain. In fact, the ==BlSpaceEventListener==  send the dispatching message ==#sentToNext:== to the event with the chain head as argument. 
+
+Any intermediate event listener can implement whatever action and at the end pass the event to the next listener. At the end of this second pass, the tail of the chain receives again the event but through the send of the event specific message. Regarding the example of the space event listener chain  and of a ==BlMouseDownEvent==, at the end of the second pass, the message ==#mouseDown:== is sent to the ==BlSpaceEventListener== with the event as argument. 
+
+As an illustration, this second pass can also be easily instrumented to log particular events. For example, the previous example can be adapted to log only mouse down events. To do that, just implement a subclass of ==BlGlobalEventListener== with the  ==#mouseDown:== implementation shown in Script *script-mouseDown-global-logger*.
+
+[[[label=script-mouseDown-global-logger|caption=A logger for all mouse down events|language=Smalltalk
+MyMouseDownGlobalLogger>>mouseDown:  anEvent
+	Transcript show: anEvent asString , String cr.
+	^ super handleEvent: anEvent
+]]]
+
+Script *script-global-logger-script* which was given to illustrate the first pass can be used but with a ==MyMouseDownGlobalLogger== instead of a ==MyTranscriptGlobalLogger==. This is shown in Script *script-mouseDown-global-logger-script*.
+[[[label=script-mouseDown-global-logger-script|caption=A logger for all mouse down events|language=Smalltalk
+	| logger |
+	logger := MyMouseDownGlobalLogger new.
+	logger plug.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug.
+	self inform: 'End of logging' ] fork
+]]]
+
+Now, the same method can be used to log every mouse down events that a particular morph receives. Just implement a ==MyMouseDownLocalLogger== class that inherits from ==BlLocalEventListener== with the following ==#mouseDown:== implementation shown in Script *script-mouseDown-local-logger*. The ==#mouseDown:== message is sent to a morph only if it declares its interest for this event kind. Notice the redefinition of the ==#wantsMouseDown:== method that return ''true''. 
+
+[[[label=script-mouseDown-local-logger|caption=A logger for all mouse down events that a particular morph receives|language=Smalltalk
+MyMouseDownLocalLogger>>mouseDown: anEvent
+	Transcript show: anEvent asString, String cr.
+	^ super mouseDown: anEvent
+
+MyMouseDownGlobalLogger>>wantsMouseDown: anEvent
+		^ true
+]]]
+
+Again, the same kind of script can be used to see this local event listener in action. See Script *script-mouseDown-local-logger-script*.
+
+[[[label=script-mouseDown-local-logger-script|caption=A script to show all mouse down events that a particular morph receives|language=Smalltalk
+	| logger morph |
+	morph := BlMorph new
+		withRectangleViewDo: [ :v | v color: Color blue ];
+		openInWorld.
+	logger := MyMouseDownLocalLogger new.
+	morph addEventListener: logger.
+	Transcript open.
+	[ 
+	(Delay forSeconds: 15) wait.
+	logger unplug ] fork
+]]]
+
+!!!!Additional passes
+From one event listener to another, the behavior can differ when an event listener  receives a message. By default, the tail event listener behaves  differently than the intermediate listeners. As an example, when a space event listener receives ==#mouseUp:==, then it stores the event (the space event listener stores the last mouse event), and then it sends the event to the current mouse down target.
+
+In fact, when it receives and event, each listener of the chain can react as follows:
+- Do nothing and pass the event to the next event listener. This is the default behavior of intermediate listeners which class inherits from ==BlEventListener==.
+- Do some action and do not relay the event to the next event listener. This is the behavior of a tail.
+- Do some action and pass the event to the next event listener.  This is the typical behavior of an additional intermediate event listener. 
+
+When an event listener receives an event, it can create another kind of event and then send the event. As a consequence, an additional pass is implemented for the newly created event. For example, this is the case when a ==BlSpaceEventListener== receives a ==BlMouseEnterEvent==. Normally, the ==BlMouseEnter== is sent to the morph that has been set as the handler by the ==BlMouseOverHandler==. But, as you can read in the ==BlSpaceEventListener== ==#mouseEnter:== implementation shown in Script *script-mouseEnter-of-space-listener*, if the hand is dragging, then instead,  a ==BlMouseEnterDraggingEvent== is created and sent to the space event listener.  In fact, the ==#privateReinjectEvent:==  message is sent to start the additional pass from the head of the  event listener chain which is passed as argument. Note that ==#handleEvent:== is sent with the newly created  ==BlMouseEnterDragging==. 
+
+[[[label=script-mouseEnter-of-space-listener|caption=The BlSpaceEventListener mouseEnter implementation|language=Smalltalk
+BlSpaceEventListener >> mouseEnter: anEvent	
+	self
+		privateReinjectEvent: [ :listener | 
+			anEvent hand isDragging
+				ifTrue: [ 
+					| enterDragging |
+					enterDragging := anEvent asMouseEnterDragging.
+					^ listener handleEvent: enterDragging ] ].
+	anEvent handler handleEvent: anEvent.
+]]]
+
+
+!!! Reacting to mouse down
+
+The following example
+
+[[[
+BlMorph new
+	withRectangleViewDo: [ :v | v color: Color red ];
+	addEventListener: BlMouseStillDownEventListenerExample1 new;
+	openInWorld		
+]]]
+
+[[[
+BlLocalEventListener subclass: #BlMouseStillDownEventListenerExample1
+	instanceVariableNames: ''
+	classVariableNames: ''
+	category: 'Bloc-Core-Examples'
+]]]
+
+[[[
+BlMouseStillDownEventListenerExample1>>mouseStillDown: anEvent
+	Transcript show: '1'.
+	super mouseStillDown: anEvent.
+]]]
+[[[		
+BlMouseStillDownEventListenerExample1>>wantsMouseStillDown: anEvent
+	^ true		
+]]]
+
+
+!!! Another simple example
+Let us look at the ==BlListenerToTestDoubleClick== example. It shows how an event listener can manage simple click, doubleclick and double click timeout. 
+
+[[[
+
+
+]]]
+
+
+
+!!! Other Examples 
+The following example shows how a simple circle morph get attached a listener that 
+[[[
+BlMorph blueEllipseSample
+			position: 10 @ 10;
+			addEventListener:
+					(BlHandleEventListener new
+							lastPointDo: [ :p | self inform: 'Last point: ' , p asString ];
+							yourself);
+			openInWorld
+]]]
+
+Here the ==BlHandleEventListener== ... mouseMove: wantsMouseDown: and wantsMouseMove:
+
+
+
+
+
+
+
+
+
+
+!!! Composition
+
+
+!! The Bloc Infrastructure
+In this section we  present the main classes supporting the infrastructure (event dispatching, alarm, display management). 
+
+Figure *infrastructure-elements* shows the main elements of the Bloc infrastructure. A Bloc morph is an instance of ==BlMorph== or of one of its subclasses. A Bloc morph lives in a current ''space'' and can be displayed when it is added in the space morph (an instance of ==BlSpaceMorph==) of the current space.
+
+The space acts as a mediator between a low-level event fetcher (an instance of ==BlVMEventFetcher== ), a high-level event handler (an instance of ==BlEventHandler==), a main loop manager (an instance of ==BlMainLoopManager==), and the space morph (an instance of ==BlSpaceMorph==). This mediation works basically as follows:
+- the VM event fetcher gets raw events from the VM and passes them to space. When the space receives an event from the VM event fetcher, then, the role of the space is to send the event to a morph. The target morph can be the root morph, or directly to a morph which has the focus (keyboard or mouse). Then, when the target morph receives the events it tries to look-down the morph that can react to it. This is done through a dispatching protocol implemented by the ==dispatchEvent:== method of ==BlMorph==. The morph which finally responds to the event can be one of its submorph or the target morph itself. 
+- the main loop manager is related to a space and holds an alarm queue and a deferred action list. It implements an infinite loop. At each round, the current space morph is redrawn, the low-level event fetcher is activated, deferred actions and ready alarms are runned.
+
++The main elements of Bloc infrastructure>file://figures/bloc-core-main-elements.png|width=70|label=infrastructure-elements+
+
+
+!!! Universe 
+
+Universe and spaces are not graphical objects. They serve as model for the infrastructure. 
+There is one single universe which manages a list of spaces. The class ==BlUniverse== defines a singleton. Thus, the system has one unique universe. Its responsibilities are to create, to delete and to activate spaces. 
+
+In addition, a ==BlUniverse== also offers a global announcer. This global announcer is used for global ticking behavior of the ==BlMainLoopManager==. As an example, alarms are managed using this global ticking mechanism as shown in ==BlAlarmQueue>>start== and ==BlAlarmQueue>>subscribesToTicks==.
+
+!!! Spaces
+The class ==BlSpace== is the root of the space class hierarchy. Its subclasses are for Morphic and Bloc respectively. 
+
+A ==BlSpace== is a uniquely identified object (via a name). A space is owned by a Universe. A space is responsible to start and shutdown a root morph: ==WorldMorph== in Morphic and ==BlSpaceMorph== in Bloc. 
+
+At the current time, a space has also a manager which bridges to the current UIManager. A ==MorphicUIManager== instance is associated with the ==BlMorphicSpace== and a ==BLMorphicUIManager== is associated with each ==BlBlocSpace==. The UIManager is kept for backward compatibility with the Pharo infrastructure regarding the management of the UI process. In the future we expect that it will disappear as well as UIManager.
+
+!!!! Getting the running space
+As shown in Script *gettingRunningSpace*, it is possible to get the running space by sending the #runningSpace message to the current universe. Then, From the space, one can get its root morph, its hand, its event handler or its main loop manager.
+
+[[[label=gettingRunningSpace|caption=Getting the running space from the current BlUniverse instance|language=Smalltalk
+BlUniverse default runningSpace
+]]]
+
+!!!! Getting the space of a morph
+The space of a morph is always available even if the morph is not opened (not added directly or indirectly as a space morph child). In fact, in Bloc, every morph stores the reference of its space in its ''space'' instance variable. This instance variable is initialized by the ''basicNew'' method which is redefined in the BlMorph class (see Script *BlMorphBasicNew*).
+
+[[[label=BlMorphBasicNew|caption=The BlMorph class #basicNew redefinition|language=Smalltalk
+BlMorph class>>basicNew
+	^ super basicNew space: BlUniverse default runningSpace ]]]
+	
+!!!! Space startup and shutdown
+
+Space startup and shutdown are implemented by BlSpace>>startUp, BlSpace>>resume and BlSpace>>shutdown. When a Bloc space is started, the UI manager is first asked to start a new rendering loop process. This is done through an #installAsDefault message sent to the manager of the space. In Bloc, the rendering loop process is implemented by ==BlMainLoopManager==. After the rendering loop process has been started, the VM event fetcher is started, then the root morph is fully displayed, the alarm queue is started and morph stepping is restarded recurssively from the root morph. 
+
+When a Bloc space is shut down, morph stepping, the alarm queue, the VM event fetcher are stopped. Note that the rendering loop process is actually stopped just before a new one is started. 
+
+External packages may need to interact with the Bloc infractructure when a space is started or stopped. As an example, in Bloc, the halo management is implemented as an external package. When a Bloc space is started, then a halo foreground morph is added to the root morph (an instance of BlSpaceMorph) and the ==BlHaloMorph== class is added as an observer of all the mouse events that are sent through the space announcer. When a Bloc space is stopped, the halo foreground morph is removed and the ==BlHaloMorph== class removes itself from the space observers. 
+
+To allow such a pluggable behavior, a pragma based hook	is implemented. See ''#startUpHook'' and ''#shutDownHook'' in ==BlBlocSpace==. This hook works as follows:
+- after a space has been started, all methods with the ''spaceStartUp'' pragma keyword are collected and invoked with the started space passed as argument.
+- before a space is stopped, all methods with the ''spaceShutDown'' pragma keyword are collected and invoked with the stopped space passed as argument.
+
+
+[[[label=SpaceStartUpShutDownHook|caption=How the halo package is plugged or unplugged when a Bloc space is started or stopped |language=Smalltalk
+BlHaloMorph class>>spaceStartUp: aSpace
+	<spaceStartUp>
+	aSpace spaceMorph addHaloForegroundMorph.
+	aSpace weakSubscribe: BlMouseUpEvent send: #whenMiddleMouseUp: to: self
+
+BlHaloMorph class>>spaceShutDown: aSpace
+	<spaceShutDown>	
+	aSpace spaceMorph removeHaloForegroundMorph.
+	aSpace unsubscribe:  self
+]]]
+
+!!! The root morph
+There is one and only one root morph per bloc space.
+It is the only displayed morph that has no owner (its owner instance variable is nil). 
+
++The root morph structure>file://figures/space-morph-structure.png|width=70|label=root-morph-structure+
+
+As shown in Figure *root-morph-structure*, by default, its layout is structured as a stack of morphs: each submorph of the space morph constitutes a layer. 
+It is composed of 4 layers, distributed from the back to the front as follows:
+- the world: it is an instance of ==BlWorldMorph==; it contains all morphs that can be manipulated by the user;
+- the tool-tips foreground: it contains the tools-tips that are drawned when the hand stays over a bloc morph (not implemented so far);
+- the halo foreground: it is added if the ''Halo'' package is installed. It contains the unique halo if any;
+- the hand foreground: it is an instance of ==BlHandForegroundMorph==; its only submorph is the hand morph.
+
+The depth of a layer (from bottom to top) is given by the value of its zIndex instance variable which is set with the result of the ''#defaultZIndex'' message. Thus, a specific layer can be added by adding a BlMorph as a submorph of the root morph. As an example, the halo foreground is added if the Halo package is installed. 
+
+!!Simple morphs
+==BlMorph== implements the common behavior of all morphs. Its inherits from ==BlView== which brings:
+- the management of the geometric properties (extent, bounds managed through a bounds cache), 
+- the management of the local coordinates  (bounds and affine transformations with translating, rotating and scaling),
+- the visual change reporting and the drawing protocol, and
+- the layout management.
+==BlMorph== brings additional behaviors for event managing through an event listener chain. 
+The visual properties of a ==BlMorph== are managed through an associated view (the view of the ==BlMorph==).
+
+In this Section, we learn how to create and open a simple morph, how to configurate it with a color or a 
+fill and how to setup its borders. 
+
+!!!A first Example
+The most simple visual entity of Bloc is a ==BlMorph==. A ==BlMorph== can be opened and manipulated with the hand (or the mouse). 
+To open a morph (an instance of ==BlMorph==) one can simply evaluate the expression of the script *FirstMorphMinimal*.
+
+[[[label=FirstMorphMinimal|caption=Opening a minimal morph|language=Smalltalk
+BlMorph new openInWorld
+]]]
+
+As you can see, apparently nothing changed in the world but yes, it works. In fact, a morph is associated with a view. 
+This is the responsibility of the morph view to decide how to render the morph. By default, a morph is associated with a minimal view.
+This minimal view is an instance of ==BlMinimalView==. A minimal view has an extent but draw nothing. 
+But don't worry, to manipulate this morph, the ==halo== is your friend.
+By default, the position of a morph is at the top-left corner of its owner.
+Move the mouse near the top left of the Pharo screen and click with the middle button (or Alt-Click). You should see the halo as depicted in Figure *Halo0*.
+
++The halo opened around our first morph>file://figures/halo0.png|width=30|label=Halo0+
+
+Then you can move the morph by dragging the halo, resize it with the yellow handle, open inspectors with the blue one, delete the halo or delete de morph with the black and the red handlles.
+
+!!!Changing the view of a morph
+To create a morph with a particular view one have to instantiate one of the subclasses of ==BlMorphView== and to send the #view: 
+message to a morph vith the view passed as argument. The entire view hierarchy is presented in Figure *view-hierarchy*.
+- ==BlMinimalMorphView==: this is the default transparent view;
+- ==BlEnclosedView==: a composite view that can be filled and that can have a border; Its subclasse ==BlRectangleView== is the most used but one have also ==BlEllipseView== and ==BlCircleView==;
+- ==BlImageView==: a view to draw an image; ==BlFormImageView== is used to draw an image from a ==Form== and BlSvgImageView, to draw a SVG model;
+- ==BlPolygonView==: a view used to draw polygons from a list of points; the polygon border can be straight or curvy;
+- ==BlStringView==: a view to draw a strings with a font and a text color; the extent of a ==BlStringView== is computed from the rendered string and the used font;
+- ==BlTextView==: a view used to display a ==TxTextModel==; this kind of view is used to build the Bloc text editor;
+- ==BlTextLabel==: a view used to display a string but with a ==TxTextModel==; the extent of a ==BlTextLabel== is the one of the rendered ==TxTextModel==;
+
++The view hierarchy>file://figures/view-hierarchy.png|width=60|label=view-hierarchy+
+
+As an example, to create a rectangle view, ==BlRectangleView== is instantiated. ==BlRectangleView== inherits from ==BlEnclosedView==. 
+As a kind of ==BlEnclosedView==, a ==BlRectangleView== can have a fill and can have a border. Creating a morph with a plain rectangular 
+view an open it can be programmed as shown in Script *blueMorph*. In the example of script *blueMorph*, an instance of BlRectangleView with a blue color is created. 
+
+[[[label=blueMorph|caption=Opening a blue rectangular morph|language=Smalltalk
+| morph view |
+view := BlRectangleView new color: Color blue.
+morph := BlMorph new view: view.
+morph openInWorld
+]]]
+
+To associate a morph with a view, one can send the ==#asMorph== message to the view. This is shown by Script *blueMorphV2*.
+
+[[[label=blueMorphV2|caption=Using the #asMorph message|language=Smalltalk
+(BlRectangleView new color: Color blue) 
+	asMorph openInWorld
+]]]
+
+Bloc implements two specific helper methods: ''withRectangleView'' and ''withRectangleViewDo:'' to facilitate the setting of a rectangle view. 
+''withRectangleView'' set the view to a ==BlRectangleView== instance. ''withRectangleViewDo:'' set the view to a ==BlRectangleView== instance and evaluate the block passed as argument. 
+The new rectangle view is itself passsed as argument to the block. 
+Script *blueMorphV3* shows an example: the block passed as argument to ''withRectangleViewDo:'' fills the rectangle view with the 
+blue color.
+
+[[[label=blueMorphV3|caption=Opening a blue rectangular morph|language=Smalltalk
+BlMorph new 
+	withRectangleViewDo: [:v | v color: Color blue]; 
+	openInWorld
+]]]
+
+!!!!Changing the fill style of an enclosed view
+
+One can use more complex fills than jus a simple color. Bloc has not only color but also gradient, image and 
+composite fill styles. The example of Script *rectangleWithLinearGradient* shows the use of a linear gradient fill style. 
+The resulting morphs is shown in Figures *linearGradient*.
+
+[[[label=rectangleWithLinearGradient|caption=Creating and using a linear gradient to fill a rectangle view|language=Smalltalk
+| morph |
+morph := BlMorph new withRectangleViewDo: [ :v | | fill c |
+	c := Color yellow.
+	fill := (BlLinearGradientFillStyle colors: {c. c alpha: 0.1})
+		start: (v width / 2) @ 0;
+		stop: (v width / 2) @ v height;
+		yourself.
+	v fillStyle: fill].
+morph openInWorld]]]
+
+The linear gradient is created from a list of colors, the start and the stop positions of the color gradient. 
+In the example of Script *rectangleWithLinearGradient*, the yellow gradient is a vertical one that starts at the top-middle and stops at the bottom middle.
++A morph with a linear gradient>file://figures/morph-with-linear-gradient.png|width=8|label=linearGradient+
+
+A linear gradient can also be used to fill a circle view. As an example, in Script *rectangleWithLinearGradient* change the ''#withRectangleViewDo:'' message send with ''#withCircleViewDo:'' to create such a circle view.
+
+!!!! Adding a border
+
+The border of a ==BlRectangleView== and can be set with an instance of a subclass of ==BlRectangleBorder==. 
+As shown in Script *morphWithRedBorder*, to decorate a view with a colored border one can use an instance of ==BlSolidRectangleBorder==. The morph built with *morphWithRedBorder* is shown in Figure *redBorder*.
+
+[[[label=morphWithRedBorder|caption=Creating and using a solid border|language=Smalltalk
+| view morph |
+view := BlRectangleView new color: Color white; 
+	borderStyle: (BlSolidRectangleBorder new color: Color red; width: 2).
+morph := view asMorph.
+morph openInWorld]]]
+
++A white rectangle morph with a plain red border>file://figures/white-rectangle-with-red-border.png|width=8|label=redBorder+
+
+==BlSolidBorder== is the most used border style. Thus, the methods ''withSolidBorder'' and ''withSolidBorderDo:'' are available to facilitate
+the initialization of an enclosed view. Script *morphWithRedBorder2* shows the use of ''withSolidBorderDo:'' in a second version of Script
+*morphWithRedBorder*.
+
+[[[label=morphWithRedBorder2|caption=Initializing a solid border with the ''withSolidBorderDo:'' method|language=Smalltalk
+| view morph |
+view := BlRectangleView new color: Color white; 
+	withSolidBorderDo: [:b | b color: Color red; width: 2].
+morph := view asMorph.
+morph openInWorld]]]
+
+!!!!! The join style
+With a join style, one can change the way the lines of a border a joined together. As shown in Figure *border-join-style*, the border join style can be of three kind: ''miter'' (the default one), ''round'' or ''bevel''.
+To change the join style, one can send the ''#withJoinMiter'', the ''#withJoinRound'' or the ''#withJoinBevel'' message to the border. 
+An example is shown is Script *changing-join-style*.
+
++The three kinds of border join style>file://figures/rect-with-miter-round-bevel-border.png|width=40|label=border-join-style+
+
+[[[label=changing-join-style|caption=changing the join style of a border|language=Smalltalk
+(BlRectangleView new
+	extent: 70 @ 50;
+	withSolidBorderDo: [ :b | 
+		b
+			width: 8;
+			color: Color black;
+			withJoinBevel ];
+	asMorph) openInWorld]]]
+
+!!!!! Round corners
+The visual effect of the join style may be limited, especially with a thin border. Moreover, the join style has no impact on the inner 
+space which remains rendered as a straight rectangle. 
+
++The corner radius>file://figures/corner-radius.png|width=25|label=corner-radius+
+
+To get round corners and a round inner space, one can change the corner radius of a solid border style. Figure *corner-radius* depicts 
+what is a rectangle corner radius. One can change its value with the ''#cornerRadius:'' message. This message is sent to the border style 
+as in Script *creating-a-rectangle-with-round-corners*. Figure *rectangle-with-round-corners* shows the resulting rectangle.
+
++A gray rectangle with round corners>file://figures/rectangle-with-round-corner.png|width=25|label=rectangle-with-round-corners+
+
+[[[label=creating-a-rectangle-with-round-corners|caption=creating a round rectangle|language=Smalltalk
+BlMorph new
+	withRectangleViewDo: [ :v | 
+		v
+			color: Color lightGray lighter;
+			withSolidBorderDo: [ :b | 
+				b
+					cornerRadius: 15;
+					width: 1;
+					color: Color black ] ];
+	extent: 150 @ 25;
+	openInWorld]]]
+	
+!!!!! Dashes
+
+A solid border can be configurated to draw a dashed border. To set a dashed border, the ''#dashes:'' message is sent to a border with an array 
+of integer values. The array must contain one or more couples of integers. The first value of the couple is for the number of pixels
+of a dash and the second value is for the white space length. In script *dash-borders* the array
+is ''#(2 5)''. It configurates a border with a dash of length 2 followed by a space of length 5. The result of Script
+*dash-borders* is shown by the left morph of Figure *fig-dash-borders*. Several couples can be used. As an example, 
+the border of the right morph of Figure *fig-dash-borders* is configurated with the following array: ''#(2 5 5 2 10 2)''.
+
+
+[[[label=dash-borders|caption=Setting a simple dashed border|language=Smalltalk
+BlMorph new
+	extent: 150 @ 25;
+	withRectangleViewDo: [ :v | 
+		v color: Color lightGray muchLighter;
+			withSolidBorderDo: [ :b | 
+			b
+				width: 2;
+				cornerRadius: 15;
+				color: Color black;
+				dashes: #(2 5) ];			
+		yourself ];
+	openInWorld]]]
+
++Dash border examples>file://figures/dash-borders.png|width=55|label=fig-dash-borders+
+
+!!!!Affine transformation
+Each morph owns a transform which is used by the Athens underlying rendering framework and which represents an interface for coordinate system transformations. The transform is an instance of ==AthensAffineTransform==. Basically, the transform of a morph should not be directly manipulated. Instead, its public protocol and the public interface of ==BlProtoview== should be used for translating, rotating, scaling, shearing, global to local and local to global transformations. The public interface of Athens surface can also be used to implement specific rendering (for an animation for example).
+
+Bloc uses a local coordinate system. It means that the position of a morph is given according to the coordinate system defined by its owner. Thus, translating a morph means changing its position according to the position of its owner. The position of a morph can be got and changed with the ''#position'', the ''#position:'' and the '#translateBy:' messages. These messages read or update the transform translation.
+
+Rotating, scaling and shearing follow the same logic. These transformations are managed by mean of the ''#rotateByDegrees:'', the ''#rotateByRadians:'', the ''#scaleBy:'' and the ''#scaleX:Y:'' messages. Corresponding methods are part of the public interface of ==BlProtoView==.
+
+It is important to notice that the transform is used for Athens rendering. In fact is has nothing to do with the bounds of a morph. As an example, the bounds origin of a morph is always the constant point 0@0 whatever its transform. As a fundamental rule, the bounds of a morph stays unchanged in case of translating, rotating or of scaling. 
+
+!!!Composing views
+A composite view can be used to elaborate view composed by several subviews. A ==BlCompositeView== is a kind of rectangle view that can contains other view.
+
+
+!!!Composing morphs
+
+!!Layout management
+
+!! Event management
+In this Section we learn how events are managed to make morphs live. First we present what is an event, 
+how it is created by the infrastructure and how the infrastructure can be customed and adapted at a global level. Then we learn how finally
+evens are distributed to morphs and again and how to manage the hooks provided locally by morphs.
+
+!! Alarms and stepping
+
+A ==BlAlarm== represents an action that can be scheduled/unschedule into/from an alarm queue which is an instance of ==BlAlarmQueue==.  By defaut, alarms are scheduled into a ==BlAlarmQueue== owned by the  running space. This default alarm queue can be queried with the following expression: BlUniverse runningSpace alarmQueue.
+
+To create an alarm the message ==asAlarm== is sent to a valuable:  ==asAlarm== can also be sent to a ==MessageSend==, to a ==WeakMessageSend == or to a ==BlockClosure==. Regarding periodic alarms (see below), it is  preferrable to use a ==WeakMessageSend == to facilitate the automatic removal of obsolete alarms from the alarm queue.
+ 
+An alarm can be
+- scheduled: using ==schedule==, ==scheduleIn: aDelay, scheduleAt: a Time in milliseconds ==
+- deferred using the message ==defer== , in that case, it can't be periodic and is stored in a ==WaitfreeQueue== owned by the space main loop manager (see ==BlMainLoopManager== and it deferred actions property).
+
+An alarm can start immediately after is has been scheduled (default case). It can be setup to wait during a given amount of milliseconds by using the ==delay:== message. An alarm can also be setup to be periodic. A periodic alarm is reschedule after it has been runned. It is re-runned after the given period is over. A period is set using the ==period:== message with a valuable passed as argument. The result of sending value to this valuable must be an integer representing the number of millisesonds to wait between to executions of the alarm. Having a valuable instead of a constant integer allows the actual period to change from one round to the next round.
+
+An alarm is runned only if it is valid. An invalid alarm is automatically removed from its alarm queue. The validity is tested by using the  ==isValid== message. To be considered as valid, the receiver must be a valid alarm receiver and the action must be a valid alarm valuable (see == isValidAsAlarmReceiver== and ==isValidAsAlarmValuable==).
+
+In case of a ==BlockClosure== converted as a periodic alarm, one must pay attention that the ==BlockClosure== is considered as the receiver of the alarm. As a receiver, a ==BlockClosure== is always valid. Thus, such a periodic alarm can never be unscheduled automatically. Instead, it must be unscheduled programmatically by using the ==unschedule== message. Another way to properly allow automatic removal of the alarm is to use the ==asAlarmDependingOn: == message. Then, the life time of the alarm is  the one of the object passed as argument: when the argument turns invalid (as an alarm receiver ), then the alarm is unscheduled.
+
+In case an alarm is build from a valuable with formal parameters (a message send, a weak message send or a block closure with formal parameters), it is possible to setup the alarm with the actual parameters to used when the alamr is runned. Setup the parameter values is done by using the ==#parameter:== or the ==#parameters:== message. The argument is a collection of valuables. The actual parameters are computed at running time from this collection of valuables.
+
+Any alarm queue can be created, started and stopped independently of the space alarm queue. In that case, the scheduling/unscheduling of an alarm is done by using the ==#scheduleIntoQueue:== and ==#unscheduleFromQueue:== message sends.  See ==BlAlarmQueue== comments for more informations.
+
+Examples:
+
+- Simple alarms
+(MessageSend receiver: [ self inform: 'I''m runned from an alarm' ] selector: #value) asAlarm schedule.
+[ self inform: 'I''m runned from an alarm' ] asAlarm schedule.
+
+- An alarm with a delay
+[ self inform: 'I''m runned from an alarm' ] asAlarm delay: 1000; schedule
+
+- A periodic alarm
+| m |
+m := BlMorph redRectangleSample openInWorld.
+(WeakMessageSend receiver: m selector: #translateBy: ) asAlarm argument: 1; period: 1000; schedule
+
+| m |
+m := BlMorph redRectangleSample openInWorld.
+([ :t | m translateBy:  t ] asAlarmDependingOn: m)  argument: 1; period: 1000; schedule
+
+
+
+
+!! Interacting with announcements
+

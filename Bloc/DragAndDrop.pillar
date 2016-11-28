@@ -1,0 +1,63 @@
+
+! Drag and Drop feature
+
+!! Introduction
+A drag&drop gesture is a data transfer between a source object and a target object.
+Source and target objects can be any Elements.
+
+A drag&drop gesture start as follows:
+The user click on the source Element, move the mouse without releasing the mouse button
+and finally release th mouse button over the target Element.
+While dragging data between the source and the target, a visual feedback can be obtained to denote current position of the dragged data
+and the availability of drop areas.
+
+Data are transferred using a dragboard. The dragboard is used to hold dragged data and to define its visual feedback.
+A new dragboard is created each time a new drag&drop gesture is started
+and it is shared between all the drag&drop events related to the current gesture.
+
+''__Issues__'': due to the SDL2 limitations, a drag&drop process can be performed only within the same Space.
+SDL DROP_FILE event is not fired.
+
+!! A basic Drag&Drop example
+
+Let's start implementing a first Drag&Drop gesture between two rectangles.
+
+[[[language=smalltalk
+  |src target|
+  src := BlElement new
+      extent: 100@100;
+      background: Color blue.
+
+  target := BlElement new
+      extent: 100@100;
+      background: Color green.
+
+]]]
+
+!!! Defining the visual feedback for dragged data
+
+Any Element receives the DragStart event when a Drag&Drop gesture is detected.
+To define a visual feedback, a DragView has to be defined.
+A DragView only support an image (Form) for the visual representation of the dragged data.
+
+[[[language=smalltalk
+  src addEventHandlerOn:BlDragStartEvent do:[:evt|
+      evt dragboard dragView: (BlDragView on: src asForm)].
+]]]
+
+!!! Defining the visual feedback for the drop target
+
+[[[language=smalltalk
+  target
+      addEventHandlerOn:BlDragEnterEvent do:[:evt|
+          target border: (BlBorder color: Color black width: 2)];
+      addEventHandlerOn:BlDragLeaveEvent do:[:evt|
+          target border: BlBorder empty].
+]]]
+
+!!! Handling drop event on the target
+
+[[[language=smalltalk
+  target addEventHandlerOn: BlDropEvent  do:[:evt|
+      target addChild: evt gestureSource].
+]]]
