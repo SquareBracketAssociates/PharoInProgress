@@ -1,33 +1,141 @@
 {
-  "title": "Bloc",
+  "title": "Bloc: Graphical infrastructure and framework for Pharo",
   "attribution": "Glenn Cavarle"
 }
 
+In this chapter you will learn about *Bloc>https://github.com/pharo-graphics/Bloc*, a new low-level graphical infrastructure and framework for Pharo.
 
-! Bloc
+!! Installation
 
-In this chapter you will learn about *Bloc>http://www.smalltalkhub.com/#!/~Pharo/Bloc*, a new 2D graphical framework.
+!!! Current development version
+
+Load the Bloc source code in the latest *Pharo 6 image>http://files.pharo.org/image/60/latest.zip*:
+[[[language=smalltalk
+Metacello new
+    baseline: 'Bloc';
+    repository: 'github://pharo-graphics/Bloc/src';
+    load:#development
+]]]
+
+or download the *bleeding-edge image from the CI server.>https://ci.inria.fr/pharo-contribution/job/Bloc/PHARO=60,VERSION=development,VM=vm/lastSuccessfulBuild/artifact/Bloc.zip*
+
+Run this image with the latest stable Pharo Virtual Machine [
+*Linux>http://files.pharo.org/get-files/60/pharo-linux-stable.zip* |
+*Mac>http://files.pharo.org/get-files/60/pharo-mac-stable.zip* |
+*Windows>http://files.pharo.org/get-files/60/pharo-win-stable.zip*
+] and install the Sparta-Moz2D binary:
+[[[language=smalltalk
+MozLibraryInstaller install.
+]]]
 
 
-!! Summary
 
-- *Installation>Installation.pillar*
-- *Roadmap>Roadmap.pillar*
+!! Concepts
 
-!!! Concepts
+!!! Architecture Overview
 
-- *Architecture Overview>Architecture.pillar*
-- *Basic Elements>Roadmap.pillar*
-- *Composition and Layouts>CompositionAndLayouts.pillar*
-- *Event System>EventSystem.pillar*
-- *Drawing System>DrawingSystem.pillar*
++Bloc Architecture Diagram>file://figures/infrastructure.png|width=100|label=architecture+
+Figure *@architecture* illustrates the architectural components which compose the Bloc infrastructure stack.
 
-!!! Feature
+!!!! Efficient Engines
 
-- *Keyboard Navigation>KeyboardNavigation.pillar*
-- *Localization>Localization.pillar*
-- *Drag and Drop>DragAndDrop.pillar*
-- *Styles>Styles.pillar*
-- *Visual Effects>VisualEffects.pillar*
-- *Animations>Animations.pillar*
-- *Thread Support>ThreadSupport.pillar*
+Below the ''Bloc Infrastructure'' lies the low-level rendering and windowing engines,
+namely *Sparta>Sparta>https://github.com/syrel/Sparta* and *OSWindow-SDL2>http://smalltalkhub.com/#!/~Pharo/OSWindow*.
+
+==Sparta== is a new Pharo high performance vector graphics librarie that provides bindings to the ==Moz2D== rendering backend.
+==Moz2D==, and as result ==Sparta==, has support of native OS graphic engines, as well as cross platform ones.
+On all platforms Sparta provides support of ==Cairo== and ==Skia==.
+Additionally, high performant ==CoreGraphics== and ==CoreGraphics Accelerated== on Mac OS and ==Direct2D== on Windows.
+In total Sparta supports 5 different rendering backends.
+
+==OSWindow-SDL2== is the Pharo native windowing library that provides bindings to ==SDL2== and ==OpenGL==.
+
+!!! Unified Infrastructure
+
+The ''Bloc Infrastructure'' ties together ==Sparta== and ==OSWindow-SD2== and makes them available to the layers above in a unified way.
+It manages the multi-windowing, the events propagation and the rendering process.
+It also provides synchronization (and thread) support related to tasks, animations and rendering.
+
+!!!! Scene Graph
+
+The ==Bloc== Scene Graph, shown as the top layer in Figure*@architecture*, is the starting point for building a Bloc application.
+It provides a hierachical tree of nodes that represents all of the visual elements of a user interface.
+It can handle user inputs and can be rendered in a dedicated window.
+
+!!! Basic Elements
+!!! Composition and Layouts
+!!! Event System
+!!! Drawing System
+
+!! Features
+
+!!! Keyboard Navigation
+!!! Localization
+
+!!! Drag and Drop
+
+!!!! Introduction
+
+A drag&drop gesture is a data transfer between a source object and a target object.
+Source and target objects can be any Elements.
+
+A drag&drop gesture start as follows:
+The user click on the source Element, move the mouse without releasing the mouse button
+and finally release th mouse button over the target Element.
+While dragging data between the source and the target, a visual feedback can be obtained to denote current position of the dragged data
+and the availability of drop areas.
+
+Data are transferred using a dragboard. The dragboard is used to hold dragged data and to define its visual feedback.
+A new dragboard is created each time a new drag&drop gesture is started
+and it is shared between all the drag&drop events related to the current gesture.
+
+''__Issues__'': due to the SDL2 limitations, a drag&drop process can be performed only within the same Space.
+SDL DROP_FILE event is not fired.
+
+!!!! A basic Drag&Drop example
+
+Let's start implementing a first Drag&Drop gesture between two rectangles.
+
+[[[language=smalltalk
+  |src target|
+  src := BlElement new
+      extent: 100@100;
+      background: Color blue.
+
+  target := BlElement new
+      extent: 100@100;
+      background: Color green.
+
+]]]
+
+!!!! Defining the visual feedback for dragged data
+
+Any Element receives the DragStart event when a Drag&Drop gesture is detected.
+To define a visual feedback, a DragView has to be defined.
+A DragView only support an image (Form) for the visual representation of the dragged data.
+
+[[[language=smalltalk
+  src addEventHandlerOn:BlDragStartEvent do:[:evt|
+      evt dragboard dragView: (BlDragView on: src asForm)].
+]]]
+
+!!!! Defining the visual feedback for the drop target
+
+[[[language=smalltalk
+  target
+      addEventHandlerOn:BlDragEnterEvent do:[:evt|
+          target border: (BlBorder color: Color black width: 2)];
+      addEventHandlerOn:BlDragLeaveEvent do:[:evt|
+          target border: BlBorder empty].
+]]]
+
+!!!! Handling drop event on the target
+
+[[[language=smalltalk
+  target addEventHandlerOn: BlDropEvent  do:[:evt|
+      target addChild: evt gestureSource].
+]]]
+
+!!! Visual Effects
+!!! Animations
+!!! Thread Support
