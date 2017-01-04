@@ -8,6 +8,9 @@ UFFI has been developed by E. Lorenzano.
 
 
 !! uFFI Genesis
+
+@@todo Guille Is it really needed the historical part? Besides, the "content" part of this section is repeated in the rest of the document... Feels a bit irrelevant.
+
 As you know, in Pharo 5.0 we removed the previous FFI standard implementation called NativeBoost. This was made because different reasons:
 
 - First, we lost the main maintainer of NativeBoost/ASMJIT in a very critical moment, when we were migrating to the new Virtual Machine (Spur), which changed the object format forcing us to adapt NativeBoost (a non trivial task for non assembly-programming experts).
