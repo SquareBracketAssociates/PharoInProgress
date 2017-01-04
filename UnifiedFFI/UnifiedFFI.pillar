@@ -58,7 +58,7 @@ find a better name.
 SD: what is FFI-NB? UFFI?
 
 
-We know present how to use UnifiedFFI.
+We now present how to use UnifiedFFI.
 
 !! Calling a simple external function
 
