@@ -108,7 +108,7 @@ FFITutorial class >> ticksSinceStart
 In the example above, we define a new empty class, and a method named ==ticksSinceStart== on its class side.
 The method ==ffiCall:module:== is provided by UnifiedFFI and defined in ==Object==, so we can be use it either on the instance or the class-side.
 
-@@Warning the message ==#ffiCall:module:== cannot be used as a normal expression in a playground or in the middle of a method. It must only be sent by methods that define a callout, because it does some
+@@note the message ==#ffiCall:module:== cannot be used as a normal expression in a playground or in the middle of a method. It must only be sent by methods that define a callout, because it does some
 context mangling behind the scenes.
 
 To test if our code works, execute the method and print its result:
@@ -146,7 +146,7 @@ This is intentionally done so, that in most cases you can actually copy-and-past
 The second argument, the module or library, is in our example =='libc.so.6'==, the name of the library where to find the function.
 The avid reader will notice that our binding is platform dependent, as it will only run from a linux machine. We will explore how to define bindings in a platform-independent in the following section.
 
-@@Guille is this next sentence necessary here?
+@@note is this next sentence necessary here?
 Note that there exist other messages to define callouts that will be discussed later.
 
 !! A Note on Marshaling
@@ -302,7 +302,7 @@ FFICExamples class>>floor: aFloat
 	^ self ffiCall: #( double floor(double aFloat) ) module: LibC
 ]]]
 
-@@todo Luc Examples with more complex literals: arrays, ...
+@@note Luc Examples with more complex literals: arrays, ...
 
 !!! Passing variables
 
@@ -423,7 +423,7 @@ FFICExamples class>>malloc: aNumber
 This is a special case of return: when there is a function who answers a ''void *''. In this case, since FFI-NB cannot know
 which kind of object it represents, it will answer an instance of ==ExternalData== (we will see this in next section).
 
-@@todo Luc illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil
+@@note Luc illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil
 
 !! External address
 
@@ -497,7 +497,7 @@ B.3) each kind of external reference can decide how to free that data (by defaul
 
 An example of this is how AthensCairoSurface works.
 
-@todo add an example
+@@note add an example
 
 !! Structures
 The ==FFIExternalStructure== object is used to manipulate C structures from Pharo.
@@ -505,6 +505,7 @@ From the standard C library we can use the div() function as an example.
 Given a numerator and denominator, it returns a structure holding the quotient and remainder.
 In stdlib.h we find these definitions...
 
+[[[
    typedef struct
      {
        int quot;                   /* Quotient.  */
@@ -512,10 +513,11 @@ In stdlib.h we find these definitions...
      } div_t;
 
    div_t div (int __numer, int __denom)
+]]]
 
 Converting these to FFI definitions we get...
-
-    FFIExternalStructure subclass: #Div_t
+[[[
+FFIExternalStructure subclass: #Div_t
 	instanceVariableNames: ''
 	classVariableNames: ''
 	package: 'UnifiedFFI-ExampleLibC'
@@ -529,11 +531,14 @@ Converting these to FFI definitions we get...
 
     LibC class >> div_numer: numer denom: denom
 	^ self ffiCall: #( Div_t div( int numer, int denom ) ) module: LibC
+]]]
 
 So lets try it out...
-    LibC div_numer: 7 denom: 2
+[[[
+LibC div_numer: 7 denom: 2
      "Div_t ( quot: 3   rem: 1)"
-
+]]]
+ 
 Now for another example, imagine you need to manipulate the following C structure from Pharo:
 
 [[[
@@ -651,7 +656,7 @@ into machine code, then reexecuting the method who now jumps and executes the co
 To simplify, we do ""the same"" but instead injecting machine code, we create bytecodes to translate correctly input and output
 parameters, then we add a call to the function.
 
-@@todo here design explanation.
+@@note todo here design explanation.
 
 
 ! Notes
