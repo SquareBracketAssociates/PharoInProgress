@@ -1,0 +1,213 @@
+{ "title": "Calypso browser" }
+
+!!!Pharo system browser
+
+-new navigation model
+-fast table for UI
+-tabs toolbar instead of single source code panel
+--separate tools in tabs to create/edit methods/classes
+-explicit commands instead of duplicated menu and shortcuts
+-extendable by plugins
+-suitable for remote scenario
+-new features:
+--method group view instead of protocols view
+---"dynamic protocols"
+---based on method tags as symbols
+---support multiple tags per method
+---not required star convention for class extension
+--package view is based on class groups
+---"dynamic protocols" for classes
+---based on class tags as symbols
+---support multiple tags per class
+--visibility option for inherited methods
+--methods inherited from traits are not shown by default
+--variable view as special mode for method group view.
+--and more
+
+Source code is currently on smalltalkhub repo http://smalltalkhub.com/#!/~Pharo/Calypso. Here I want to manage todo, collect issues and missing features.
+
+!!Calypsio navigation model
+
+In Calypso users query environment for specific set of objects.
+
+First you need environment instance. There is global one for current image:
+[[[env := ClyNavigationEnvironment currentImage]]]
+It is navigation environment which is created over some system environment. In this case it is current image:
+[[[ClySystemEnvironment currentImage]]]
+System environment models the image. It includes package manager, globals and system announcer. And navigation environment provides interface to query information from it. It organizes cache of all queries.  If you will browse senders of message #do: same result will be returned for second call. Cache optimizes performance and memory usage during navigation.
+
+You can use your own navigation instance instead of global one:
+[[[env := ClyNavigationEnvironment over: ClySystemEnvironment currentImage]]]
+External libraries can provide own system environment and Calypso will be able browse it. For example new version of Ring allows browse code repository with all Calypso features.
+
+For next steps you need a scope where you will look at environment objects.
+
+It can be scope of full system:
+[[[systemScope := env systemScope]]]
+Or it can be scope of concrete objects:
+[[[packageScope := env selectScope: ClyPackageScope of: {Point package}.
+classScope := env selectScope: ClyClassScope of: {Point. Collection}]]]
+With scope you can evaluate queries:
+[[[packageScope query: ClySortedClasses
+classScope query: ClySortedMethods
+packageScope query: (ClyMessageSenders of: #(do: x))
+classScope query: (ClyMessageImplementors of: #(select: y:)) ]]]
+Any query returns instance of cursor which provides stream access to result (details below).
+
+Result is represented by requested ClyEnvironmentContent subclass. In first example it is instance of ClySortedClasses which is sent as argument. Query method accepts query instance (subclasses of ClyEnvironmentQuery) or compatible object which implements #asEnvironmentQuery message. And class of result itself plays role of most trivial query ClyEnvironmentSimpleQuery. Simple query is responsible to return all objects accessible from given scope in requested form. For example you can query all classes in hierarchical form:
+[[[packageScope query: ClyHierarchicallySortedClasses]]]
+Any query is created with requested content or defines default one.  In example senders and implementors use sorted methods by default. But they can use different:
+[[[classScope query: (ClyMessageSenders of: #(do:) as: ClyHierarchicallySortedMethods)]]]
+As was mentioned above actual result of #query: is cursor object, the instance of ClyEnvironmentCursor:
+[[[cursor := classScope query: ClySortedMethods]]]
+Cursor provides stream access to requested content items:
+[[[cursor currentItem.
+cursor nextItem.
+cursor moveTo: itemPosition.
+cursor retrieveAll]]]
+Returned items are not raw objects like methods or classes. Instead they are instances of ClyEnvironmentItem which wraps actual object. Items extend objects with arbitrary set of properties. For example if class has abstract method it can be marked with "abstract property". If method is overridden in subclasses it can be marked by "overridden property". Then tools use these properties to provide specific representation for items. For example browser can show abstract classes with italic font and it can show special icon nearly overridden method.
+
+
+Computation of properties is slow. Imaging that you look at all classes in system and for each class you want abstract property. It will require scanning almost all methods in system.
+
+Calypso solves this problem in two ways:
+
+All queries are cached. Computation will be performed only once
+
+Properties are computed lazily when objects are really used.  For example they computed for objects which are shown to user, for only visible part of them.
+
+Lazy computation is hidden from users by cursor instance. Cursor asks observed environment content to resolve small part of items according to current position. Then cursor uses resolved part as items cache. And new portion of items are resolved by demand.
+
+This logic provides important optimization for remote scenario where observed content is remote object. In this case only used part of items is transferred over network. And when next part is needed it is loaded to client. It makes remote browser very fast because only visible part of packages, classes and methods are sent over network and all required information is available in few requests.
+
+
+Now let's play with example cursor. It can be opened in table morph:
+[[[cursor := packageScope query: ClySortedClasses.
+dataSource := ClyCollapsedDataSource on: cursor.
+table := FTTableMorph new.
+table
+ extent: 200 @ 400;
+ dataSource: dataSource;
+ openInWindow]]]
+
+imageHere
+
+Cursor provides query API to evaluate new queries with modified parameters.
+
+For example you can ask different kind of result for original query:
+[[[cursor := cursor query: ClyHierarchicallySortedClasses]]]
+
+imageHere
+
+Or you can evaluate new query with extra package:
+[[[cursor := cursor queryContentInScopeWith: #'AST-Core' asPackage]]]
+
+imageHere
+
+Or you can evaluate new query without existing package:
+[[[cursor := cursor queryContentInScopeWithout: #Kernel asPackage]]]
+
+imageHere
+
+With cursor you can navigate to the children scope of particular items. For example you can query methods of selected classes:
+[[[cursor := cursor query: ClySortedMethods from: {Point. Array}.]]]
+
+imageHere
+
+You can also evaluate original query in different scope. It allows fetch class side methods of selected classes:
+[[[cursor := cursor queryContentInNewScope: ClyClassSideScope]]]
+
+imageHere
+
+All these queries never modify cursor state. They always return new cursor instance which points to new result.
+
+
+On top of this navigation model Calypso implements tree structure. For example you can look at classes and methods in same table morph:
+[[[cursor := packageScope query: ClySortedClasses.
+dataSource := ClyCollapsedDataSource on: cursor.
+dataSource childrenStructure: { ClySortedMethods }.
+table := FTTableMorph new.
+table
+ extent: 200 @ 400;
+ dataSource: dataSource;
+ openInWindow]]]
+
+imageHere
+
+
+Tree structure can include many levels. For example packages -> class groups -> classes:
+[[[cursor := env systemScope query: ClySortedPackages.
+dataSource := ClyCollapsedDataSource on: cursor.
+dataSource childrenStructure: { ClySortedClassGroups. ClyHierarchicallySortedClasses}.
+table := FTTableMorph new.
+table
+ extent: 200 @ 400;
+ dataSource: dataSource;
+ openInWindow]]]
+
+imageHere
+
+
+Also it is possible to show hierarchical items with collapsing buttons:
+[[[cursor := packageScope query: ClyHierarchicallySortedClasses.
+dataSource := ClyExpandedDataSource on: cursor.
+table := FTTableMorph new.
+table
+ extent: 200 @ 400;
+ dataSource: dataSource;
+ openInWindow]]]
+
+imageHere
+
+
+At the end let's implement new environment content RandomOrderedMethods:
+[[[ClyMethodsContent subclass: #ClyRandomOrderedMethods
+    instanceVariableNames: ''
+    classVariableNames: ''
+  package: 'Calypso-Example']]]
+
+Each kind of environment content implements set of the building methods depending on what scope it supports. For example ClySortedMethods supports extracting methods from classes and method groups. ClySortedClasses supports extracting classes from packages and class groups.
+
+When simple query is evaluated by given scope it asks requested content to be built from concrete objects. For package scope it will ask content for #buildFromPackages:. For class scope it will ask content for #buildFromClasses:.
+
+For simplicity ClyRandomOrderedMethods will support only class scope:
+[[[buildFromClasses: classes
+    items := OrderedCollection new.
+    classes do: [ :eachClass |
+        eachClass localMethods do: [ :each |
+            items add: (ClyEnvironmentItem named: each selector with: each)] ].
+    items shuffle]]]
+
+Now look at methods in new form:
+[[[cursor := env systemScope query: ClySortedPackages.
+dataSource := ClyCollapsedDataSource on: cursor.
+dataSource childrenStructure: { ClySortedClasses. RandomOrderedMethods}.
+table := FTTableMorph new.
+table
+ extent: 200 @ 400;
+ dataSource: dataSource;
+ openInWindow]]]
+
+imageHere
+
+
+"Building" methods are required to be able evaluate simple queries with new implemented form. More advanced queries could require another code. Generally queries implement one method:
+-fetchContent: anEnvironmentContent from: anEnvironmentScope
+where they dispatch processing to scope and environment content depending on their logic. For example to be able to use new random order for senders or implementors the method #buildFromMethods: should be implemented by content:
+[[[buildFromMethods: methods
+    items := methods shuffled collect: [ :each |
+  ClyEnvironmentItem named: each selector with: each]]]]
+
+If you open senders browser:
+[[[browser := ClyMethodBrowser browseSendersOf: #do:]]]
+
+imageHere
+
+you can switch it to new order:
+[[[browser switchToResultContent: ClyRandomOrderedMethods]]]
+
+imageHere
+
+
+For more details look at code and read class comments.
+Next time I will show how extend browser with new functions.
