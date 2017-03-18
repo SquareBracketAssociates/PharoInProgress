@@ -108,4 +108,48 @@ classTags
 
 
 
+more to come ...
 
+
+!! Selectors
+
+
+
+!!! Guideline : selectors as little sentences
+Choose method names so that someone reading the message can read the expression as if it were a sentence. 
+
+[[[
+FileDescriptor seekTo: word from: self position
+and not
+FileDescriptor lseek: word at: self position
+]]]
+
+Write test first and make sure that your test scenario read well. 
+
+!!! Guideline : imperative verbs for actions
+
+Use imperative verbs for message which perform an action.
+
+
+[[[
+transform
+	selectors do: [:each | self pushDown: each].
+	selectors do: [:each | class removeMethod: each]
+]]]
+
+[[[
+aReadStream peek
+and not aReadStream word
+]]]
+
+[[[
+skipSeparators
+]]]
+
+
+!!!  Guideline : Use interrogative form for testing 
+Use an interrogating the state of an object, use a selector beginning with a verb such as ==has==, ==is==, ==does==,...
+[[[
+isAtLineEnd
+and not atLineEnd
+]]]
