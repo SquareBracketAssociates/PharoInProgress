@@ -1,0 +1,111 @@
+{ "title": "Pharo with Style" } 
+
+We are revisiting the general guideline enounced in the great little book called Smalltalk with Style. 
+
+!! General Naming Conventions
+
+Names are important. We will never repeat it enough. 
+A good name is often driven by a domain. These conventions are not cast in stone but they set the fundation of a common culture.
+Avoid underscores and favor camelcase.
+
+!!! Guileline 1: Descriptive names
+
+Choose descriptive names that capture domain entity unambiguously.
+
+!!!! Examples
+
+[[[
+timeOfDay
+not tod
+]]]
+
+[[[
+milliseconds
+not mil
+]]]
+
+[[[
+editMenu
+not eMenu
+]]]
+
+
+
+!!! Guileline 2:  Pay attention to meaning
+
+Non english native speaker often misplaced word qualifier. In english the qualifier is often before the word it qualifies. 
+
+[[[
+blueCar
+not carBlue
+]]]
+
+
+[[[
+userAssociation
+]]]
+is an association of users.
+
+Compare the three following variables:
+
+[[[
+sizeToRead
+sizeJustRead
+readSize
+]]]
+
+From that perspective favor words with unique pronunciation.
+About ==readSize==: does this mean that the size was just read (red) or it is the size to read (reed)?
+
+
+
+!!! Guileline 3:  Favor simple direct meaning 
+
+Some native english writers use often more precise but less common terms. 
+Consider that your software may be read by people from different culture so use 
+simple common terms. 
+
+
+!!! Guileline 4:  Follow domain 
+
+Follow domain and culture of the project. Do not invent your own because you think it is better. 
+Favor regularity over preciseness.
+
+[[[
+GnatXmlNode
+not GNAT_XML_Object
+]]]
+
+When representing the XML ada abstract syntax tree in Pharo, we should not follow their naming convention. The name should convey that the class is a abstract syntax tree node hence ==GnatXmlNode== is much better that ==GnatXmlObject==. 
+
+In Moose an importer is an object creating FAMIX entities (classes methods....) from the datastructure representing a language usually an Abstract Syntax Tree. 
+Therefore ==GNATInstaller== which creates entities from AST should be renamed ==GnatImporter==
+and ==GNATImporter== which load AST in memory should be renamed ==GnatASTLoader==
+
+!!! Guileline 5:  Shared variables starts with uppercase 
+
+Begin class names, global variables, pool variables and class variables with an uppercase letter. If the word is compound, then begin use camel case for the rest.
+
+
+[[[
+Point	"class"
+Transcript 	"global variable"
+PackageGlobalOrganizer	"class variables"
+]]]
+
+
+
+
+!!! Guileline 6:  Private variables starts with lowercase 
+
+Beging instance variables, temporary variables, method parameterr and method selectors with a lower case. If the word is compound, then begin use camel case for the rest.
+
+[[[
+address
+classExtensionSelectors
+classTags
+]]]
+
+
+
+
