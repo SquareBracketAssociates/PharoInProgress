@@ -2,7 +2,7 @@
 
 We are revisiting the general guideline enounced in the great little book called Smalltalk with Style. 
 
-!! General Naming Conventions
+!! General naming conventions
 
 Names are important. We will never repeat it enough. 
 A good name is often driven by a domain. These conventions are not cast in stone but they set the fundation of a common culture.
