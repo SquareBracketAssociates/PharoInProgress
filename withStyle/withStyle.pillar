@@ -111,8 +111,11 @@ classTags
 more to come ...
 
 
-!! Selectors
 
+
+
+!! Selectors
+Method names in Pharo are called selectors. There are used in messages and are the main vehicule to convey adequate meaning. The correct use of words and design of selectors is important. 
 
 
 !!! Guideline : selectors as little sentences
@@ -149,7 +152,88 @@ skipSeparators
 
 !!!  Guideline : Use interrogative form for testing 
 Use an interrogating the state of an object, use a selector beginning with a verb such as ==has==, ==is==, ==does==,...
+
 [[[
 isAtLineEnd
-and not atLineEnd
 ]]]
+and not 
+[[[
+atLineEnd
+]]]
+
+!!!  Guideline : Accessors 
+
+
+For accessors: 
+
+[[[
+tiles
+	^ tiles 
+]]]
+or 
+
+[[[
+tiles
+	^ tiles ifNil: [ tiles := OrderedCollection new ]
+]]]
+
+but not 
+[[[
+getTiles
+	^ tiles
+]]]
+
+For Setters
+[[[
+tiles: aCollection
+	tiles := aCollection 
+]]]
+
+
+!!! Guideline : Follow conventions and idioms
+
+When designing new objects, you may mimic some practices that the system use already with for example dictionaries, sets,...
+
+""Example.""
+Since a stylesheet acts as a dictionary of properties it is much better to use
+==at:== instead of ==get:== especially when the message to set a value to a property is ==at:put:== and not ==set:==.
+
+[[[
+stylesheet at: #fontColor
+]]]
+and not 
+[[[
+stylesheet get: #fontColor
+]]]
+
+
+
+!! Instance initialization
+
+!!! Guideline : Automatic object initialization 
+
+
+[[[
+Game >> initialize
+	super initialize.
+	turn := 0.
+]]]
+
+
+!!! Guideline : No automatic initialize
+
+When you do not want to get the automatic initialization to happen you should use the message ==basicNew== on the class side and create your own ==initializeSomething:== method. 
+
+
+[[[
+Game class >> tilesNumber: aNumber
+	^ self basicNew initializeNumber: aNumber ; yourself
+]]]
+
+[[[
+Game >> initializeNumber: aNumber
+	tiles := Array new: aNumber
+]]]
+
+
+
