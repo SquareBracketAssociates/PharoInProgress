@@ -8,10 +8,10 @@ It was ported by Thierry Goubier who is maintaining actively the Smacc Pharo por
 This is a walk-through tutorial to demonstrate some features of SmaCC, the Smalltalk Compiler Compiler, as we incrementally develop a simple calculator. If you haven't already done so, you will first need to load the source.
 
 [[[
-Gofer new
-	url: 'https://smalltalkhub.com/mc/Pharo/MetaRepoForPharo30/main';
-	configurationOf: 'SmaCC';
-	loadStable
+Metacello new
+    baseline: 'SmaCC';
+    repository: 'github://ThierryGoubier/SmaCC';
+    load
 ]]]
 
 Once you have loaded the code, you need to open the SmaCC Parser Generator (Figure *SmaCCGUI*). In Pharo, it is in the Tools submenu of the main menu.
