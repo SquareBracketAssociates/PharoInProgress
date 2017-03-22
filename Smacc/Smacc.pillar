@@ -3,9 +3,13 @@
 This chapter and tutorial was originally written by John Brant and Don Roberts (*SmaCC>http://www.refactory.com/Software/SmaCC*) and adapted to Pharo. This Chapter starts with a walk-through tutorial to demonstrate many of the features of SmaCC, the Smalltalk Compiler Compiler, followed by a detailed description of the features.
 It was ported by Thierry Goubier who is maintaining actively the Smacc Pharo port.
 
-!!SmaCC Tutorial
+!! A first SmaCC tutorial
 
-This is a walk-through tutorial to demonstrate some features of SmaCC, the Smalltalk Compiler Compiler, as we incrementally develop a simple calculator. If you haven't already done so, you will first need to load the source.
+This is a walk-through tutorial to demonstrate some features of SmaCC, the Smalltalk Compiler Compiler, as we incrementally develop a simple calculator. 
+
+
+!!! Loading
+If you haven't already done so, you will first need to load the source.
 
 [[[
 Metacello new
@@ -14,18 +18,24 @@ Metacello new
     load
 ]]]
 
-Once you have loaded the code, you need to open the SmaCC Parser Generator (Figure *SmaCCGUI*). In Pharo, it is in the Tools submenu of the main menu.
+
+!!! Opening the tools
+Once you have loaded the code, you need to open the SmaCC Parser Generator (Figure *@SmaCCGUI*). In Pharo, it is in the Tools submenu of the main menu.
 
 +SmaCC GUI in the tools menu>file://figures/SmaCCGUI.png|width=80|label=SmaCCGUI+
 
-Our first calculator is going to be relatively simple. It is going to take two numbers and add them together. To start things off, we have to tell the scanner how to recognize a number. It starts with one or more digits, possibly followed by an decimal point with zero or more digits after it. The scanner definition for this token is:
+
+
+Our first calculator is going to be relatively simple. It is going to take two numbers and add them together. 
+
+!!! First the scanner
+To start things off, we have to tell the scanner how to recognize a number. It starts with one or more digits, possibly followed by an decimal point with zero or more digits after it. The scanner definition for this token is:
 
 [[[
 <number>        :       [0-9]+ (\. [0-9]*) ? ;
 ]]]
 
 Let's go over each part:
-
 
 ; ==<number>==
 :Names the token. The name inside the <> must be a legal Pharo variable name.
@@ -56,6 +66,8 @@ We don't want to have to worry about whitespace in our language, so we need to d
 
 The only other token that will appear in our system would be the ==\+== token for addition. However, since this is token is always the same, we can enter it directly in our production rules.
 
+
+!!! Second the calculator grammar
 Speaking of our grammar, let's go ahead and define it. Enter the following specification below your two previous rules:
 
 [[[
@@ -68,7 +80,7 @@ Number
 	;
 ]]]
 
-This basically says that an expressions is either a number or an expression added to a number. You should now have something that looks like Figure *SmaCCTutorial*.
+This basically says that an expression is either a number or an expression added to a number. You should now have something that looks like Figure *@SmaCCTutorial*.
 
 +First grammar>file://figures/SmaCCTutorial.png|width=80|label=SmaCCTutorial+
 
@@ -76,13 +88,20 @@ We should be able to compile a parser now. First, we need to specify the scanner
 
 Whenever SmaCC creates new classes, they are compiled in the package (or package tag) named on the Package entry box. You may wish to select a different package by pressing '...'.
 
-Now we are ready to test our parser. Go to the "test" pane, enter ==3 \+ 4==, and press "Parse"; you will see that the parser correctly parses it. If you press "Parse and explore"  or "Parse and inspect" you will see an explorer (Figure *3plus4Explorer*) (respectively an inspector (Figure *3plus4Inspector*)) on an OrderedCollection that contains the parsed tokens. This is because we haven't specified what the parser is supposed to do when it parses. You can also enter incorrect items. For example, try to parse ==3 \+ \+ 4== or ==3 \+ a==. An error message should appear in the text.
+!!! Testing our parser
+
+Now we are ready to test our parser. Go to the "test" pane, enter ==3 \+ 4==, and press "Parse"; you will see that the parser correctly parses it. If you press "Parse and explore"  or "Parse and inspect" you will see an explorer (Figure *@3plus4Explorer*) (respectively an inspector (Figure *@3plus4Inspector*)) on an OrderedCollection that contains the parsed tokens. This is because we haven't specified what the parser is supposed to do when it parses. You can also enter incorrect items. For example, try to parse ==3 \+ \+ 4== or ==3 \+ a==. An error message should appear in the text.
 
 +Explorer on 3 \+ 4>file://figures/3plus4Explorer.png|width=40|label=3plus4Explorer+
 +Inspector on 3 \+ 4>file://figures/3plus4Inspector.png|width=40|label=3plus4Inspector+
 
-If you are interested in the generated parser, you may wish to look at the output from compiling the parser in the Symbols or Item Sets tab. The Symbols tab lists all of the terminal and non-terminal symbols that were used in the parser. The number besides each is the internal id used by the parser. The Item Sets tab lists the LR item sets that were used in the parser. These are printed in a format that is similar to the format used by many text books. The Messages tab is used to display any warnings generated while the parser was compiled. The most common warning is for ambiguous actions.
+If you are interested in the generated parser, you may wish to look at the output from compiling the parser in the Symbols or Item Sets tab. 
 
+- The Symbols tab lists all of the terminal and non-terminal symbols that were used in the parser. The number besides each is the internal id used by the parser.
+- The Item Sets tab lists the LR item sets that were used in the parser. These are printed in a format that is similar to the format used by many text books.
+- The Messages tab is used to display any warnings generated while the parser was compiled. The most common warning is for ambiguous actions.
+
+!!! Defining actions
 Now we need to define the actions that need to happen when we parse our expressions. Currently, our parser is just validating that the expression is a bunch of numbers added together. Generally, you will create some structure that represents what you've parsed (e.g., a parse tree). However, in this case, we are not concerned about the structure, but we are concerned about the result (the value of the expression). For our example, you need to modify the grammar definition to be:
 
 [[[
@@ -95,8 +114,13 @@ Number
 	;
 ]]]
 
-The text between the braces is Pharo code that gets evaluated when the rule is applied. Strings with a number get replaced with the corresponding expression in the production. In the first Expression rule, the =='1'== will get replaced by the object that matches Expression and the =='3'== gets replaced by the object that matches ==Number==. The second item in the rule is the =="\+"== token. Since we already know what it is, it is not interesting. Compile the new parser. Now when you do a 'Parse and inspect' from the test pane containing ==3 \+ 4==, you should see the result: 7.
+The text between the braces is Pharo code that gets evaluated when the rule is applied. Strings with a number get replaced with the corresponding expression in the production. 
+- In the first Expression rule, the =='1'== will get replaced by the object that matches Expression and the =='3'== gets replaced by the object that matches ==Number==. 
+-The second item in the rule is the =="\+"== token. Since we already know what it is, it is not interesting. 
 
+Compile the new parser. Now when you do a 'Parse and inspect' from the test pane containing ==3 \+ 4==, you should see the result: 7.
+
+!!! Named expressions
 One problem with the previous example is that if you need to change a rule then you may also need to change the code for that rule. For example, suppose you inserted a new token at the beginning of a rule, then you would need to change all of your references in the Pharo code. We can alleviate this problem by using named expressions. After each part of a rule, we can specify its name. Names are specified with single quotes and must be legal Pharo variable names. Doing this for our grammar we get:
 
 [[[
@@ -109,7 +133,11 @@ Number
 	;
 ]]]
 
-While this will result in the same language being parsed, it makes it easier to maintain your parsers. Let's extend our language to add subtraction. Here's the new grammar:
+While this will result in the same language being parsed, it makes it easier to maintain your parsers. 
+
+!!! Extending the language
+
+Let's extend our language to add subtraction. Here's the new grammar:
 
 [[[
 Expression 
@@ -136,6 +164,9 @@ Number
 	: <number> 'numberToken' {numberToken value asNumber}
 	;
 ]]]
+
+
+!!! Handling priority
 
 Here we run into a problem. If you evaluate =='2 \+ 3 \* 4'== you end up with 20. The problem is that in standard mathematics, multiplication has a higher precedence than addition. Our grammar evaluates strictly left-to-right. The standard solution for this problem is to define additional non-terminals to force the sequence of evaluation. Our grammar with that solution would look like:
 
@@ -204,7 +235,8 @@ If you would like to extend the calculator to create abstract syntax trees, you 
 
 SmaCC can generate abstract syntax trees from an annotated grammar. In addition to the node classes to represent the trees, SmaCC also generates a generic visitor for the tree classes.
 
-To create an AST, you need to annotate your grammar. Let's start with the grammar of our simple expression parser from the tutorial. Since we are wanting to build an AST, I've removed the code that evaluates the expression.
+!!! Restarting
+To create an AST, you need to annotate your grammar. Let's start with the grammar of our simple expression parser from the tutorial. Since we want to build an AST, I've removed the code that evaluates the expression.
 
 [[[
 <number> : [0-9]+ (\. [0-9]*) ? ;
@@ -228,6 +260,8 @@ Number
 	;
 ]]]
 
+
+!!! Building nodes 
 Building an AST parser works similarly to the normal parser. Instead of inserting Pharo code after each production rule inside braces, =={}==, we insert the class name inside of double braces, =={{}}==. Also, instead of naming a variable for use in the Pharo code, we name a variable so that it will be included as an instance variable in the class we are defining.
 
 Let's start with annotating the grammar for the AST node classes that we wish to parse. We need to tell SmaCC where the AST node should be created and the name of the node's class to create. In our example, we'll start by creating three node classes: Expression, Binary, and Number.
@@ -254,7 +288,12 @@ Number
 	;
 ]]]
 
-If you compile this grammar, SmaCC will complain that we need to define a root node. Since the root hasn't been defined SmaCC compiles the grammar as if the =={{...}}== expressions where not there and generates the same parser as above. Notice that for the parenthesized expression, we are using =={{}}==. This is a shortcut for =={{Expression}}== (the name of our production's symbol). Notice that we didn't annotate the last production in the Expression definition. Since it only contains a single item, Number, SmaCC will pull up its value which in this case will be a Number AST node.
+If you compile this grammar, SmaCC will complain that we need to define a root node. Since the root hasn't been defined SmaCC compiles the grammar as if the =={{...}}== expressions where not there and generates the same parser as above. 
+
+- Notice that for the parenthesized expression, we are using =={{}}==. This is a shortcut for =={{Expression}}== (the name of our production's symbol). 
+- Notice that we didn't annotate the last production in the Expression definition. Since it only contains a single item, Number, SmaCC will pull up its value which in this case will be a Number AST node.
+
+!!! Adding named expressions
 
 Now, let's add variable names to our rules:
 
@@ -286,6 +325,7 @@ In our example above, we have one unnamed token, ==<number>==, and two unnamed k
 
 Notice that we did not name Expression in the ==(== Expression ==)== production rule. When you don't name a symbol in a production, SmaCC tries to figure out what you want to do. In this case, SmaCC determines that the Expression symbol produces either a Binary or Number node. Since both of these are subclasses of the Expression, SmaCC will pull up the value of Expression and add the parentheses to that node. So, if you parse ==(3 \+ 4)==, you'll get a Binary node instead of an Expression node.
 
+!!! Generating the AST
 Now we are ready to generate our AST. We need to add directives that tell SmaCC our root AST class node and the prefix and suffix of our classes.
 
 [[[
@@ -322,6 +362,8 @@ The ==ASTBinaryNode== will be a subclass of ==ASTExpressionNode== and will defin
 
 Now, if we inspect the result of parsing ==3 \+ 4==, we'll get an Inspector on an ==ASTBinaryNode==.
 
+
+!!! Extending the grammar
 Let's add function evaluation to our expression grammar:
 
 [[[
