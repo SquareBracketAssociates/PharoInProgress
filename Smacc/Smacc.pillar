@@ -514,7 +514,33 @@ The ==\+== and ==-== symbols appear on the first line and have the lowest preced
 
 !!!Start Symbols
 
-By default, the left-hand side of the first grammar rule is the start symbol. If you want to multiple start symbols, then you can specify them by using the ==\%start== directive followed by the nonterminals that are additional start symbols. This is useful for creating two parsers with two grammars that are similar but slightly different. For example, consider a Pharo parser. You can parse methods, and you can parse expressions. These are two different operations, but have very similar grammars. Instead of creating two different parsers for parsing methods and expressions, we can specify one grammar that parses methods and also specify another starting position for parsing expressions. The ==StParser== in the SmaCC Example Parsers package has an example of this. The ==StParser class>>parseMethod:== uses the ==startingStateForMethod== position to parse methods and the ==StParser class>>parseExpression:== uses the ==startingStateForSequenceNode== position to parse expressions.
+By default, the left-hand side of the first grammar rule is the start symbol. If you want to multiple start symbols, then you can specify them by using the ==\%start== directive followed by the nonterminals that are additional start symbols. 
+This is useful for creating two parsers with two grammars that are similar but slightly different. For example, consider a Pharo parser. You can parse methods, and you can parse expressions. These are two different operations, but have very similar grammars. Instead of creating two different parsers for parsing methods and expressions, we can specify one grammar that parses methods and also specify another starting position for parsing expressions. 
+
+The ==StParser== in the SmaCC Example Parsers package has an example of this. The ==StParser class>>parseMethod:== uses the ==startingStateForMethod== position to parse methods and the ==StParser class>>parseExpression:== uses the ==startingStateForSequenceNode== position to parse expressions.
+
+For example if you add the following to an hypthetical grammar
+
+[[[
+%start file expression statement declaration;
+]]]
+
+SmaCC will generate the following class methods on the parseur: ==startingStateForfile==, ==startingStateForexpression==, ==startingStateForstatement== and ==startingStateFordeclaration==.
+
+Then you can parse a subpart as follows:
+
+[[[
+YourParser >> parseStatement: aString
+	"Parse an statement."
+
+	^ (self on: (ReadStream on: aString))
+		setStartingState: self startingStateForstatement;
+		parse
+]]]
+
+
+
+
 
 
 !!!Id Methods
