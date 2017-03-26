@@ -490,6 +490,47 @@ ASTExpressionEvaluator compile:  'visitNumber: aNumber
 
 Now we can evaluate ==ASTExpressionEvaluator new accept: (CalculatorParser parse: 'Add(3,4) \* 12 / 2 ^ (3 - 1) \+ 10')== and get 31.
 
+
+
+!! Managing List
+
+Smacc automatically determines if, in the production rules, there is a recursion that represents a list.  In such case, it adds an ==s== to the generated instance variable and manage it as a list.
+
+Let us take an example
+
+[[[
+<a> : a;
+<whitespace> : \s+;
+
+%root Line;
+%prefix SmaccTutorial;
+
+Line 
+	: <a> 'line' {{}}
+	| Line <a> 'line' {{}}
+	;
+]]]
+
+Here we see that Line is recursive. Smacc will generate a class ==SmaccTutorialLine== with an instance variable ==lines== initialized as an ordered collection. 
+
+Pay attention, if the production is empty, the generation does not see the list.
+
+[[[
+Line 
+	:
+	| Line <a> 'line' {{}}
+	;
+]]]
+
+In such a case you should write it as follows:
+
+[[[
+Line
+	: {{}}
+	| Line <a> 'line' {{}}
+	;
+]]]
+
 !!SmaCC Directives
 
 SmaCC has several directives that can change how the scanner and parser is generated. Each directive begins with a ==%== character and the directive keyword. Depending on the directive, there may be a set of arguments. Finally, the directive is terminated with a semicolon character, ==;==.
