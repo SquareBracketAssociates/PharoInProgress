@@ -1,0 +1,94 @@
+{ "title": "Commander" }
+
+!!!Commander. Command pattern library
+
+Commander is a new Pharo library which models application actions as first class objects.
+Every action is implemented as separate command class (subclass of CmdCommand) with #execute method and all state required for execution.
+Commands are reusable objects and applications provide various ways to access them. Such information is attached to command classes as activator objects. Currently there are three types of activators but they can be extended for specific applications:
+CmdShortcutCommandActivator
+CmdContextMenuCommandActivator
+CmdDragAndDropCommandActivator
+Activators are declared in command class side methods marked with pragma #commandActivator. For example following method will allow RenamePackageCommand to be executed by shortcut:
+
+    RenamePackageCommand class>>packageBrowserShortcutActivator
+         <commandActivator>
+         ^CmdShortcutCommandActivator by: $r meta for: PackageBrowserContext
+And for context menu:
+    RenamePackageCommand class>>packageBrowserMenuActivator
+        <commandActivator>
+        ^CmdContextMenuCommandActivator byRootGroupItemFor: PackageBrowserContext
+Activators are always declared with application context where they can be applied (PackageBrowserContext in example). Application should provide such contexts as subclasses of CmdToolContext with information about application state. Every widget can bring own context to interact with application as separate tool. For example system browser shows multiple panes which provide package context, class context and method context. And depending on context browser shows different menu and provides different shortcuts.
+Command execution
+
+Context instances are used to perform command lookup. For example following expression will enumerate all shortcut activators relevant to package pane of possible browser:
+       CmdShortcutCommandActivator allDeclaredFor: aPackageBrowserContext do: [:declaredActivator | ]
+
+
+Declared activator is not ready for execution but it can check that it is possible:
+       declaredActivator canExecuteCommandInContext: aPackageBrowserContext.
+It delegates question to command itself:
+
+   command canBeExecutedInContext: aToolContext
+
+By default it returns true. But concrete commands override it with specific context query. For example   RenamePackageCommand requires package and it defines this method as:
+      RenamePackageCommand>>canBeExecutedInContext: aToolContext
+             ^aToolContext isPackageSelected
+
+Declared activator can create new activator instance which is ready for activation:
+       readyActivator := declaredActivator newActivationFor: aPackageBrowserContext.
+Ready activator is bound to given context and it keeps new command instance for execution.
+
+Some activators only needs executable commands. For example shortcut activator not needs commands which can not be executed in current context. For them there is suitable search method:
+       CmdShortcutCommandActivator allExecutableIn: aPackageBrowserContext do: [:readyActivator | ]
+In that case block receives ready to use activator which allow immediately execute command:
+       readyActivator executeCommand
+
+Other activators (like context menu) can collect all relevant commands to represent them to user. If command can not be executed it can be shown with special disabled state.
+
+Activator execute command in three steps:
+1) Activator asks command to prepare execution in given context:
+       command prepareFullExecutionInContext: aToolContext
+Command should retrieve all state required for execution. It can ask user for extra data.
+For example RenamePackageCommand retrieves package form context and ask user for new name:
+       RenamePackageCommand>>prepareFullExecutionInContext: aToolContext
+                package := aToolContext selectedPackage.
+                newName := UIManager default
+                    request: 'New name of the package'
+                    initialAnswer: package name
+                     title: 'Rename a package'.
+                newName isEmptyOrNil | (newName = package name) ifTrue: [ ^ CmdCommandAborted signal ]
+ To break execution command can raise CmdCommandAborted signal.
+
+2) Activator executes command. All logic is implemented by command in #execute method.
+
+For example:
+
+       RenamePackageCommand>>execute
+                package renameTo: newName
+3) Activator ask command to apply result in given context:
+        command applyResultInContext: aToolContext
+Idea is to be able interact with activating application when command completes. For example if user creates new package from some tool (browser for example) then at the end of command user wants to see created package in that tool:
+       CreatePackageCommand>>applyResultInContext: aToolContex
+                aToolContext showPackage: resultPackage
+
+Generally logic to prepare command and to apply results should be same for most kind of activators. So they all reuse command methods. But there are activators which implement them differently. For example CmdDragAndDropCommandActivator. To prepare command it needs two contexts. First context describes the place where drag was started. Second context describes drop target tool. To prepare command activator needs two steps: one is to prepare execution in drag context and another is to prepare execution in drop context. They both bring different information. And together they are supposed to provide all required data for command execution without extra user requests.
+
+Different kind of activators extend commands with new protocol to support them. For example context menu activator add building method to command:
+ command fillContextMenu: aMenu using: anActivator
+By default it just creates standard menu item morph and allow subclasses to define default label and icon:
+- defaultMenuItemName
+- setUpIconForMenuItem: aMenuItemMorph
+But subclasses can override build method and represent themselves differently. For example they can provide menu item with check box.
+
+
+Hook Commander into application
+
+The way how concrete type of activator hook into application is responsibility of application. For example to support shortcuts based on commands application should define specific kmDispatcher for target morphs:
+ YourAppMorph>>kmDispatcher
+  ^ CmdKMDispatcher attachedTo: self
+with supporting method:
+ YourAppMorph>>createCommandContext
+  ^YourAppContext for: self
+If application wants context menu based on commands then it needs to hook into context menu part of application and ask activator to build menu:
+ menu := CmdContextMenuCommandActivator buildMenuFor: anAppMorph inContext: aToolContext
+In future Commander could provide deep integration with UI. And many things can work automatically.
