@@ -1,6 +1,6 @@
 { "title": "Calypso browser" }
 
-!!!Pharo system browser
+!Pharo system browser
 
 -new navigation model
 -fast table for UI

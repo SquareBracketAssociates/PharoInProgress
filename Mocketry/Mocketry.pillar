@@ -14,7 +14,7 @@ But if you need special name you can specify it:
 [[[
 Mock named: 'yourMock'
 ]]]
-You can look at it livelly in MockTests.
+You can look at it lively in MockTests.
 
 Also there is way to get multiple mocks at once:
 [[[
