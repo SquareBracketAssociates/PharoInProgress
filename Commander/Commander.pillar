@@ -4,7 +4,7 @@
 
 Commander models application actions as first class objects.
 
-Every action is implemented as separate command class (subclass of CmdCommand) with #execute method and all state required for execution.
+Every action is implemented as separate command class (subclass of ==CmdCommand==) with ==#execute== method and all state required for execution.
 
 Commands are reusable objects and applications provide various ways to access them.
 Such information is attached to command classes as activator objects. Currently there are three types of activators:
@@ -43,7 +43,7 @@ For example ==RenamePackageCommand== requires package and it defines this method
 [[[
 RenamePackageCommand>>canBeExecutedInStandardContext: aToolContext
    ^aToolContext isPackageSelected
- ]]]
+]]]
 
 - ==prepareFullExecutionInStandardContext: aToolContext==
 In this method command should retrieve all state required for execution.
@@ -71,10 +71,8 @@ CreatePackageCommand>>applyResultInStandardContext: aToolContext
 ]]]
 
 Commands are supposed to be reusable for different contexts and these methods should be implemented with that in mind. They should not discover internal structure of contexts.
-So different kind of contexts can implemenet required protocol.
 
-For specific context it could be suitable to use own set of activation methods.
-Such context can override following methods by new activation messages to commands:
+Specific context can override activation methods and use own set of messages to commands. For example:
 
 [[[
 SpecialContextA>>allowsExecutionOf: aCommand
@@ -107,7 +105,9 @@ Context instances are used to perform command lookup.
 For example following expression will enumerate all shortcut activators relevant to package pane of possible browser:
 
 [[[
-CmdShortcutCommandActivator allDeclaredFor: aPackageBrowserContext do: [:declaredActivator | ]
+CmdShortcutCommandActivator
+  allDeclaredFor: aPackageBrowserContext
+  do: [:declaredActivator | ]
 ]]]
 
 Declared activator is not ready for execution but it can check that it is possible:
@@ -131,10 +131,12 @@ readyActivator executeCommand
 There is convinient method to enumeration only executable commands:
 
 [[[
-CmdShortcutCommandActivator allExecutableIn: aPackageBrowserContext do: [:readyActivator | ]
+CmdShortcutCommandActivator
+  allExecutableIn: aPackageBrowserContext
+  do: [:readyActivator | ]
 ]]]
 
-In that case block receives ready to use activator which allows command execution.
+In that case block receives activator instance which is ready to execute command.
 
 !! Abstract menu activation
 @abstractMenuActivation
@@ -154,7 +156,7 @@ YourCommand>>yourAppMenuActivator
 ]]]
 
 Activator provides information about name, group and position of command inside menu:
-- ==menuItemName== (by default it retrieved from command object by ==#defaultMenuItemName==).
+- ==menuItemName== (by default it is retrieved from command instance by ==#defaultMenuItemName==).
 - ==menuItemOrder== (larger value pushes command to the end of menu)
 - ==menuGroup== (root by default)
 
@@ -188,7 +190,7 @@ Groups include command items and other groups. To support menu they define follo
 - ==order== on instance side. Larger values pushed group to the end of menu
 - ==name== on instance side. It should be shown to user in concrete menu implementation.
 
-Concrete menu activators extend menu objects and commands with specific method to build concrete view elements. For example look at next section.
+Concrete menu activators extend menu objects and commands with specific methods to build concrete view elements. For example look at next section.
 
 !! Context menu command activation
 
@@ -229,6 +231,10 @@ RenamePackageCommand class>>packageBrowserShortcutActivator
   ^CmdShortcutCommandActivator by: $r meta for: PackageBrowserContext
 ]]]
 
+Activator also defines instance creation methods for standard shortcuts:
+- ==renamingFor: aToolContext==
+- ==removalFor: aToolContext==
+
 To support shortcuts based on commands application should define specific kmDispatcher for target morphs:
 
 [[[
@@ -256,7 +262,7 @@ According to this logic commands should define following supporting methods when
 - ==prepareExecutionInStandardDropContext: aToolContext==
 - ==canBeExecutedInStandardDropContext: aToolContext==
 
-Similar to other activation methods specific contexts can require own set of command methods for drag and drop:
+Also specific contexts can define own set of activation methods:
 
 [[[
 SpecialContextA>>allowsDropExecutionOf: aCommand
