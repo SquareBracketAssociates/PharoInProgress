@@ -190,7 +190,7 @@ Concrete menu activators extend menu objects and commands with specific methods 
 
 !! Context menu command activation
 
-To add commands into menu use ==CmdContextMenuCommandActivator== (more detailes at *@abstractMenuActivation*). For example:
+To add commands into context menu use ==CmdContextMenuCommandActivator== (more detailes at *@abstractMenuActivation*). For example:
 
 [[[
 RenamePackageCommand class>>packageBrowserMenuActivator
@@ -280,7 +280,7 @@ MoveMethodToClassCommand class>>methodBrowserDragAndDropActivator
   ^CmdDragAndDropCommandActivator for: MethodBrowserContext toDropIn: ClassBrowserContext
 ]]]
 
-And supporting methods:
+And supporting methods would be:
 
 [[[
 MoveMethodToClassCommand>>prepareExecutionInStandardDragContext: aToolContext
