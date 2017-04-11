@@ -36,7 +36,7 @@ For example system browser shows multiple panes which provide package context, c
 And depending on context browser shows different menu and provides different shortcuts.
 
 To support activators command should implement several methods:
-- ==canBeExecutedInStandardContext: aToolContext==
+-canBeExecutedInStandardContext: aToolContext
 By default it returns true. But usually commands query context for specific information.
 For example ==RenamePackageCommand== requires package and it defines this method as:
 
@@ -45,7 +45,7 @@ RenamePackageCommand>>canBeExecutedInStandardContext: aToolContext
    ^aToolContext isPackageSelected
 ]]]
 
-- ==prepareFullExecutionInStandardContext: aToolContext==
+-prepareFullExecutionInStandardContext: aToolContext
 In this method command should retrieve all state required for execution.
 It can also ask user for extra data. For example ==RenamePackageCommand== retrieves package from context and asks user for new name:
 
@@ -61,7 +61,7 @@ RenamePackageCommand>>prepareFullExecutionInStandardContext: aToolContext
 
 To break execution command can raise ==CmdCommandAborted== signal.
 
-- ==applyResultInStandardContext: aToolContext==
+-applyResultInStandardContext: aToolContext
 Purpose of this method is to be able interact with application when command completes.
 For example if user creates new package from browser then at the end of command browser should open created package:
 
