@@ -37,7 +37,7 @@ And depending on context browser shows different menu and provides different sho
 
 To support activators command should implement several methods:
 - ==canBeExecutedInStandardContext: aToolContext==
-By default it returns true. But usually commands query given context for specific information.
+By default it returns true. But usually commands query context for specific information.
 For example ==RenamePackageCommand== requires package and it defines this method as:
 
 [[[
@@ -47,7 +47,7 @@ RenamePackageCommand>>canBeExecutedInStandardContext: aToolContext
 
 - ==prepareFullExecutionInStandardContext: aToolContext==
 In this method command should retrieve all state required for execution.
-It can also ask user for extra data. For example ==RenamePackageCommand== retrieves package from context and ask user for new name:
+It can also ask user for extra data. For example ==RenamePackageCommand== retrieves package from context and asks user for new name:
 
 [[[
 RenamePackageCommand>>prepareFullExecutionInStandardContext: aToolContext
@@ -63,7 +63,7 @@ To break execution command can raise ==CmdCommandAborted== signal.
 
 - ==applyResultInStandardContext: aToolContext==
 Purpose of this method is to be able interact with application when command completes.
-For example if user creates new package from browser then at the end of command user wants to see created package:
+For example if user creates new package from browser then at the end of command browser should open created package:
 
 [[[
 CreatePackageCommand>>applyResultInStandardContext: aToolContext
@@ -72,7 +72,7 @@ CreatePackageCommand>>applyResultInStandardContext: aToolContext
 
 Commands are supposed to be reusable for different contexts and these methods should be implemented with that in mind. They should not discover internal structure of contexts.
 
-Specific context can override activation methods and use own set of messages to commands. For example:
+Specific context can override activation methods and send own set of messages to command. For example:
 
 [[[
 SpecialContextA>>allowsExecutionOf: aCommand
@@ -85,7 +85,7 @@ SpecialContextA>>applyResultOf: aCommand
   aCommand applyResultInSpecialContextA: self
 ]]]
 
-By default CmdCommand can implement them with standard context methods. And only particular commands can override them specifically:
+By default CmdCommand can implement them with standard context methods. And only particular commands will override them specifically:
 
 [[[
 CmdCommand>>prepareFullExecutionInSpecialContextA: aSpecialContextA
@@ -95,7 +95,7 @@ SomeCommand>>prepareFullExecutionInSpecialContextA: aSpecialContextA
   "special logic to prepare command for execution"
 ]]]
 
-The way how concrete type of activator hook into application is responsibility of application. Look at related sections for details on concrete activator.
+The way how concrete type of activator hooks into application is responsibility of application. Look at related sections for details on concrete activator.
 
 In future Commander could provide deep integration with UI. And many things can work automatically.
 
@@ -110,22 +110,22 @@ CmdShortcutCommandActivator
   do: [:declaredActivator | ]
 ]]]
 
-Declared activator is not ready for execution but it can check that it is possible:
-
-[[[
-declaredActivator canExecuteCommandInContext: aPackageBrowserContext
-]]]
-
-To execute command declared activator should create new activator instance:
+Declared activator is not ready for execution. It should create new activator instance for this:
 
 [[[
 readyActivator := declaredActivator newActivationFor: aPackageBrowserContext
 ]]]
 
-Ready activator is bound to given context and it keeps new command instance for execution:
+Ready activator is bound to given context and it keeps new command instance. To execute command evaluate:
 
 [[[
 readyActivator executeCommand
+]]]
+
+Before execution users should check that it is possible:
+
+[[[
+activator canExecuteCommandInContext: aPackageBrowserContext
 ]]]
 
 There is convinient method to enumeration only executable commands:
@@ -136,8 +136,6 @@ CmdShortcutCommandActivator
   do: [:readyActivator | ]
 ]]]
 
-In that case block receives activator instance which is ready to execute command.
-
 !! Abstract menu activation
 @abstractMenuActivation
 
@@ -145,9 +143,9 @@ There are a lot of different types of menu: context menu, toolbar, morphic halo 
 All of them are very similar: they show set of items to the user and when user selects one the action associated with item is evaluated.
 Only difference between them is the way how they are represented to user and where they are shown in application.
 
-Commander provides classes to model structure of menus based on commands and first class groups.
-
-Commands are marked with concrete menu activators, subclasses of CmdMenuCommandActivator:
+Commander allows build different kind of menus based on commands and first class groups.
+Concrete type of menu is represented by concrete type of activator, subclass of CmdMenuCommandActivator.
+These activators mark commands to be part of menu:
 
 [[[
 YourCommand>>yourAppMenuActivator
@@ -169,23 +167,21 @@ To set up these properies there are few instance creation methods:
 ==CmdMenu== represents abstract tree structure for concrete menu implementation:
 
 [[[
-	menu := CmdMenu activatedBy: aCommandActivatorClass
+menu := CmdMenu activatedBy: aCommandActivatorClass
 ]]]
 
-To fill menu with items application should provide context:
+It builds command and group items using information from activators declared for given context:
 
 [[[
 menu buildInContext: aToolContext
 ]]]
-
-It lookups all commands related to given context and fills menu with command items and required groups.
 
 This method can be called multiple times for different contexts. It allows to build single menu for multiple parts of application.
 For example toolbar menu can include commands for all visible widgets.
 
 Menu groups are represented by subclasses of CmdMenuGroup. They are used as classes to declare activators. Instances are only created during menu building.
 
-Groups include command items and other groups. To support menu they define following methods:
+Groups are containers of command items and other groups. They define following methods to describe menu structure:
 - ==parentGroup== on class side. By default it is CmdRootMenuGroup. Subclasses override it to define deep tree structure.
 - ==order== on instance side. Larger values pushed group to the end of menu
 - ==name== on instance side. It should be shown to user in concrete menu implementation.
@@ -219,7 +215,7 @@ It creates menu item morph and allows subclasses to define default label and ico
 - ==defaultMenuItemName==
 - ==setUpIconForMenuItem: aMenuItemMorph==
 
-Subclasses can override building method and represent themselves differently. For example they can create menu item with check box.
+Subclasses can override building method to represent themselves differently. For example they can create menu item with check box.
 
 !! Shortcut command activation
 
@@ -231,7 +227,7 @@ RenamePackageCommand class>>packageBrowserShortcutActivator
   ^CmdShortcutCommandActivator by: $r meta for: PackageBrowserContext
 ]]]
 
-Activator also defines instance creation methods for standard shortcuts:
+There are extra instance creation methods for standard shortcuts:
 - ==renamingFor: aToolContext==
 - ==removalFor: aToolContext==
 
@@ -282,4 +278,16 @@ To activate commands with drag and drop use ==CmdDragAndDropCommandActivator==. 
 MoveMethodToClassCommand class>>methodBrowserDragAndDropActivator
   <commandActivator>
   ^CmdDragAndDropCommandActivator for: MethodBrowserContext toDropIn: ClassBrowserContext
+]]]
+
+And supporting methods:
+
+[[[
+MoveMethodToClassCommand>>prepareExecutionInStandardDragContext: aToolContext
+  super prepareExecutionInStandardDragContext: aToolContext.
+  methods := aToolContext selectedMethods
+
+  MoveMethodToClassCommand>>prepareExecutionInStandardDropContext: aToolContext
+    super prepareExecutionInStandardDropContext: aToolContext.
+    targetClass := aToolContext selectedClass
 ]]]
