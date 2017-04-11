@@ -97,7 +97,7 @@ SomeCommand>>prepareFullExecutionInSpecialContextA: aSpecialContextA
 
 The way how concrete type of activator hooks into application is responsibility of application. Look at related sections for details on concrete activator.
 
-In future Commander will provide deep integration with UI. And many things can work automatically.
+In future Commander will provide deep integration with UI. And many things will work automatically.
 
 !! Command execution
 
