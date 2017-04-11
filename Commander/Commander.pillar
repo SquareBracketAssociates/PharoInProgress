@@ -6,8 +6,8 @@ Commander models application actions as first class objects.
 
 Every action is implemented as separate command class (subclass of ==CmdCommand==) with ==#execute== method and all state required for execution.
 
-Commands are reusable objects and applications provide various ways to access them.
-Such information is attached to command classes as activator objects. Currently there are three types of activators:
+Commands are reusable objects and applications provide various ways to access them: shortcuts, context menu, buttons, etc..
+This information is attached to command classes as activator objects. Currently there are three types of activators:
 - ==CmdShortcutCommandActivator==
 - ==CmdContextMenuCommandActivator==
 - ==CmdDragAndDropCommandActivator==
