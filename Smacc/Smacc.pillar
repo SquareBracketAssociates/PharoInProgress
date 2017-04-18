@@ -866,6 +866,46 @@ Let's extend our RPN rewriter to support other expressions besides addition. Now
 
 If we transform ==(3 \+ 4) \* (5 - 2) ^ 3==, we'll get ==3 4 \+ 5 2 - 3 ^ \*==.
 
+!! Grammar idiomatic patterns
+
+In this section we want to share some coding grammar idioms. 
+Imagine that we have a description using the traditional ==*== (for 0 or more), interrogation mark (? for 0 or 1) and ==\+== (for 1 or more). The question then is how can we express this 
+in Smacc. 
+
+!!! Expressing optional repetition
+Here is a typical 
+
+[[[
+TypeNameList = '(' (TypeName (',' TypeName )* )? ')'
+]]]
+
+Here is how we can express it. 
+[[[
+ParenthesizedTypeNameList
+	: "(" TypeNameList_Opt ")"
+	;	
+	
+TypeNameList_Opt
+	: 
+	| TypeNameList
+	;
+	
+TypeNameList	
+	: TypeName 'typename' {{}}
+	| TypeNameList "," TypeName 'typename' {{}} 
+	;
+]]]
+
+Not that in the following 
+[[[
+TypeNameList_Opt
+	: 
+	| TypeNameList
+	;
+]]]
+
+will return nil when empty. If you want to get the node you should use =={{}}==
+
 !! Conclusion
 Smacc is a really strong and stable library that is used in production since many years. It is an essential assets for dealing with languages. 
 While PetitParser is useful for composing and reusing fragments of parsers, Smacc offers speed and more traditional parsing technology.

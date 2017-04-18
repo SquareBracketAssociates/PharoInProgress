@@ -35,9 +35,13 @@ not eMenu
 
 Non english native speaker often misplaced word qualifier. In english the qualifier is often before the word it qualifies. 
 
+@@todo find a real example
 [[[
 blueCar
-not carBlue
+]]]
+
+[[[
+carBlue
 ]]]
 
 
@@ -108,7 +112,7 @@ classTags
 
 
 
-more to come ...
+!!! Guideline : Class names
 
 
 
@@ -149,8 +153,19 @@ and not aReadStream word
 skipSeparators
 ]]]
 
+Pay attention that some word can be interpreted as interrogative while you want to give them an imperative meaning. For example compare
 
-!!!  Guideline : Use interrogative form for testing 
+[[[
+optimized
+]]]
+
+and
+
+[[[
+triggerOptimization
+]]]
+
+!!!  Guideline : Use interrogative form for testing
 Use an interrogating the state of an object, use a selector beginning with a verb such as ==has==, ==is==, ==does==,...
 
 [[[
@@ -235,5 +250,31 @@ Game >> initializeNumber: aNumber
 	tiles := Array new: aNumber
 ]]]
 
+!! Powerful coding idioms
+
+!!! Guideline : Do not query twice for the same objects
+
+The message ==ifNotNil:== expects a block 
+
+[[[
+self doThat ifNotNil: [ :that | self doSomethingWith: that ]
+]]]
+
+[[[
+| that |
+that := self doThat.
+that ifNotNil: [self doSomethingWith: that]
+]]]
+
+Similarly have a look at the messages containing the ==ifPresent:== variation.
+[[[
+	aCol at: key ifPresent: [ :present | self doSomethingWith: present]
+]]]
+
+!! Code formatting
+
+!!! Guideline :
+
+!! Potential traps
 
 
