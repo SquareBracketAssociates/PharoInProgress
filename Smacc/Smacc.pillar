@@ -1,4 +1,4 @@
-{ "title": "SmaCC: The Smalltalk Compiler-Compiler" }
+{ "title": "OLD VERSION CHeck booklet-Parsing tEchnologie" }
 
 This chapter and tutorial was originally written by John Brant and Don Roberts (*SmaCC>http://www.refactory.com/Software/SmaCC*) and adapted to Pharo. This Chapter starts with a walk-through tutorial to demonstrate many of the features of SmaCC, the Smalltalk Compiler Compiler, followed by a detailed description of the features.
 It was ported by Thierry Goubier who is maintaining actively the Smacc Pharo port.

@@ -25,7 +25,7 @@ The commander library is structured around three main entities:
 
 - ''commands'' that represent the actions to be executed, 
 - ''command activators'' that represent ways commands are activated (i.e., using shortcuts, menus..) and 
--' 'contexts'' which represent selection of commands. 
+-''contexts'' which represent selection of commands. 
 
 
 
