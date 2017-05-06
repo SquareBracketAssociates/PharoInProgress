@@ -164,10 +164,10 @@ mock someMessage "will fail immediately on call by first condition: flag should 
 ]]]
 Also Mocketry implements process related condition to check that message was synchronously sent (relative to test process):
 [[[
-mock stub someMessage shouldOccurInThisProcess.
+mock stub someMessage shouldBeSentInThisProcess.
 [ mock someMessage ] fork. "will fail immediately on call".
 
-mock stub someMessage shouldOccurInAnotherProcess.
+mock stub someMessage shouldBeSentInAnotherProcess.
 [ mock someMessage ] fork. "will not fail".
 mock someMessage. "will fail immediately on call"
 ]]]
