@@ -1,5 +1,5 @@
 { "title": "A Tutorial about Voyage" }
-
+DEPRECATED CHeck booklet on github 
 This chapter describes a step by step tutorial showing the possibilities offered by Voyage an object to document mapper.
 We will use a simple but not trivial domain: super heroes, super powers and their equipments.
 You will learn how to save and retrieve objects. 
