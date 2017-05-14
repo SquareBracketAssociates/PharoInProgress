@@ -1,5 +1,7 @@
 { "title": "UnifiedFFI" }
 
+DEPRECATED now in booklet on git hub
+
 Foreign Function Interface (FFI) represents the way to call functions/procedures and data structures written in C.
 In this document you will learn about the new FFI framework named Unified FFI, or shortly, uFFI.
 We will present how to invoke functions written in C, access C struct, define callbacks and other frequent situations
