@@ -1,6 +1,6 @@
 { "title": "Commander: A command pattern library" }
 
-In this chapter you will learn about a new library to manage commands. The library is based on three main objects: ''commands'' that represent the actions to be executed, ''command activators'' that represent ways commnads are activated (i.e., using shortcuts, menus..) and ''contexts'' which represent selection of commands. 
+In this chapter you will learn about a new library to manage commands. The library is based on three main objects: ''commands'' that represent the actions to be executed, ''command activators'' that represent ways commnads are activated (i.e., using shortcuts, menus..) and ''contexts'' which represent selection of commands.
 
 !! Commands
 
@@ -21,11 +21,11 @@ The ==RenamePackageCommand== is defined as follows
 
 !! Commands, activators and contexts
 
-The commander library is structured around three main entities: 
+The commander library is structured around three main entities:
 
-- ''commands'' that represent the actions to be executed, 
-- ''command activators'' that represent ways commands are activated (i.e., using shortcuts, menus..) and 
--''contexts'' which represent selection of commands. 
+- ''commands'' that represent the actions to be executed,
+- ''command activators'' that represent ways commands are activated (i.e., using shortcuts, menus..) and
+-''contexts'' which represent selection of commands.
 
 
 
@@ -71,21 +71,21 @@ For example, a system browser shows multiple panes which provide package, class 
 
 To support activators, command should implement several methods: ==What is a standardContext:==?
 
-!!!! canBeExecutedInStandardContext: aToolContext
-The method ==canBeExecutedInStandardContext: == defines whether the command that be executed in a context. By default it returns true. But usually commands query context for specific information.
+!!!! canBeExecutedInContext: aToolContext
+The method ==canBeExecutedInContext: == defines whether the command that be executed in a context. By default it returns true. But usually commands query context for specific information.
 
 For example ==RenamePackageCommand== requires a package and it defines this method as follows:
 
 [[[
-RenamePackageCommand >> canBeExecutedInStandardContext: aToolContext
+RenamePackageCommand >> canBeExecutedInContext: aToolContext
    ^aToolContext isPackageSelected
 ]]]
 
-!!!! prepareFullExecutionInStandardContext: aToolContext
-With the method ==prepareFullExecutionInStandardContext:==, the command should retrieve all state required for execution. It can also ask user for extra data. For example ==RenamePackageCommand== retrieves the package to be renamed from the context and asks the user for new name:
+!!!! prepareFullExecutionInContext: aToolContext
+With the method ==prepareFullExecutionInContext:==, the command should retrieve all state required for execution. It can also ask user for extra data. For example ==RenamePackageCommand== retrieves the package to be renamed from the context and asks the user for new name:
 
 [[[
-RenamePackageCommand >> prepareFullExecutionInStandardContext: aToolContext
+RenamePackageCommand >> prepareFullExecutionInContext: aToolContext
 
     package := aToolContext selectedPackage.
     newName := UIManager default
@@ -98,13 +98,13 @@ RenamePackageCommand >> prepareFullExecutionInStandardContext: aToolContext
 
 Note that to abort command execution, a command can raise the ==CmdCommandAborted== signal.
 
-!!!! applyResultInStandardContext: aToolContext
-Purpose of the method ==applyResultInStandardContext:== is to be able interact with application when command completes. ==I do not like the name of the method== why not ==afterExecution or postActionInStandardContext:==.
+!!!! applyResultInContext: aToolContext
+Purpose of the method ==applyResultInContext:== is to be able interact with application when command completes. ==I do not like the name of the method== why not ==afterExecution or postActionInContext:==.
 
 For example, when a user creates new package from a browser, we want to tool to show the package. We expressed that once the command is executed, the browser should open created package as follows:
 
 [[[
-CreatePackageCommand >> applyResultInStandardContext: aToolContext
+CreatePackageCommand >> applyResultInContext: aToolContext
     aToolContext showPackage: resultPackage
 ]]]
 
@@ -134,11 +134,11 @@ SpecialContextA >> applyResultOf: aCommand
 ==I'm lost: where these methods come from? are they defined?==
 
 
-By default ==CmdCommand== can implement  with standard context methods. And only particular commands will override them specifically:
+By default ==CmdCommand== can implement with standard context methods. And only particular commands will override them specifically:
 
 [[[
 CmdCommand >> prepareFullExecutionInSpecialContextA: aSpecialContextA
-  self prepareFullExecutionInStandardContext: aSpecialContextA
+  self prepareFullExecutionInContext: aSpecialContextA
 
 SomeCommand >> prepareFullExecutionInSpecialContextA: aSpecialContextA
   "special logic to prepare command for execution"
@@ -183,7 +183,7 @@ There is a convenient method to enumerate only executable commands. Here is for 
 [[[
 CmdShortcutCommandActivator
    allExecutableIn: aPackageBrowserContext
-   do: [ :readyActivator |	
+   do: [ :readyActivator |
    please show code that we can execute ]
 ]]]
 
@@ -193,12 +193,12 @@ CmdShortcutCommandActivator
 @abstractMenuActivation
 
 
-==SD:why abstract??==. 
+==SD:why abstract??==.
 
 There are a lot of different types of menu: context menu, toolbar, morphic halo menu, etc.
 All of them are very similar: they show set of items to the user and when user selects one the action associated with item is evaluated. The main difference between them is the way how they are represented to user and where they are shown in application.
 
-The commander library allows the building of different kind of menus based on commands and first class groups. Concrete type of menu is represented by concrete type of activator, subclass of ==CmdMenuCommandActivator==. 
+The commander library allows the building of different kind of menus based on commands and first class groups. Concrete type of menu is represented by concrete type of activator, subclass of ==CmdMenuCommandActivator==.
 
 These activators mark commands to be part of menu:
 
@@ -313,9 +313,9 @@ And together they are supposed to provide all required data for command executio
 
 According to this logic commands should define following supporting methods when they want drag and drop:
 
-- ==prepareExecutionInStandardDragContext: aToolContext==
-- ==prepareExecutionInStandardDropContext: aToolContext==
-- ==canBeExecutedInStandardDropContext: aToolContext==
+- ==prepareExecutionInDragContext: aToolContext==
+- ==prepareExecutionInDropContext: aToolContext==
+- ==canBeExecutedInDropContext: aToolContext==
 
 Also specific contexts can define own set of activation methods:
 
@@ -342,11 +342,11 @@ MoveMethodToClassCommand class >> methodBrowserDragAndDropActivator
 And supporting methods would be:
 
 [[[
-MoveMethodToClassCommand >> prepareExecutionInStandardDragContext: aToolContext
-  super prepareExecutionInStandardDragContext: aToolContext.
+MoveMethodToClassCommand >> prepareExecutionInDragContext: aToolContext
+  super prepareExecutionInDragContext: aToolContext.
   methods := aToolContext selectedMethods
 
-MoveMethodToClassCommand >> prepareExecutionInStandardDropContext: aToolContext
-    super prepareExecutionInStandardDropContext: aToolContext.
+MoveMethodToClassCommand >> prepareExecutionInDropContext: aToolContext
+    super prepareExecutionInDropContext: aToolContext.
     targetClass := aToolContext selectedClass
 ]]]
