@@ -112,7 +112,7 @@ classTags
 
 
 
-!!! Guideline : Class names
+!!! Guideline: Class names
 
 
 
@@ -122,7 +122,7 @@ classTags
 Method names in Pharo are called selectors. There are used in messages and are the main vehicule to convey adequate meaning. The correct use of words and design of selectors is important. 
 
 
-!!! Guideline : selectors as little sentences
+!!! Guideline: selectors as little sentences
 Choose method names so that someone reading the message can read the expression as if it were a sentence. 
 
 [[[
@@ -133,7 +133,7 @@ FileDescriptor lseek: word at: self position
 
 Write test first and make sure that your test scenario read well. 
 
-!!! Guideline : imperative verbs for actions
+!!! Guideline: imperative verbs for actions
 
 Use imperative verbs for message which perform an action.
 
@@ -165,7 +165,24 @@ and
 triggerOptimization
 ]]]
 
-!!!  Guideline : Use interrogative form for testing
+!!! Guideline: Indicate flow
+
+When state, process is going from one object to another one, indicate the direction using meaningful names.
+
+For example ==flattenProperties:== is not a good name because it does not convey where the properties will be flattened.
+[[[
+aConfiguration flattenProperties: aDictionary
+]]]
+
+Better names such ==flattenPropertiesFrom:== and ==flattenPropertiesInto:== are much better because there is no ambiquities.
+
+[[[
+aConfiguration flattenPropertiesFrom: aDictionary
+aConfiguration flattenPropertiesInto: aDictionary
+]]]
+
+
+!!!  Guideline: Use interrogative form for testing
 Use an interrogating the state of an object, use a selector beginning with a verb such as ==has==, ==is==, ==does==,...
 
 [[[
@@ -176,7 +193,7 @@ and not
 atLineEnd
 ]]]
 
-!!!  Guideline : Accessors 
+!!!  Guideline: Accessors 
 
 
 For accessors: 
@@ -205,7 +222,7 @@ tiles: aCollection
 ]]]
 
 
-!!! Guideline : Follow conventions and idioms
+!!! Guideline: Follow conventions and idioms
 
 When designing new objects, you may mimic some practices that the system use already with for example dictionaries, sets,...
 
@@ -225,7 +242,7 @@ stylesheet get: #fontColor
 
 !! Instance initialization
 
-!!! Guideline : Automatic object initialization 
+!!! Guideline: Automatic object initialization 
 
 
 [[[
@@ -235,7 +252,7 @@ Game >> initialize
 ]]]
 
 
-!!! Guideline : No automatic initialize
+!!! Guideline: No automatic initialize
 
 When you do not want to get the automatic initialization to happen you should use the message ==basicNew== on the class side and create your own ==initializeSomething:== method. 
 
@@ -252,7 +269,7 @@ Game >> initializeNumber: aNumber
 
 !! Powerful coding idioms
 
-!!! Guideline : Do not query twice for the same objects
+!!! Guideline: Do not query twice for the same objects
 
 The message ==ifNotNil:== expects a block 
 
@@ -273,7 +290,7 @@ Similarly have a look at the messages containing the ==ifPresent:== variation.
 
 !! Code formatting
 
-!!! Guideline :
+!!! Guideline:
 
 !! Potential traps
 
