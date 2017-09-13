@@ -32,7 +32,7 @@ In Calypso users query environment for specific set of objects.
 
 First you need environment instance. There is global one for current image:
 [[[
-env := ClyNavigationEnvironment currentImage
+env := ClySystemNavigationEnvironment currentImage
 ]]]
 It is navigation environment which is created over some system environment. In this case it is current image:
 [[[
@@ -42,7 +42,7 @@ System environment models the image. It includes package manager, globals and sy
 
 You can use your own navigation instance instead of global one:
 [[[
-env := ClyNavigationEnvironment over: ClySystemEnvironment currentImage
+env := ClySystemNavigationEnvironment over: ClySystemEnvironment currentImage
 ]]]
 External libraries can provide own system environment and Calypso will be able browse it. For example new version of Ring allows browse code repository with all Calypso features.
 
