@@ -1,31 +1,33 @@
 { "title": "Travis and Bintray for your Pillar projects" }
 
+We will use bintray to store the latest pdf produced by travis and we will use github to store the released pdf.
 
-!! How to render automatically your pillar file as pdf 
 
-We will use bintray to store the latest pdf and we will use github the released pdf. 
+!! Storing work in progress in bintray
 
 !!! Create an account in bintray
-Create an account on bintray at https://bintray.com/
-You may link it or not to your github account
+
+You should have an account on bintray *https://bintray.com/*
+You may link it or not to your github account.
 
 !!! Obtain an encoded API key for BinTray
 
-In your bintray profile get your API key (copy it to your copy paste buffer)
+In your bintray profile get your API key (copy it to your copy paste buffer). This is key is important
+because without it you will not be able to make travis use bintray. To be used in travis it should be encrypted.
 
-In your machine in the github folder
+In your machine in the github folder 
 
 [[[
 > travis login --auto
-> travis encrypt Your API Key from bintray 
+> travis encrypt 'Your API Key from Bintray'
 ]]]
 
-You use the resulting key in your .travis.yml configuration file. 
+You will use the resulting key in your .travis.yml configuration file.
 
 !!! Add and edit the .travis.yml file
 
-Here is the .travis.yml of the Learning programming project
-Not that the configuration also 
+Here is the .travis.yml of the Learning oo programming project:
+
 [[[
 sudo: required
 services:
@@ -48,7 +50,43 @@ deploy:
     secure: DLT5e+3+U3jaooTLVN6JPcavMS+5XzFwNIfsK7QLYefzOZfBR8lt2vHtX2OxcdyKNfuzh0EaIDUR9a6+/Eg/wAcxjFDEO94ftb7rD7YHJ1Tc7r4AaeKwrdwyL6VgbN0ZNZqtXsTWGg+4XgHvSq0KVAR9K1IKSwJYPWwjJwDexakY2/ZpRg6R0OgaZwhtTEbbUn/pnoVQl3VfNlCjiI+ZLDqPKf/UfovVv7tzqdHeLK73MJN36Ri8IGTP5QaSYHBBko8mTv4EoVH7HuuSLAa60NBOScksYY5LjsS7OdzIwipmk4xwxcp2QXtVjf2uNKCKIISVRMzesdmUnsuL/qReJh7pfn21a38ZEEjJPPWSnwA8iI+GHUiCcLuHdw1+ilmIqxF3w8gSunM3aUv4a/qQm641DpGPawnYBbnFGPyEkxpCB1HXIsRRJeBs2UEkFmhOHyGWGl0+jx3iihwe72HMKRYeXcDHKOn1gU+pJQ50PBXFsTotOr7wkZ6OGsKO0XecNsZGodsQ4lPVxfJolnKhkxIouzCagd3wO0iseG1vOyi5JrRT+NPsZp7TKBrHIDAUb0LG+F8qC/IXHhTYo7ZywF5ZjIV9UZo/kZP0EQ8pstUlD4V4DWRYV1KQSpORM01wpdcZFDb5ExLvEck6Sv1cuW9QYBst+lDVpoSpbXSnSDc=
 ]]]
 
-!! Add and Edit the .bintray.json file 
+!!! Some explanations
+Let us explain some parts:
+
+[[[
+sudo: required
+services:
+- docker
+
+before_install:
+- docker pull dpollet/texlive:pillar
+
+script:
+- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make spiralbook
+]]]
+
+Our script uses the docker container containing an installed version of texlive and pillar. 
+The script invokes make to build the book. ==make spiralbook== builds the book in spiral lulu format.
+
+Then the deploy section indicates to use the file .bintray. as a specification to store the result of the build to the bintray repository for the account ducasse and this is there that you should paste your encrypted key. 
+
+[[[
+deploy:
+- provider: bintray
+  file: .bintray.json
+  on:
+    repo: SquareBracketAssociates/LearningOOPWithPharo
+  skip_cleanup: true
+  user: ducasse
+  key:
+      secure: DLT5e+3+U3jaooTLVN6JPcavMS+5XzFwNIfsK7QLYefzOZfBR8lt2vHtX2OxcdyKNfuzh0EaIDUR9a6+/Eg/wAcxjFDEO94ftb7rD7YHJ1Tc7r4AaeKwrdwyL6VgbN0ZNZqtXsTWGg+4XgHvSq0KVAR9K1IKSwJYPWwjJwDexakY2/ZpRg6R0OgaZwhtTEbbUn/pnoVQl3VfNlCjiI+ZLDqPKf/UfovVv7tzqdHeLK73MJN36Ri8IGTP5QaSYHBBko8mTv4EoVH7HuuSLAa60NBOScksYY5LjsS7OdzIwipmk4xwxcp2QXtVjf2uNKCKIISVRMzesdmUnsuL/qReJh7pfn21a38ZEEjJPPWSnwA8iI+GHUiCcLuHdw1+ilmIqxF3w8gSunM3aUv4a/qQm641DpGPawnYBbnFGPyEkxpCB1HXIsRRJeBs2UEkFmhOHyGWGl0+jx3iihwe72HMKRYeXcDHKOn1gU+pJQ50PBXFsTotOr7wkZ6OGsKO0XecNsZGodsQ4lPVxfJolnKhkxIouzCagd3wO0iseG1vOyi5JrRT+NPsZp7TKBrHIDAUb0LG+F8qC/IXHhTYo7ZywF5ZjIV9UZo/kZP0EQ8pstUlD4V4DWRYV1KQSpORM01wpdcZFDb5ExLvEck6Sv1cuW9QYBst+lDVpoSpbXSnSDc=
+]]]
+
+Note that the ==skyp_cleanup: true== is a way to circumvent some strange behavior. 
+
+
+!!! Add and Edit the .bintray.json file 
+Now we should a .bintray.json configuration file. 
 
 Here is the one of the *https://github.com/SquareBracketAssociates/LearningOOPWithPharo*
 
@@ -87,13 +125,16 @@ more .bintray.json
 }
 ]]]
 
+The most important is probably the files part. It lets you specify the files that you select in the build and how the files can be renamed when uploaded to bintray. ==$1== denotes the part in ==()==. 
 
-!! for Github integration 
+!! For Github integration 
 
-For a given checkout you should generate the associated token. 
+For a given checkout you should generate the associated token.
+In your github repository you should mention to travis that you will be interested by sotring releases files 
+in the github release tab. 
 
 [[[
-travis setup releases
+> travis setup releases
 ]]]
 
 Here is the full .travis.yml with the github integration
@@ -119,7 +160,7 @@ deploy:
   key:
     secure: ThnjhD8OMRlL5NmsK8dGQR4mpzXG2Kj2NeWHA5oHCO4YTaK0fKLPHF8YcjlyQorESX6+Z/Q0ihtTq1/3GguH8rzjAS8DrgArB3Stcg6npfyB3svyeVWXTKP8EPLHtenBnLANWTj/tYfHd6egDltJlxGMrEd5tHzl8CNlD+mmfQA1VhXUEmh8pw8P6VfFDWiL+bHG/Am1DI8SspcuQbYcKzh6ZdadvXwpEfQr07VTc0w4zygRk6h8z+76wX8N7xebr66aLe9FipZ0d3dYYfhZl3mtsOoUJmvGpnsSYt3h3I9TnOTeZjGAUEfzxdoZ6CRMIExUhNU7VEBMN4FKP8Oic8Eu1i/Ay7cM74mwGgJCX8DE0M/y0DJqJoKEk+NojoZfSgSzwslE1hXSZSaAJoTr9EDkZwEpVDCep42TVZyOYa+GICZCWpO999KYZlm8ItD4EJsqu8s2pipEMmcLGbGDBejuQ/30NRvelNG6xcT0wTg4595zNuP4k9cOYG9RddlqDzy8E333oz+cJ2R9zolsQpNHZtsQvKvbamRt0fsKjOgGv/a4Wslp1ZczWezRbBCxWC8wvtYSn1MWraQUGh6E3OrljoplbgUmOY/XLsAJeeFxIAmOwUzo2PK5S43nEhKQQNr/CmP4TAL9P3wbsBhQ/WXa4f8lUSeexDzrK7qY8J0=
 - provider: releases
-  file: build/learningoop.pdf
+  file: build/learningoop.spiral.pdf
   on:
     tags: true
   skip_cleanup: true
@@ -128,9 +169,21 @@ deploy:
 ]]]
 
 
+The expression file: ==build/learningoop.pdf== identifies the file produced by ==make==. Pay attention because spiralbook produces learningoop.spiral.pdf
+
+The expression 
+[[[
+  on:
+    tags: true
+]]]
+
+expresses the fact that the script will only trigger for 
+
+Note: We should add how we generated the key. It is not your bintray key. Probably travis encrypt your github token key. 
+
 !! How to add a new released file in your git hub account 
 
-To release a pdf that will be stored on github in the booklet repo we should create a annotated tag.
+To release a pdf that will be stored on github in the booklet repository, we should create an annotated tag.
 
 [[[
 git tag -a v1.0-Pharo50
