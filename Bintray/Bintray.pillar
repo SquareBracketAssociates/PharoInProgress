@@ -1,0 +1,161 @@
+{ "title": "Travis and Bintray for your Pillar projects" }
+
+
+!! How to render automatically your pillar file as pdf 
+
+We will use bintray to store the latest pdf and we will use github the released pdf. 
+
+!!! Create an account in bintray
+Create an account on bintray at https://bintray.com/
+You may link it or not to your github account
+
+!!! Obtain an encoded API key for BinTray
+
+In your bintray profile get your API key (copy it to your copy paste buffer)
+
+In your machine in the github folder
+
+[[[
+> travis login --auto
+> travis encrypt Your API Key from bintray 
+]]]
+
+You use the resulting key in your .travis.yml configuration file. 
+
+!!! Add and edit the .travis.yml file
+
+Here is the .travis.yml of the Learning programming project
+Not that the configuration also 
+[[[
+sudo: required
+services:
+- docker
+
+before_install:
+- docker pull dpollet/texlive:pillar
+
+script:
+- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make spiralbook
+
+deploy:
+- provider: bintray
+  file: .bintray.json
+  on:
+    repo: SquareBracketAssociates/LearningOOPWithPharo
+  skip_cleanup: true
+  user: ducasse
+  key:
+    secure: DLT5e+3+U3jaooTLVN6JPcavMS+5XzFwNIfsK7QLYefzOZfBR8lt2vHtX2OxcdyKNfuzh0EaIDUR9a6+/Eg/wAcxjFDEO94ftb7rD7YHJ1Tc7r4AaeKwrdwyL6VgbN0ZNZqtXsTWGg+4XgHvSq0KVAR9K1IKSwJYPWwjJwDexakY2/ZpRg6R0OgaZwhtTEbbUn/pnoVQl3VfNlCjiI+ZLDqPKf/UfovVv7tzqdHeLK73MJN36Ri8IGTP5QaSYHBBko8mTv4EoVH7HuuSLAa60NBOScksYY5LjsS7OdzIwipmk4xwxcp2QXtVjf2uNKCKIISVRMzesdmUnsuL/qReJh7pfn21a38ZEEjJPPWSnwA8iI+GHUiCcLuHdw1+ilmIqxF3w8gSunM3aUv4a/qQm641DpGPawnYBbnFGPyEkxpCB1HXIsRRJeBs2UEkFmhOHyGWGl0+jx3iihwe72HMKRYeXcDHKOn1gU+pJQ50PBXFsTotOr7wkZ6OGsKO0XecNsZGodsQ4lPVxfJolnKhkxIouzCagd3wO0iseG1vOyi5JrRT+NPsZp7TKBrHIDAUb0LG+F8qC/IXHhTYo7ZywF5ZjIV9UZo/kZP0EQ8pstUlD4V4DWRYV1KQSpORM01wpdcZFDb5ExLvEck6Sv1cuW9QYBst+lDVpoSpbXSnSDc=
+]]]
+
+!! Add and Edit the .bintray.json file 
+
+Here is the one of the *https://github.com/SquareBracketAssociates/LearningOOPWithPharo*
+
+[[[
+more .bintray.json
+]]]
+
+[[[
+
+{
+    "package": {
+        "name": "Loop",
+        "repo": "wip",
+        "subject": "squarebracketassociates",
+        "desc": "Learning OOP with Pharo",
+        "licenses": ["MIT"],
+        "website_url": "https://github.com/SquareBracketAssociates/LearningOOPWithPharo",
+        "issue_tracker_url": "https://github.com/SquareBracketAssociates/LearningOOPWithPharo/issues",
+        "vcs_url": "https://github.com/SquareBracketAssociates/LearningOOPWithPharo.git",
+        "labels": ["work-in-progress"]
+    },
+
+    "version": {
+        "name": "latest",
+        "desc": "Latest successful build"
+    },
+
+    "files": [
+        {
+            "includePattern": "build/(learningoop).pdf",
+            "uploadPattern": "$1-wip.pdf",
+            "matrixParams": { "override": 1 }
+        }
+    ],
+    "publish": true
+}
+]]]
+
+
+!! for Github integration 
+
+For a given checkout you should generate the associated token. 
+
+[[[
+travis setup releases
+]]]
+
+Here is the full .travis.yml with the github integration
+
+[[[
+sudo: required
+services:
+- docker
+
+before_install:
+- docker pull dpollet/texlive:pillar
+
+script:
+- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make spiralbook
+
+deploy:
+- provider: bintray
+  file: .bintray.json
+  on:
+    repo: SquareBracketAssociates/LearningOOPWithPharo
+  skip_cleanup: true
+  user: ducasse
+  key:
+    secure: ThnjhD8OMRlL5NmsK8dGQR4mpzXG2Kj2NeWHA5oHCO4YTaK0fKLPHF8YcjlyQorESX6+Z/Q0ihtTq1/3GguH8rzjAS8DrgArB3Stcg6npfyB3svyeVWXTKP8EPLHtenBnLANWTj/tYfHd6egDltJlxGMrEd5tHzl8CNlD+mmfQA1VhXUEmh8pw8P6VfFDWiL+bHG/Am1DI8SspcuQbYcKzh6ZdadvXwpEfQr07VTc0w4zygRk6h8z+76wX8N7xebr66aLe9FipZ0d3dYYfhZl3mtsOoUJmvGpnsSYt3h3I9TnOTeZjGAUEfzxdoZ6CRMIExUhNU7VEBMN4FKP8Oic8Eu1i/Ay7cM74mwGgJCX8DE0M/y0DJqJoKEk+NojoZfSgSzwslE1hXSZSaAJoTr9EDkZwEpVDCep42TVZyOYa+GICZCWpO999KYZlm8ItD4EJsqu8s2pipEMmcLGbGDBejuQ/30NRvelNG6xcT0wTg4595zNuP4k9cOYG9RddlqDzy8E333oz+cJ2R9zolsQpNHZtsQvKvbamRt0fsKjOgGv/a4Wslp1ZczWezRbBCxWC8wvtYSn1MWraQUGh6E3OrljoplbgUmOY/XLsAJeeFxIAmOwUzo2PK5S43nEhKQQNr/CmP4TAL9P3wbsBhQ/WXa4f8lUSeexDzrK7qY8J0=
+- provider: releases
+  file: build/learningoop.pdf
+  on:
+    tags: true
+  skip_cleanup: true
+  api_key:
+    secure: pRfu3fr35BzqQDi1ul0SubPSwO8zcyIidqLRZPz3XIrH4qoy1Zgnq785dmB7ziNQqH+VJyh7askSFY3JLxL0d4P0eUgj2ZDIOhJsUQQ/ihevOBWbxlMOoEPjQfzA11l8WrNCQ566KrcYiISRi7bCg698kPTWSRwOmmvqXOJe5zGkuUbVmMNUV2oxaNV4JC8kVyVWHYy0nNMLEX/hzRZRh1+8K34/ds+fZ7irLrbDWMbKGHCyuLCSqv+zJJdu99nWLTclrCxFzK4DEHaMlFiO7wkUpyQLwZ38EDnb3E7iv045jSqCx3XB+DMRG1Da2/9BIXl0mho5ELdEvfGVAbjI2no5FWd0H1cs4/banAePCFnM7ZscJBaPWgVajB7EzrcADJUoxpmU6+6n1aIC3CnjscfAHqSAKGv8CO/Jh+Uirc8ATRpSqa73f2Nnj9tRCqwCOnFOCEzu0w5l3Ppz2Qpif04P+QbebZehSVaBJ4W01R2i8Rac3IuZDhZVaek1X24HFxUOd/rvHpbhz8eeANdnsWCTkAm+0sD+iKsWKICRMxFZfCK/SPldAcjXZsOsEMTqfx7ZWyCc7GeesQWcmW+z3shziyQd9tdeArJWLwacly3hH3WeyuUD5JyPF9klvDBtHgTVajdU4yp+3oXsrtTmetnBz+RESxQGdLgZRlQBQog=
+]]]
+
+
+!! How to add a new released file in your git hub account 
+
+To release a pdf that will be stored on github in the booklet repo we should create a annotated tag.
+
+[[[
+git tag -a v1.0-Pharo50
+git push --tags
+]]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
