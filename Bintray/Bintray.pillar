@@ -127,6 +127,18 @@ more .bintray.json
 
 The most important is probably the files part. It lets you specify the files that you select in the build and how the files can be renamed when uploaded to bintray. ==$1== denotes the part in ==()==. 
 
+!!! Configuration your github account
+
+In addition you should enable you project on the travis web site. Check 
+
++Enabling your github project on travis.>file://figures/travis.png|label=editor|width=80+
+
+
+Finally you should enable the travis integration from your github repostiory.
+
++Enabling the travis service in your github account.>file://figures/configuringServices.png|label=editor|width=80+
+
+
 !! For Github integration 
 
 For a given checkout you should generate the associated token.
