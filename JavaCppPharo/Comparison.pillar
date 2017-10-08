@@ -221,6 +221,12 @@ var = 1 + 1;
 var2 = var + 2;
 ]]]
 
+""Python""
+[[[language=python
+var = 1 + 1
+var2 = var +2
+]]]
+
 !!! Assignment
 - Assignment ==:\===
 - Equality by value ==\=== (non-equality ==~\===) (do they have the same value?)
@@ -235,6 +241,15 @@ a == b.
 >>> false "different objects"
 ]]]
 
+[[[language=python
+a = "hello"
+b = "hello"
+a == b
+>>> true "same value"
+a is b
+>>> false "diffirent objects"
+]]]
+
 !!! Strings
 - String in single quotes, two single quotes for escaping
 
@@ -245,12 +260,32 @@ a := 'hello ''world'''.
 ">>> hello 'world'"
 ]]]
 
+""Python""
+[[[language=python
+a = 'string'.
+a = "string"
+a = """string""" # used mostly for documentation
+">>> string"
+a = "hello ''world'". 
+">>> hello 'world'"
+]]]
+
 !!! Comments
 
 Comments are in double quotes, two double quotes for escaping.
 [[[language=smalltalk
 "I am a ""comment"""
 ]]]
+
+""Python""
+[[[language=python
+# this is one line comment
+""" 
+this is a doc string
+doc string are used to generater documentation
+"""
+]]]
+
 
 !! Basics of if/while
 
@@ -277,6 +312,15 @@ if (person.getAge() > 18) {
 ]
 ]]]
 
+""Python""
+[[[language=python
+if person age > 18 :
+  person .hug(beer)
+else : 
+   bouncer kickOut: person
+
+]]]
+
 - ==ifTrue:==, resp. ==ifTrue:ifFalse:==, resp. ==ifFalse:== are regular methods implemented in the ==Boolean==/==True==/==False== objects
 - Arguments are regular blocks (see earlier)
 
@@ -294,6 +338,12 @@ while (!earth.isDestroyed()) {
 [ earth isDestroyed not ] whileTrue: [
 	people produceGarbage
 ]
+]]]
+
+""Python""
+[[[language=python
+while not earth.isDestroyed():
+  people.produceGarbage()
 ]]]
 
 - On every loop the first block is evaluated, and if the result is true, the second block is evaluated
@@ -315,6 +365,12 @@ for (int i = 0; i < 50; ++i) {
 ]
 ]]]
 
+""Python""
+[[[language=python
+for x in range(1,50):
+  ....
+]]]
+
 !!! foreach
 
 ""Java""
@@ -331,7 +387,11 @@ people do: [ :person |
 ]
 ]]]
 
-
+""Python""
+[[[language=python
+for person in people:
+  ....
+]]]
 !! Basics of Blocks
 
 In other languages also known as anonymous functions, closures, or lambda expressions (note: there are some differences between them, but that's outside of this piece).
