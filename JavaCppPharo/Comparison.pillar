@@ -16,7 +16,6 @@ list.clear();
 
 ""Python""
 [[[language=python
-
 list.clear()
 ]]]
 
@@ -34,6 +33,10 @@ Math.sin(200)
 200 sin
 ]]]
 
+""Python""
+[[[language=python
+math.sin(100)
+]]]
 
 
 ""Pharo""
@@ -42,10 +45,16 @@ Math.sin(200)
 7 asString.
 ]]]
 
+
 ""Java""
 [[[language=java
 int x = 7;
 (new Integer(x)).toString();
+]]]
+
+""Python""
+[[[language=python
+str(7)
 ]]]
 In Java primitive types (int, float, ...) are not actually objects, but primitive types. To call methods on them, they must be boxed to classes.
 
@@ -75,6 +84,11 @@ Note that binary messages are evaluated left to right without any changes based 
 >>> 20
 ]]]
 
+""Python""
+[[[language=python
+ 120 == math.factorial(5)
+]]]
+
 
 !!! Defining binary messages
 There is no special syntax to define binary messages.
@@ -101,7 +115,15 @@ class DiceBag {
 }
 ]]]
 
+
 Note that overloaded C++ operators still follow Math precedence, which doesn't necessarily make sense in a general context.
+
+""Python""
+[[[language=python
+def __add__(self,aDie):
+  dice + aDie
+]]]
+
 
 !! Keyword messages
 A keyword message is a message with multiple arguments.
@@ -117,6 +139,11 @@ The message is ==add:== with argument 12 and it is sent to the ==list== variable
 list.add(12);
 ]]]
 
+""Python""
+[[[language=python
+list.add(12)
+]]]
+
 
 ""Pharo""
 [[[language=smalltalk
@@ -127,6 +154,11 @@ The message is ==at:put:== with arguments ==key== and ==value==.
 Java
 [[[language=java
 dictionary.put("key", "value"); // easy to swap arguments by mistake
+]]]
+
+""Python""
+[[[language=python
+dictionary.put(at='key',value='value')
 ]]]
 
 
@@ -141,6 +173,12 @@ Message is ==between:and:== with arguments 1 and 10 send to the object 3.
 [[[language=java
 (new Integer(3)).between(1, 10); // assuming such method would exist
 ]]]
+
+""Python""
+[[[language=python
+3 in range(1,10)
+]]]
+
 
 !! Message priority
 Messages are executed by priority based on their kind (unary, binary, keywords):
