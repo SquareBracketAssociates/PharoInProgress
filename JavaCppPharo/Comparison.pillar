@@ -282,7 +282,7 @@ Comments are in double quotes, two double quotes for escaping.
 # this is one line comment
 """ 
 this is a doc string
-doc string are used to generater documentation
+doc string are used to generate documentation
 """
 ]]]
 
@@ -315,9 +315,9 @@ if (person.getAge() > 18) {
 ""Python""
 [[[language=python
 if person age > 18 :
-  person .hug(beer)
+  person.chug(beer)
 else : 
-   bouncer kickOut: person
+   bouncer.kick_out(person)
 
 ]]]
 
